@@ -1,0 +1,451 @@
+:root {
+    --cor-principal: #FF7D14;
+    --cor-secundaria:#4A6780 ;
+    --cor-branco: white;
+    --cor-preto: black;
+}
+
+body {
+    background-color: #ffdcbe38;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    background-color: rgb(255, 255, 255);
+    height: 70px;
+    padding: 10px;
+    box-shadow: 0 2px 30px rgba(181, 141, 80, 0.1);
+}
+
+.navbar_logo {
+    display: flex;
+    width: 300px;
+    height: 100%;
+    justify-content: start;
+    align-items: center;
+    font-size: 19px;
+    padding-left: 70px;
+}
+
+.navbar_logo img {
+    width: 190px;
+    height: 35px;
+}
+
+.button {
+    font-display: block;
+    justify-content: end;
+    align-items: center;
+    width: auto;
+}
+
+.navbar_btn_login,
+.navbar_btn_register {
+    border: solid var(--cor-principal) 1px;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.navbar_btn_login {
+    background-color: var(--cor-principal);
+    color: var(--cor-branco);
+    border: none;
+}
+
+.navbar_btn_register {
+    color: var(--cor-principal);
+    border: solid 1px var(--cor-principal);
+    background-color: var(--cor-branco);
+    margin: 0px 70px 0px 20px;
+}
+
+.navbar_btn_login:hover,
+.navbar_btn_register:hover {
+    background-color: var(--cor-secundaria);
+    color: var(--cor-branco);
+    border: none;
+    padding: 12px 22px;
+}
+
+.principal {
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    height: 70vh;
+    margin-top: 50px;
+    gap: 30px;
+}
+
+.principal h2 {
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: var(--cor-secundaria);
+}
+
+.principal_section1,
+.principal_section2 {
+    width: 45%;
+    padding: 10px;
+}
+
+.principal_section2 img {
+    border-radius: 10px;
+}
+
+.principal_section2 {
+    padding: 30px;
+}
+
+.principal_section1 p {
+    margin-bottom: 30px;
+    font-weight: lighter;
+    font-size: bold;
+}
+
+.busca_quadra {
+    display: flex;
+    height: 190px;
+    align-items: start;
+    border-radius: 5px;
+    background-color: var(--cor-branco);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+}
+
+.container-fluid h6 {
+    margin: 20px 2px;
+    color: var(--cor-secundaria);
+    font-weight:bold;
+}
+
+.btn-outline-success {
+    color: var(--cor-branco);
+    background-color: var(--cor-principal);
+    border: var(--cor-principal);
+}
+
+.btn-outline-success:hover {
+    background-color: var(--cor-secundaria);
+}
+
+.btn-location {
+    background-color: var(--cor-branco);
+    color: var(--cor-principal);
+    padding: 5px 15px;
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid var(--cor-principal);
+}
+
+.btn-location:hover {
+    border: solid grey 1px;
+    border-radius: 10px;
+    padding: 5px 15px;
+    font-size: 16px;
+    color: var(--cor-secundaria);
+
+}
+
+.btn-location img{
+    height: 20px;
+    width: 20px;
+    margin-right: 5px;
+    margin-bottom: 3px;
+}
+
+.principal_section3 {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background-color: var(--cor-branco);
+    height: 300px;
+}
+
+.principal_section3_title{
+    text-align: center;
+    margin: 20px 0px;
+    color: var(--cor-secundaria);
+    font-weight: bold;
+}
+
+.principal_section3_columns{
+    display: flex;
+    justify-content: space-around;
+    height: 100%;
+}
+
+.principal_section3_columns div{
+    text-align: center;
+    height: 100%;
+    width: 20%;
+    padding: 20px;
+}
+
+.principal_section3_columns h6{
+    font-size: 17px;
+    color: var(--cor-secundaria);
+    font-weight: bold;
+}
+
+.principal_section3_columns p{
+    font-size: 15px;
+}
+
+.principal_section3_columns img{
+    margin-bottom: 20px;
+}
+
+footer{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 150px;
+}
+
+.menu-sub-nav {
+    background-color: #ff851b; /* Laranja da imagem */
+    padding: 10px 0;
+}
+
+.nav-item-link {
+    color: white;
+    text-decoration: none;
+    padding: 0 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espaço entre ícone e texto */
+    border-color: rgba(255, 255, 255, 0.3) !important; /* Cor das linhas divisórias */
+}
+
+.nav-item-link:hover {
+    color: #f8f9fa;
+    opacity: 0.9;
+}
+
+/* Estilo para o botão "Todas as Quadras" que está em destaque branco */
+.nav-item-link.active {
+    background-color: white;
+    color: #ff851b;
+    border-radius: 8px;
+    margin: 0 10px;
+    padding: 5px 15px;
+    font-weight: bold;
+}
+
+/* Cores principais */
+:root {
+    --primary-orange: #ff8c00;
+    --light-orange: #fff4e6;
+}
+
+.bg-orange { background-color: var(--primary-orange) !important; }
+.text-orange { color: var(--primary-orange); }
+.border-orange { border-color: var(--primary-orange) !important; }
+.bg-light-green { background-color: #d4edda; }
+
+/* Menu Sub-nav */
+.nav-item-link-custom {
+    color: white;
+    text-decoration: none;
+    padding: 5px 15px;
+    font-weight: 500;
+    opacity: 0.9;
+}
+.nav-item-link-custom.active {
+    background: white;
+    color: var(--primary-orange);
+    border-radius: 5px;
+    opacity: 1;
+}
+
+/* Card Estilo */
+.card-quadra { transition: transform 0.2s; }
+.card-quadra:hover { transform: translateY(-5px); }
+
+.btn-orange-action {
+    background-color: var(--primary-orange);
+    border: none;
+}
+
+.btn-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.3);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-arrow.left { left: 5px; }
+.btn-arrow.right { right: 5px; }
+.border-orange {
+    border-color: #ff8c00 !important;
+}
+
+.text-orange {
+    color: #ff8c00 !important;
+}
+
+.btn-orange {
+    background-color: #ff8c00 !important;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-orange:hover {
+    background-color: #e67e00 !important;
+    transform: scale(1.02);
+}
+
+/* Garante que o input focado também brilhe em laranja */
+.form-control:focus {
+    border-color: #ff8c00;
+    box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25);
+}
+/* =========================================
+   Cores e Backgrounds
+   ========================================= */
+.bg-laranja-principal {
+    background-color: #FF8C00;
+}
+
+.texto-escuro {
+    color: #2D3748;
+}
+
+/* =========================================
+   Menu Secundário (Topo)
+   ========================================= */
+.menu-secundario a {
+    color: #ffffff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.menu-secundario a:hover {
+    opacity: 0.8;
+}
+
+.menu-secundario a.ativo {
+    font-weight: bold;
+    background-color: #ffffff;
+    color: #FF8C00 !important; /* Força a cor laranja no link ativo */
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem; /* Equivalente ao rounded do Bootstrap */
+}
+
+/* =========================================
+   Componentes Gerais
+   ========================================= */
+.card-arredondado {
+    border-radius: 10px;
+}
+
+.card-partida {
+    border-radius: 12px;
+}
+
+.btn-laranja {
+    background-color: #FF8C00;
+    color: #ffffff;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-laranja:hover {
+    background-color: #e67e00;
+    color: #ffffff;
+}
+
+.btn-outline-laranja {
+    border-color: #FF8C00;
+    color: #FF8C00;
+}
+
+.btn-outline-laranja:hover {
+    background-color: #FF8C00;
+    color: #ffffff;
+}
+
+/* =========================================
+   Mapa Miniatura
+   ========================================= */
+.mapa-container {
+    border-radius: 0.5rem; /* Equivalente ao rounded-3 */
+    overflow: hidden;
+    height: 150px;
+    background-color: #e9ecef;
+}
+
+.mapa-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* =========================================
+   Detalhes do Card de Partida
+   ========================================= */
+.badge-destaque {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #ffc107; /* warning color */
+    color: #fff;
+    font-weight: bold;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px 0 12px 0;
+    font-size: 0.8rem;
+    z-index: 10;
+}
+
+.icone-esporte {
+    width: 120px;
+    height: 100px;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* =========================================
+   Grupo de Avatares (Jogadores)
+   ========================================= */
+.grupo-avatares {
+    display: flex;
+    align-items: center;
+}
+
+.grupo-avatares img,
+.grupo-avatares .avatar-extra {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    margin-left: -10px; /* Cria o efeito de sobreposição */
+}
+
+/* Corrige a margem do primeiro elemento para não ficar fora do alinhamento */
+.grupo-avatares img:first-child {
+    margin-left: 0;
+}
+
+.grupo-avatares .avatar-extra {
+    background-color: #f8f9fa; /* bg-light */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #6c757d;
+}
