@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\Sexo;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -32,7 +34,36 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+            'role' => UserRole::Jogador,
+            'cpf' => fake()->unique()->numerify('###########'),
+            'data_nascimento' => fake()->dateTimeBetween('-60 years', '-18 years')->format('Y-m-d'),
+            'sexo' => fake()->randomElement(Sexo::cases()),
+            'endereco' => fake()->streetAddress(),
+            'cep' => fake()->numerify('########'),
+            'cidade' => fake()->city(),
+            'estado' => fake()->randomElement(['SP', 'RJ', 'MG', 'PE', 'BA', 'PR', 'RS']),
+            'telefone' => fake()->numerify('###########'),
         ];
+    }
+
+    /**
+     * Indicate that the user owns sports courts.
+     */
+    public function donoQuadra(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => UserRole::DonoQuadra,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an administrator.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => UserRole::Admin,
+        ]);
     }
 
     /**

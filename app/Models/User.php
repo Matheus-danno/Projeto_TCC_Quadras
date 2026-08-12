@@ -3,7 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Sexo;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -23,6 +27,15 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'cpf',
+        'data_nascimento',
+        'sexo',
+        'endereco',
+        'cep',
+        'cidade',
+        'estado',
+        'telefone',
     ];
 
     /**
@@ -47,6 +60,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
+            'sexo' => Sexo::class,
+            'data_nascimento' => 'date',
         ];
     }
 
@@ -60,5 +76,39 @@ class User extends Authenticatable
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
+    }
+
+    /**
+     * Quadras que este usuário possui como dono.
+     */
+    public function quadras(): HasMany
+    {
+        return $this->hasMany(Quadra::class, 'dono_id');
+    }
+
+    /**
+     * Reservas feitas por este usuário.
+     */
+    public function reservas(): HasMany
+    {
+        return $this->hasMany(Reserva::class);
+    }
+
+    /**
+     * Salas criadas por este usuário.
+     */
+    public function salasCriadas(): HasMany
+    {
+        return $this->hasMany(Sala::class, 'criador_id');
+    }
+
+    /**
+     * Salas das quais este usuário participa.
+     */
+    public function salas(): BelongsToMany
+    {
+        return $this->belongsToMany(Sala::class, 'participacao_salas')
+            ->using(ParticipacaoSala::class)
+            ->withTimestamps();
     }
 }
