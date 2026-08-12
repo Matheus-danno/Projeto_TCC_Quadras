@@ -1,9 +1,9 @@
 @extends('layouts.bootstrap')
 
-@section('titulo', 'Encontre um Time')
+@section('titulo', 'Criar Nova Sala')
 
 @section('conteudo')
     @include('partials.sub-nav')
 
-    <livewire:salas.listagem />
+    <livewire:salas.criar />
 @endsection

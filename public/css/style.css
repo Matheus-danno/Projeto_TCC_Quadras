@@ -205,37 +205,6 @@ footer{
     height: 150px;
 }
 
-.menu-sub-nav {
-    background-color: #ff851b; /* Laranja da imagem */
-    padding: 10px 0;
-}
-
-.nav-item-link {
-    color: white;
-    text-decoration: none;
-    padding: 0 20px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px; /* Espaço entre ícone e texto */
-    border-color: rgba(255, 255, 255, 0.3) !important; /* Cor das linhas divisórias */
-}
-
-.nav-item-link:hover {
-    color: #f8f9fa;
-    opacity: 0.9;
-}
-
-/* Estilo para o botão "Todas as Quadras" que está em destaque branco */
-.nav-item-link.active {
-    background-color: white;
-    color: #ff851b;
-    border-radius: 8px;
-    margin: 0 10px;
-    padding: 5px 15px;
-    font-weight: bold;
-}
-
 /* Cores principais */
 :root {
     --primary-orange: #ff8c00;
@@ -247,19 +216,28 @@ footer{
 .border-orange { border-color: var(--primary-orange) !important; }
 .bg-light-green { background-color: #d4edda; }
 
-/* Menu Sub-nav */
-.nav-item-link-custom {
-    color: white;
-    text-decoration: none;
-    padding: 5px 15px;
-    font-weight: 500;
-    opacity: 0.9;
+/* Sub-nav laranja, padrão único usado em todas as páginas internas */
+.sub-nav {
+    background-color: var(--primary-orange);
 }
-.nav-item-link-custom.active {
-    background: white;
-    color: var(--primary-orange);
-    border-radius: 5px;
-    opacity: 1;
+.sub-nav-link {
+    color: #fff;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 500;
+    white-space: nowrap;
+    padding-bottom: 2px;
+    border-bottom: 2px solid transparent;
+}
+.sub-nav-link:hover {
+    color: #fff;
+    opacity: 0.85;
+}
+.sub-nav-link.active {
+    font-weight: 700;
+    border-bottom-color: #fff;
 }
 
 /* Card Estilo */
@@ -322,26 +300,6 @@ footer{
     color: #2D3748;
 }
 
-/* =========================================
-   Menu Secundário (Topo)
-   ========================================= */
-.menu-secundario a {
-    color: #ffffff;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.menu-secundario a:hover {
-    opacity: 0.8;
-}
-
-.menu-secundario a.ativo {
-    font-weight: bold;
-    background-color: #ffffff;
-    color: #FF8C00 !important; /* Força a cor laranja no link ativo */
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.375rem; /* Equivalente ao rounded do Bootstrap */
-}
 
 /* =========================================
    Componentes Gerais
@@ -448,4 +406,288 @@ footer{
     font-size: 0.7rem;
     font-weight: bold;
     color: #6c757d;
+}
+/* =========================================
+   CRIAR SALA / PARTIDA - ESTILOS
+   ========================================= */
+
+/* Estrutura Geral */
+.criar-sala-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+.titulo-principal-laranja {
+    color: #FF8C00;
+    font-weight: bold;
+}
+.titulo-secao {
+    font-weight: 800;
+    color: #4a5568;
+    margin-bottom: 1rem;
+    margin-top: 2.5rem;
+    text-transform: lowercase;
+}
+.titulo-secao::first-letter {
+    text-transform: uppercase;
+}
+.subtitulo-campo {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #718096;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Cards de Esporte */
+.esporte-card {
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    background-color: #ffffff;
+    padding: 10px;
+    text-align: center;
+    transition: all 0.2s;
+}
+.esporte-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+.esporte-card.active {
+    border-color: #FF8C00;
+}
+.esporte-img-box {
+    border-radius: 8px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    color: white;
+    font-size: 40px;
+}
+
+/* Controle de Quantidade (+ e -) */
+.qty-grupo {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    width: max-content;
+    margin: 0 auto;
+}
+.qty-btn {
+    background: transparent;
+    border: none;
+    padding: 5px 15px;
+    font-weight: bold;
+    color: #495057;
+}
+.qty-input {
+    border: none;
+    border-left: 1px solid #ced4da;
+    border-right: 1px solid #ced4da;
+    text-align: center;
+    width: 60px;
+    font-weight: bold;
+    color: #4a5568;
+}
+.qty-input:focus { outline: none; }
+
+/* Caixas de Destaque */
+.caixa-destaque {
+    border-radius: 8px;
+    padding: 15px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.caixa-verde {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+.caixa-verde-texto { color: #155724; }
+.caixa-laranja {
+    background-color: #ffe8cc;
+    border: 1px solid #ffd8a8;
+}
+.caixa-laranja-texto { color: #e67e00; }
+.caixa-azul {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+}
+.caixa-azul-texto { color: #0c5460; }
+.caixa-branca {
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
+}
+
+/* Cards de Opção (Ex: Pública/Privada) */
+.radio-card {
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    padding: 15px;
+    background: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.2s;
+}
+.radio-card.active {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+.circulo-check {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #ced4da;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.radio-card.active .circulo-check {
+    background-color: #28a745;
+    border-color: #28a745;
+    position: relative;
+}
+.radio-card.active .circulo-check::after {
+    content: "✓";
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Quadra Card */
+.quadra-card {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    background: #ffffff;
+    overflow: hidden;
+}
+.quadra-card.active {
+    border-color: #FF8C00;
+}
+
+/* Avisos e Resumos */
+.caixa-resumo {
+    background-color: #ffffff;
+    border-top: 1px solid #ced4da;
+    border-bottom: 1px solid #ced4da;
+    padding: 20px;
+}
+.caixa-importante {
+    background-color: #e2eef7;
+    border: 1px solid #b8daff;
+    border-radius: 8px;
+    padding: 20px;
+    color: #4a90e2;
+}
+
+/* Botões Nativos */
+.btn-voltar-laranja {
+    border: 2px solid #FF8C00;
+    color: #FF8C00;
+    background-color: #ffffff;
+    border-radius: 8px;
+}
+.btn-voltar-laranja:hover {
+    background-color: #FF8C00;
+    color: #ffffff;
+}
+.btn-criar-laranja {
+    background-color: #FF8C00;
+    color: #ffffff;
+    border-radius: 8px;
+}
+.btn-criar-laranja:hover {
+    background-color: #e67e00;
+    color: #ffffff;
+}
+
+/* =========================================
+   Loja
+   ========================================= */
+.bg-laranja-loja {
+    background-color: #FF8C00;
+}
+
+.text-laranja-loja {
+    color: #FF8C00 !important;
+}
+
+.loja-nav-border {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.loja-nav-border a {
+    font-size: 0.95rem;
+}
+
+.text-titulo-escuro {
+    color: #2D3748;
+}
+
+.produto-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.produto-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.produto-img-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background-color: #f8f9fa;
+    overflow: hidden;
+}
+
+.produto-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.produto-btn-favorito {
+    width: 32px;
+    height: 32px;
+}
+
+.produto-overlay-esgotado {
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+.produto-titulo {
+    font-size: 0.95rem;
+    color: #2D3748;
+    min-height: 2.5rem;
+}
+
+.produto-btn-add {
+    background-color: #FF8C00;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.produto-btn-add:hover {
+    background-color: #e67e00;
+    color: #ffffff;
+}
+
+.produto-btn-esgotado {
+    border-radius: 8px;
+    cursor: not-allowed;
 }
