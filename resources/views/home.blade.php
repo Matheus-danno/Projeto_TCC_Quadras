@@ -1,41 +1,11 @@
-@extends('layouts.app')
+@extends('layouts.bootstrap')
 
 @section('titulo', 'Encontre sua Quadra')
 
 
 @section('conteudo')
 
-<div class="container-fluid mb-4" style="background-color: #FF8C00;">
-    <div class="container">
-        <div class="d-flex justify-content-center align-items-center gap-4 py-3 overflow-auto text-nowrap">
-            
-            <a href="{{ url('/') }}" class="text-white text-decoration-none d-flex align-items-center">
-                <i class="bi bi-house-door me-2"></i> Home
-            </a>
-            
-            <a href="#" class="text-white text-decoration-none d-flex align-items-center">
-                <i class="bi bi-geo-alt me-2"></i> Quadras Próximas
-            </a>
-            
-            <a href="{{ route('quadras.index') }}" class="text-white text-decoration-none d-flex align-items-center">
-                <i class="bi bi-layers me-2"></i> Todas as Quadras
-            </a>
-            
-            <a href="{{ route('encontre_time') }}" class="text-decoration-none fw-bold bg-white px-3 py-2 rounded d-flex align-items-center shadow-sm" style="color: #FF8C00;">
-                <i class="bi bi-people me-2"></i> Encontre um Time
-            </a>
-            
-            <a href="#" class="text-white text-decoration-none d-flex align-items-center">
-                <i class="bi bi-plus-circle me-2"></i> Criar Sala
-            </a>
-            
-            <a href="#" class="text-white text-decoration-none d-flex align-items-center">
-                <i class="bi bi-shop me-2"></i> Loja
-            </a>
-            
-        </div>
-    </div>
-</div>
+@include('partials.sub-nav')
 
     <main class="principal">
         <section class="principal_section1">

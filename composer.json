@@ -1,11 +1,14 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "matheus-danno/aluga-quadra",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "AlugaQuadra: plataforma de reserva de quadras esportivas e formação de times/salas para jogos.",
     "keywords": [
         "laravel",
-        "framework"
+        "livewire",
+        "quadras",
+        "esporte",
+        "reservas"
     ],
     "license": "MIT",
     "require": {
