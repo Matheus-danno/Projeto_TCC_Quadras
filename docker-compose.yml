@@ -1,0 +1,28 @@
+# Banco de dados da aplicacao para desenvolvimento e testes.
+# Sobe um PostgreSQL 16 com o banco principal (aluga_quadra) e o banco de
+# testes (aluga_quadra_test) ja criados. Nao precisa instalar Postgres na maquina.
+#
+#   docker compose up -d          # sobe o banco
+#   docker compose down           # para (mantem os dados no volume pgdata)
+#   docker compose down -v        # para e apaga os dados
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aluga_quadra_pg
+    environment:
+      POSTGRES_USER: aluga
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: aluga_quadra
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aluga -d aluga_quadra"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
