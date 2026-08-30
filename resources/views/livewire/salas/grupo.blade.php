@@ -7,7 +7,12 @@
     @endif
 
     <div class="d-flex justify-content-between align-items-center detalhes-topo py-3">
+        <a href="{{ route('encontre_time') }}" class="detalhes-link-topo text-decoration-none">
+            <i class="bi bi-x-lg me-1"></i> Voltar
+        </a>
+
         <h4 class="fw-bold text-orange mb-0"><i class="bi bi-door-open me-2"></i>Sala</h4>
+
         <span class="badge grupo-badge-voce">Você está nessa sala</span>
     </div>
 
