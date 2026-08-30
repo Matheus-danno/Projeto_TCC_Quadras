@@ -49,10 +49,7 @@
     </main>
 
     <footer class="site-footer">
-        <div>
-            <strong>AlugaQuadra</strong>
-            <span>&copy; {{ date('Y') }} - {{ config('app.name') }}</span>
-        </div>
+        <div>Inserir informações Rodapé</div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

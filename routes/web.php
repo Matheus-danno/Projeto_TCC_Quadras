@@ -33,3 +33,12 @@ Route::get('/loja', function () {
 Route::get('/criar-sala', function () {
     return view('criar_sala');
 })->name('criar_sala');
+
+Route::get('/admin/quadras/nova', function () {
+    return view('admin.quadras.create');
+})->middleware(['auth', 'verified'])->name('admin.quadras.create');
+
+Route::get('/admin/configuracoes', function () {
+    return view('admin.configuracoes');
+})->middleware(['auth', 'verified'])->name('admin.configuracoes');
+

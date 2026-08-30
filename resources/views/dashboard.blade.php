@@ -10,10 +10,10 @@
                 <p>Acompanhe rapidamente o desempenho das suas quadras.</p>
             </div>
 
-            <button type="button" class="admin-primary-button">
+            <a href="{{ route('admin.quadras.create') }}" class="admin-primary-button">
                 <i class="bi bi-plus-lg" aria-hidden="true"></i>
                 Cadastrar Quadra
-            </button>
+            </a>
         </div>
 
         <section class="admin-kpis" aria-label="Resumo do painel">
@@ -38,7 +38,7 @@
             </article>
         </section>
 
-        <section class="admin-courts" aria-labelledby="admin-courts-title">
+        <section id="minhas-quadras" class="admin-courts" aria-labelledby="admin-courts-title">
             <div class="admin-section-heading">
                 <h2 id="admin-courts-title">Minhas Quadras</h2>
             </div>

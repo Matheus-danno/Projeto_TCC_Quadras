@@ -11,29 +11,25 @@
             $diasNoMes = $inicioMes->daysInMonth;
             $espacosAntes = $inicioMes->dayOfWeek;
             $dataSelecionada = $data ? \Carbon\Carbon::parse($data) : null;
+            $horariosBackend = $this->horariosDisponiveis();
+            $horariosVisuais = collect(range(8, 21))
+                ->flatMap(fn (int $hora) => [sprintf('%02d:00', $hora), sprintf('%02d:30', $hora)])
+                ->values();
         @endphp
 
         @if ($quadraAgendamento)
             <section class="scheduler" aria-labelledby="scheduler-title">
                 <div class="scheduler__topbar">
                     <button type="button" class="scheduler__back" wire:click="cancelarSelecao" aria-label="Voltar para todas as quadras">
-                        <i class="bi bi-arrow-left"></i>
+                        <i class="bi bi-chevron-left"></i>
                     </button>
-                    <div>
-                        <span class="scheduler__eyebrow">Agendamento</span>
-                        <h1 id="scheduler-title">Agendar horário</h1>
-                    </div>
+                    <h1 id="scheduler-title">Agendar horário</h1>
                 </div>
 
                 <div class="scheduler-court">
-                    <div>
-                        <strong>{{ $quadraAgendamento->nome }}</strong>
-                        <span>{{ $quadraAgendamento->esporte->label() }} · {{ $quadraAgendamento->endereco }} - {{ $quadraAgendamento->bairro }}, {{ $quadraAgendamento->cidade }}</span>
-                    </div>
-                    <div class="scheduler-court__price">
-                        <strong>R$ {{ number_format($quadraAgendamento->valor_hora, 2, ',', '.') }}</strong>
-                        <span>/ hora</span>
-                    </div>
+                    <strong>{{ $quadraAgendamento->nome }}</strong>
+                    <span>{{ $quadraAgendamento->esporte->label() }} · {{ $quadraAgendamento->endereco }} - {{ $quadraAgendamento->bairro }}, {{ $quadraAgendamento->cidade }}</span>
+                    <span class="scheduler-court__price">R$ {{ number_format($quadraAgendamento->valor_hora, 2, ',', '.') }} / hora</span>
                 </div>
 
                 <div class="scheduler-calendar" aria-label="Calendário de agendamento">
@@ -76,16 +72,16 @@
                     <div class="scheduler-section__heading">
                         <div>
                             <strong>Escolha o horário de início</strong>
-                            <span>Horários disponíveis conforme a regra atual de reservas.</span>
                         </div>
                     </div>
 
                     <div class="scheduler-times" role="group" aria-label="Horários disponíveis">
-                        @foreach ($this->horariosDisponiveis() as $horario)
+                        @foreach ($horariosVisuais as $horario)
+                            @php($suportadoPeloBackend = in_array($horario, $horariosBackend, true))
                             <button
                                 type="button"
-                                class="scheduler-time {{ $horaInicio === $horario ? 'is-selected' : '' }}"
-                                wire:click="$set('horaInicio', '{{ $horario }}')"
+                                class="scheduler-time {{ $horaInicio === $horario ? 'is-selected' : '' }} {{ !$suportadoPeloBackend ? 'is-unavailable' : '' }}"
+                                @if ($suportadoPeloBackend) wire:click="$set('horaInicio', '{{ $horario }}')" @else disabled @endif
                                 aria-pressed="{{ $horaInicio === $horario ? 'true' : 'false' }}"
                             >
                                 {{ $horario }}
@@ -96,20 +92,21 @@
                     <div class="scheduler-legend">
                         <span><i class="scheduler-legend__dot scheduler-legend__dot--free"></i>Livre</span>
                         <span><i class="scheduler-legend__dot scheduler-legend__dot--selected"></i>Selecionado</span>
+                        <span><i class="scheduler-legend__dot scheduler-legend__dot--occupied"></i>Ocupado</span>
                     </div>
                 </div>
 
                 <div class="scheduler-duration">
                     <div>
                         <strong>Quanto tempo você quer jogar?</strong>
-                        <span>A reserva atual do sistema trabalha com blocos de 1 hora.</span>
+                        <span>Ajuste de 30 em 30 minutos.</span>
                     </div>
                     <div class="scheduler-duration__control" aria-label="Duração da reserva">
                         <button type="button" disabled aria-label="Diminuir duração">−</button>
                         <strong>1h</strong>
                         <button type="button" disabled aria-label="Aumentar duração">+</button>
                     </div>
-                    <small>A duração poderá ser expandida quando o backend suportar reservas de múltiplas horas.</small>
+                    <small>A reserva atual do sistema permanece limitada a 1 hora.</small>
                 </div>
 
                 @error('data')

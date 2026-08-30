@@ -166,6 +166,7 @@ a {
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .admin-primary-button:hover {
@@ -554,6 +555,10 @@ a {
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
 }
 
 .court-create-button--secondary {
@@ -952,3 +957,6 @@ a {
         grid-column: auto;
     }
 }
+
+
+#minhas-quadras { scroll-margin-top: 18px; }

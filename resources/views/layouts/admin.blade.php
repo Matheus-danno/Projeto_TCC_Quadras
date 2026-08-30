@@ -24,20 +24,21 @@
             </a>
         </div>
 
-        @unless(View::hasSection('hide-admin-nav'))
+        @hasSection('hide-admin-nav')
+        @else
             <nav class="admin-nav" aria-label="Navegação administrativa">
                 <div class="admin-nav__inner">
                     <a href="{{ route('dashboard') }}" class="admin-nav__link {{ request()->routeIs('dashboard') ? 'is-active' : '' }}">
                         Dashboard
                     </a>
-                    <a href="#" class="admin-nav__link">Minhas Quadras</a>
+                    <a href="{{ route('dashboard') }}#minhas-quadras" class="admin-nav__link">Minhas Quadras</a>
                     <a href="#" class="admin-nav__link">Reservas</a>
                     <a href="#" class="admin-nav__link">Financeiro</a>
                     <a href="#" class="admin-nav__link">Agendamento Manual</a>
-                    <a href="#" class="admin-nav__link {{ trim($__env->yieldContent('admin-active')) === 'configuracoes' ? 'is-active' : '' }}">Configurações</a>
+                    <a href="{{ route('admin.configuracoes') }}" class="admin-nav__link {{ request()->routeIs('admin.configuracoes') ? 'is-active' : '' }}">Configurações</a>
                 </div>
             </nav>
-        @endunless
+        @endif
     </header>
 
     <main class="admin-main">

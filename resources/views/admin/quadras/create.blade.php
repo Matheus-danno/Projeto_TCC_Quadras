@@ -115,7 +115,7 @@
         </section>
 
         <div class="court-create-actions">
-            <button type="button" class="court-create-button court-create-button--secondary">Cancelar</button>
+            <a href="{{ route('dashboard') }}" class="court-create-button court-create-button--secondary">Cancelar</a>
             <button type="button" class="court-create-button court-create-button--primary">Cadastrar Quadra</button>
         </div>
     </div>

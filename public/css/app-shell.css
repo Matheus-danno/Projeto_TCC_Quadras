@@ -202,13 +202,30 @@ body {
 }
 
 .site-footer > div {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    color: var(--aq-orange);
+    font-size: 1.2rem;
+    font-weight: 400;
 }
 
-.site-footer strong {
-    color: var(--aq-orange);
+body:has(.scheduler) .site-header,
+body:has(.scheduler) .sub-nav,
+body:has(.scheduler) .site-footer {
+    display: none;
+}
+
+body:has(.scheduler) {
+    background: #f4f4f4;
+}
+
+body:has(.scheduler) .courts-page {
+    min-height: 100vh;
+    padding: 18px 0 24px;
+    background: #f4f4f4;
+}
+
+body:has(.scheduler) .courts-page__inner {
+    max-width: 700px;
+    padding: 0 18px;
 }
 
 @media (max-width: 900px) {
