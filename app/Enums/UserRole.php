@@ -16,4 +16,16 @@ enum UserRole: string
             self::Admin => 'Administrador',
         };
     }
+
+    /**
+     * Rota para onde o usuário deve ser levado após autenticar.
+     */
+    public function dashboardRoute(): string
+    {
+        return match ($this) {
+            self::Jogador => 'quadras.index',
+            self::DonoQuadra => 'painel.dashboard',
+            self::Admin => 'admin.dashboard',
+        };
+    }
 }

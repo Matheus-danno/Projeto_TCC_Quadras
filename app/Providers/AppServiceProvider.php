@@ -2,9 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Quadra;
+use App\Models\Reserva;
+use App\Policies\QuadraPolicy;
+use App\Policies\ReservaPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        Gate::policy(Quadra::class, QuadraPolicy::class);
+        Gate::policy(Reserva::class, ReservaPolicy::class);
     }
 
     /**
