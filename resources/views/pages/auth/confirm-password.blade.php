@@ -20,7 +20,7 @@
             </div>
 
             <div class="d-grid gap-2 mt-4">
-                <button type="submit" class="btn btn-orange text-white fw-bold py-2 rounded-pill">Confirmar</button>
+                <button type="submit" class="btn btn-orange text-white fw-bold py-2 rounded-2">Confirmar</button>
             </div>
         </form>
     </div>

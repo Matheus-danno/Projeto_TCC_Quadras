@@ -51,7 +51,7 @@
                         () => alert('Não foi possível obter sua localização.')
                     )
                 "
-                class="btn btn-sm {{ $ordenarPorProximidade ? 'btn-outline-orange btn-outline-orange-active' : 'btn-orange-quadras-proximas' }} rounded-pill fw-bold d-inline-flex align-items-center gap-1 text-nowrap"
+                class="btn btn-sm {{ $ordenarPorProximidade ? 'btn-outline-orange btn-outline-orange-active' : 'btn-orange-quadras-proximas' }} rounded-2 fw-bold d-inline-flex align-items-center gap-1 text-nowrap"
             >
                 <i class="bi bi-geo-alt-fill"></i> Quadras mais próximas
             </button>
@@ -132,21 +132,21 @@
                                             @error('horaInicio') <span class="text-danger small">{{ $message }}</span> @enderror
                                         </div>
                                         <div class="d-flex gap-2">
-                                            <button class="btn btn-orange-action btn-sm px-4 rounded-pill fw-bold" wire:click="reservar" wire:loading.attr="disabled">
+                                            <button class="btn btn-orange-action btn-sm px-4 rounded-2 fw-bold" wire:click="reservar" wire:loading.attr="disabled">
                                                 Confirmar Reserva
                                             </button>
-                                            <button class="btn btn-outline-secondary btn-sm rounded-pill" wire:click="cancelarSelecao">
+                                            <button class="btn btn-outline-secondary btn-sm rounded-2" wire:click="cancelarSelecao">
                                                 Cancelar
                                             </button>
                                         </div>
                                     </div>
                                 @else
                                     @guest
-                                        <button class="btn btn-orange-action btn-sm px-4 rounded-pill fw-bold" wire:click="$dispatch('login-necessario', { mensagem: 'Você precisa entrar para reservar uma quadra.' })">
+                                        <button class="btn btn-orange-action btn-sm px-4 rounded-2 fw-bold" wire:click="$dispatch('login-necessario', { mensagem: 'Você precisa entrar para reservar uma quadra.' })">
                                             Agendar
                                         </button>
                                     @else
-                                        <button class="btn btn-orange-action btn-sm px-4 rounded-pill fw-bold" wire:click="selecionarQuadra({{ $quadra->id }})">
+                                        <button class="btn btn-orange-action btn-sm px-4 rounded-2 fw-bold" wire:click="selecionarQuadra({{ $quadra->id }})">
                                             Agendar
                                         </button>
                                     @endguest

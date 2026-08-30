@@ -27,7 +27,7 @@
         <div class="col-auto">
             <button
                 type="button"
-                class="btn btn-orange-action btn-sm px-4 rounded-pill text-white fw-bold"
+                class="btn btn-orange-action btn-sm px-4 rounded-2 text-white fw-bold"
                 @click="buscarLocalizacao()"
                 :disabled="buscando"
             >
@@ -43,7 +43,7 @@
                 @foreach ($this->raiosDisponiveis() as $km)
                     <button
                         type="button"
-                        class="btn btn-sm rounded-pill {{ $raioKm === $km ? 'btn-orange-action text-white' : 'border-orange text-orange' }}"
+                        class="btn btn-sm rounded-2 {{ $raioKm === $km ? 'btn-orange-action text-white' : 'border-orange text-orange' }}"
                         wire:click="atualizarRaio({{ $km }})"
                     >
                         {{ $km }} km
@@ -57,7 +57,7 @@
     @if ($permissaoNegada)
         <div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap gap-2" role="alert">
             <span><i class="bi bi-exclamation-triangle"></i> Não foi possível acessar sua localização. Verifique se a permissão de localização está liberada para este site no navegador e tente novamente.</span>
-            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" @click="buscarLocalizacao()">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-2" @click="buscarLocalizacao()">
                 Tentar novamente
             </button>
         </div>
@@ -67,7 +67,7 @@
     @if ($erro)
         <div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap gap-2" role="alert">
             <span><i class="bi bi-exclamation-triangle"></i> {{ $erro }}</span>
-            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" @click="buscarLocalizacao()">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-2" @click="buscarLocalizacao()">
                 Tentar novamente
             </button>
         </div>
@@ -105,7 +105,7 @@
                                 href="https://www.google.com/maps/dir/?api=1&destination={{ $quadra->latitude }},{{ $quadra->longitude }}"
                                 target="_blank"
                                 rel="noopener"
-                                class="btn btn-orange-action btn-sm px-4 rounded-pill text-white fw-bold align-self-start"
+                                class="btn btn-orange-action btn-sm px-4 rounded-2 text-white fw-bold align-self-start"
                             >
                                 <i class="bi bi-geo-alt"></i> Abrir no mapa
                             </a>
