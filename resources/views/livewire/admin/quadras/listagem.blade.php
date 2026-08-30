@@ -40,6 +40,7 @@
                     <flux:table.column>{{ __('Quadra') }}</flux:table.column>
                     <flux:table.column>{{ __('Dono') }}</flux:table.column>
                     <flux:table.column>{{ __('Local') }}</flux:table.column>
+                    <flux:table.column>{{ __('Coordenadas') }}</flux:table.column>
                     <flux:table.column>{{ __('Esporte') }}</flux:table.column>
                     <flux:table.column>{{ __('Valor/Hora') }}</flux:table.column>
                     <flux:table.column>{{ __('Ações') }}</flux:table.column>
@@ -51,6 +52,13 @@
                             <flux:table.cell class="font-semibold text-zinc-900">{{ $quadra->nome }}</flux:table.cell>
                             <flux:table.cell class="text-zinc-500">{{ $quadra->dono->name }}</flux:table.cell>
                             <flux:table.cell class="text-zinc-500">{{ $quadra->bairro }}, {{ $quadra->cidade }}</flux:table.cell>
+                            <flux:table.cell class="text-zinc-500 text-xs">
+                                @if ($quadra->latitude !== null && $quadra->longitude !== null)
+                                    {{ $quadra->latitude }}, {{ $quadra->longitude }}
+                                @else
+                                    —
+                                @endif
+                            </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge color="orange" size="sm">{{ $quadra->esporte->label() }}</flux:badge>
                             </flux:table.cell>

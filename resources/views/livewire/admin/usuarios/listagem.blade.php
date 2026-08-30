@@ -23,6 +23,9 @@
                 <flux:table.columns>
                     <flux:table.column>{{ __('Nome') }}</flux:table.column>
                     <flux:table.column>{{ __('E-mail') }}</flux:table.column>
+                    <flux:table.column>{{ __('Nível') }}</flux:table.column>
+                    <flux:table.column>{{ __('Nota') }}</flux:table.column>
+                    <flux:table.column>{{ __('Créditos') }}</flux:table.column>
                     <flux:table.column>{{ __('Papel') }}</flux:table.column>
                 </flux:table.columns>
 
@@ -31,6 +34,9 @@
                         <flux:table.row wire:key="usuario-{{ $usuario->id }}">
                             <flux:table.cell class="font-semibold text-zinc-900">{{ $usuario->name }}</flux:table.cell>
                             <flux:table.cell class="text-zinc-500">{{ $usuario->email }}</flux:table.cell>
+                            <flux:table.cell class="text-zinc-500">{{ $usuario->nivel?->label() ?? '—' }}</flux:table.cell>
+                            <flux:table.cell class="text-zinc-500">{{ $usuario->notaMedia() ?? '—' }}</flux:table.cell>
+                            <flux:table.cell class="text-zinc-500">R$ {{ number_format($usuario->saldo_creditos, 2, ',', '.') }}</flux:table.cell>
                             <flux:table.cell>
                                 @if ($usuario->id === auth()->id())
                                     <flux:badge color="orange" size="sm">{{ $usuario->role->label() }} ({{ __('você') }})</flux:badge>

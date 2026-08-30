@@ -24,6 +24,7 @@ class Listagem extends Component
     public function usuarios(): Collection
     {
         return User::query()
+            ->with('avaliacoesRecebidas')
             ->when($this->filtroRole, fn ($query) => $query->where('role', $this->filtroRole))
             ->orderBy('name')
             ->get();

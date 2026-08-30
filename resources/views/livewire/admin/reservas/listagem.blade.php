@@ -58,6 +58,7 @@
                     <flux:table.column>{{ __('Jogador') }}</flux:table.column>
                     <flux:table.column>{{ __('Data/Horário') }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
+                    <flux:table.column>{{ __('Pagamento') }}</flux:table.column>
                     <flux:table.column>{{ __('Valor') }}</flux:table.column>
                     <flux:table.column>{{ __('Ações') }}</flux:table.column>
                 </flux:table.columns>
@@ -80,6 +81,12 @@
                                 } }}" size="sm">
                                     {{ $reserva->status->label() }}
                                 </flux:badge>
+                            </flux:table.cell>
+                            <flux:table.cell class="text-zinc-500">
+                                {{ $reserva->metodo_pagamento ? ucfirst($reserva->metodo_pagamento) : '—' }}
+                                @if ($reserva->cancelamento_tipo)
+                                    <span class="block text-xs text-zinc-400">{{ __('Cancelada:') }} {{ $reserva->cancelamento_tipo }}</span>
+                                @endif
                             </flux:table.cell>
                             <flux:table.cell class="font-medium text-zinc-900">R$ {{ number_format($reserva->quadra->valor_hora, 2, ',', '.') }}</flux:table.cell>
                             <flux:table.cell>

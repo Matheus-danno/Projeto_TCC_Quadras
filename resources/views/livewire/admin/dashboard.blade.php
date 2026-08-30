@@ -34,5 +34,25 @@
             <flux:text>{{ __('Reservas Pendentes') }}</flux:text>
             <div class="mt-1 text-2xl font-bold text-zinc-900 tabular-nums">{{ $this->indicadores['reservasPendentes'] }}</div>
         </div>
+
+        <div class="rounded-lg border border-zinc-200 border-s-4 border-s-green-500 bg-white p-4">
+            <flux:text>{{ __('Salas Abertas') }}</flux:text>
+            <div class="mt-1 text-2xl font-bold text-zinc-900 tabular-nums">{{ $this->indicadores['salasAbertas'] }}</div>
+        </div>
+
+        <div class="rounded-lg border border-zinc-200 border-s-4 border-s-zinc-400 bg-white p-4">
+            <flux:text>{{ __('Salas Fechadas') }}</flux:text>
+            <div class="mt-1 text-2xl font-bold text-zinc-900 tabular-nums">{{ $this->indicadores['salasFechadas'] }}</div>
+        </div>
+
+        <div class="rounded-lg border border-zinc-200 border-s-4 border-s-amber-500 bg-white p-4">
+            <flux:text>{{ __('Pedidos de Participação Pendentes') }}</flux:text>
+            <div class="mt-1 text-2xl font-bold text-zinc-900 tabular-nums">{{ $this->indicadores['pedidosParticipacaoPendentes'] }}</div>
+        </div>
+
+        <div class="rounded-lg border border-zinc-200 border-s-4 border-s-orange-500 bg-white p-4">
+            <flux:text>{{ __('Avaliações') }}</flux:text>
+            <div class="mt-1 text-2xl font-bold text-zinc-900 tabular-nums">{{ $this->indicadores['avaliacoes'] }}</div>
+        </div>
     </div>
 </div>
