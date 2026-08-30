@@ -41,4 +41,3 @@ Route::get('/admin/quadras/nova', function () {
 Route::get('/admin/configuracoes', function () {
     return view('admin.configuracoes');
 })->middleware(['auth', 'verified'])->name('admin.configuracoes');
-
