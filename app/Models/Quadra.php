@@ -103,6 +103,19 @@ class Quadra extends Model
     }
 
     /**
+     * Lista de imagens da quadra. Usa as fotos cadastradas ou, na ausência delas,
+     * a imagem padrão do esporte como único item.
+     *
+     * @return list<string>
+     */
+    public function listaImagens(): array
+    {
+        return $this->fotos->isNotEmpty()
+            ? $this->fotos->map(fn (QuadraFoto $foto) => $foto->url())->all()
+            : [$this->esporte->imagem()];
+    }
+
+    /**
      * Lista de características da quadra (cobertura + comodidades cadastradas).
      *
      * @return list<string>
