@@ -24,6 +24,18 @@ class Listagem extends Component
 
     public string $busca = '';
 
+    public function mount(): void
+    {
+        $this->busca = (string) request()->query('busca', '');
+
+        $lat = request()->query('lat');
+        $lng = request()->query('lng');
+
+        if (is_numeric($lat) && is_numeric($lng)) {
+            $this->usarLocalizacao((float) $lat, (float) $lng);
+        }
+    }
+
     public ?int $quadraSelecionada = null;
 
     public string $data = '';

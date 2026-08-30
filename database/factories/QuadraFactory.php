@@ -24,6 +24,8 @@ class QuadraFactory extends Factory
             'endereco' => fake()->streetAddress(),
             'cidade' => fake()->city(),
             'bairro' => fake()->citySuffix(),
+            'latitude' => fake()->latitude(-23.7, -22.7),
+            'longitude' => fake()->longitude(-47.0, -46.0),
             'esporte' => fake()->randomElement(Esporte::cases())->value,
             'valor_hora' => fake()->randomFloat(2, 40, 200),
             'cobertura' => fake()->boolean(),
