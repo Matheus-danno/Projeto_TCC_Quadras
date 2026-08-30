@@ -13,5 +13,7 @@ class ParticipacaoSala extends Pivot
     protected $fillable = [
         'sala_id',
         'user_id',
+        'forma_pagamento',
+        'valor_pago',
     ];
 }

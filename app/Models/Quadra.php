@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Esporte;
+use App\Enums\ReservaStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,10 +19,13 @@ class Quadra extends Model
         'nome',
         'endereco',
         'cidade',
+        'cep',
         'bairro',
         'esporte',
         'valor_hora',
+        'capacidade_maxima',
         'cobertura',
+        'ativa',
         'descricao',
     ];
 
@@ -30,7 +34,9 @@ class Quadra extends Model
         return [
             'esporte' => Esporte::class,
             'valor_hora' => 'decimal:2',
+            'capacidade_maxima' => 'integer',
             'cobertura' => 'boolean',
+            'ativa' => 'boolean',
         ];
     }
 
@@ -47,5 +53,23 @@ class Quadra extends Model
     public function salas(): HasMany
     {
         return $this->hasMany(Sala::class);
+    }
+
+    public function fotos(): HasMany
+    {
+        return $this->hasMany(QuadraFoto::class)->orderBy('ordem');
+    }
+
+    public function fotoCapa(): ?QuadraFoto
+    {
+        return $this->fotos->firstWhere('capa', true) ?? $this->fotos->first();
+    }
+
+    public function temReservaFutura(): bool
+    {
+        return $this->reservas()
+            ->whereDate('data', '>=', now()->toDateString())
+            ->where('status', '!=', ReservaStatus::Cancelada->value)
+            ->exists();
     }
 }

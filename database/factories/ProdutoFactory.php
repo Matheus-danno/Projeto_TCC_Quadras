@@ -19,7 +19,9 @@ class ProdutoFactory extends Factory
         return [
             'nome' => fake()->words(3, true),
             'descricao' => fake()->sentence(),
+            'categoria' => fake()->randomElement(['Vestuário', 'Calçados', 'Acessórios', 'Hidratação']),
             'preco' => fake()->randomFloat(2, 20, 500),
+            'estoque' => fake()->numberBetween(0, 50),
             'imagem' => null,
         ];
     }

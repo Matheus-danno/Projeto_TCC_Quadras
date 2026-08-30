@@ -35,6 +35,12 @@ class DemoSeeder extends Seeder
             'role' => UserRole::DonoQuadra,
         ]);
 
+        $outroDono = User::factory()->create([
+            'name' => 'Fernanda Lima',
+            'email' => 'dono2@demo.com',
+            'role' => UserRole::DonoQuadra,
+        ]);
+
         User::factory()->create([
             'name' => 'Admin Demo',
             'email' => 'admin@demo.com',
@@ -58,6 +64,21 @@ class DemoSeeder extends Seeder
             ['nome' => 'Beach Arena Paiva', 'endereco' => 'Av. Beira Mar, 15', 'cidade' => 'Jaboatão dos Guararapes', 'bairro' => 'Candeias', 'esporte' => Esporte::BeachTennis, 'valor_hora' => 80, 'cobertura' => false, 'descricao' => 'Duas quadras de areia, bar no local.'],
         ])->map(fn (array $dados) => Quadra::create([
             'dono_id' => $dono->id,
+            'nome' => $dados['nome'],
+            'endereco' => $dados['endereco'],
+            'cidade' => $dados['cidade'],
+            'bairro' => $dados['bairro'],
+            'esporte' => $dados['esporte']->value,
+            'valor_hora' => $dados['valor_hora'],
+            'cobertura' => $dados['cobertura'],
+            'descricao' => $dados['descricao'],
+        ]));
+
+        $quadrasDono2 = collect([
+            ['nome' => 'Quadra Boa Vista Society', 'endereco' => 'Rua Treze de Maio, 340', 'cidade' => 'Caruaru', 'bairro' => 'Boa Vista', 'esporte' => Esporte::Futebol, 'valor_hora' => 75, 'cobertura' => false, 'descricao' => 'Gramado sintético novo, próximo ao centro.'],
+            ['nome' => 'Ginásio Estrela Basquete', 'endereco' => 'Av. Agamenon Magalhães, 510', 'cidade' => 'Caruaru', 'bairro' => 'Indianópolis', 'esporte' => Esporte::Basquete, 'valor_hora' => 60, 'cobertura' => true, 'descricao' => 'Ginásio coberto com marcação oficial.'],
+        ])->map(fn (array $dados) => Quadra::create([
+            'dono_id' => $outroDono->id,
             'nome' => $dados['nome'],
             'endereco' => $dados['endereco'],
             'cidade' => $dados['cidade'],
@@ -104,19 +125,58 @@ class DemoSeeder extends Seeder
             'status' => ReservaStatus::Confirmada,
         ]);
 
+        Reserva::create([
+            'quadra_id' => $quadras[1]->id,
+            'user_id' => $outrosJogadores->random()->id,
+            'data' => now()->addDays(3)->toDateString(),
+            'hora_inicio' => '20:00:00',
+            'hora_fim' => '21:00:00',
+            'status' => ReservaStatus::Pendente,
+        ]);
+
+        Reserva::create([
+            'quadra_id' => $quadras[4]->id,
+            'user_id' => $outrosJogadores->random()->id,
+            'data' => now()->subDays(10)->toDateString(),
+            'hora_inicio' => '09:00:00',
+            'hora_fim' => '10:00:00',
+            'status' => ReservaStatus::Cancelada,
+        ]);
+
+        Reserva::create([
+            'quadra_id' => $quadrasDono2[0]->id,
+            'user_id' => $jogador->id,
+            'data' => now()->addDays(1)->toDateString(),
+            'hora_inicio' => '18:00:00',
+            'hora_fim' => '19:00:00',
+            'status' => ReservaStatus::Pendente,
+        ]);
+
+        Reserva::create([
+            'quadra_id' => $quadrasDono2[1]->id,
+            'user_id' => $outrosJogadores->random()->id,
+            'data' => now()->subDays(2)->toDateString(),
+            'hora_inicio' => '16:00:00',
+            'hora_fim' => '17:00:00',
+            'status' => ReservaStatus::Confirmada,
+        ]);
+
         collect([
-            ['nome' => 'Bola de Futebol Society', 'descricao' => 'Bola oficial para gramado sintético.', 'preco' => 89.90],
-            ['nome' => 'Camisa Dry-Fit AlugaQuadra', 'descricao' => 'Tecido leve, ideal para dias quentes.', 'preco' => 79.90],
-            ['nome' => 'Luvas de Goleiro Profissional', 'descricao' => 'Aderência reforçada, tamanhos P ao GG.', 'preco' => 149.90],
-            ['nome' => 'Joelheira de Vôlei', 'descricao' => 'Par com proteção acolchoada.', 'preco' => 49.90],
-            ['nome' => 'Squeeze Térmica 1L', 'descricao' => 'Mantém a bebida gelada por até 12h.', 'preco' => 59.90],
-            ['nome' => 'Kit Coletes Numerados (10 un.)', 'descricao' => 'Ideal para organizar os times na sala.', 'preco' => 199.90],
+            ['nome' => 'Bola de Futebol Society', 'descricao' => 'Bola oficial para gramado sintético.', 'categoria' => 'Acessórios', 'preco' => 89.90, 'estoque' => 25],
+            ['nome' => 'Camisa Dry-Fit AlugaQuadra', 'descricao' => 'Tecido leve, ideal para dias quentes.', 'categoria' => 'Vestuário', 'preco' => 79.90, 'estoque' => 40],
+            ['nome' => 'Luvas de Goleiro Profissional', 'descricao' => 'Aderência reforçada, tamanhos P ao GG.', 'categoria' => 'Acessórios', 'preco' => 149.90, 'estoque' => 0],
+            ['nome' => 'Joelheira de Vôlei', 'descricao' => 'Par com proteção acolchoada.', 'categoria' => 'Acessórios', 'preco' => 49.90, 'estoque' => 18],
+            ['nome' => 'Squeeze Térmica 1L', 'descricao' => 'Mantém a bebida gelada por até 12h.', 'categoria' => 'Hidratação', 'preco' => 59.90, 'estoque' => 32],
+            ['nome' => 'Kit Coletes Numerados (10 un.)', 'descricao' => 'Ideal para organizar os times na sala.', 'categoria' => 'Acessórios', 'preco' => 199.90, 'estoque' => 12],
+            ['nome' => 'Chuteira Society Turf', 'descricao' => 'Solado com travas curtas para gramado sintético.', 'categoria' => 'Calçados', 'preco' => 219.90, 'estoque' => 15],
+            ['nome' => 'Tênis de Vôlei Antiderrapante', 'descricao' => 'Solado emborrachado com maior aderência em quadra.', 'categoria' => 'Calçados', 'preco' => 259.90, 'estoque' => 9],
         ])->each(fn (array $dados) => Produto::create($dados));
 
         $this->command?->info('Dados de demonstração criados.');
         $this->command?->table(['Papel', 'E-mail', 'Senha'], [
             ['Jogador', 'jogador@demo.com', 'password'],
             ['Dono de quadra', 'dono@demo.com', 'password'],
+            ['Dono de quadra (2)', 'dono2@demo.com', 'password'],
             ['Admin', 'admin@demo.com', 'password'],
         ]);
     }

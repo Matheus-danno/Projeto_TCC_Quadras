@@ -25,10 +25,12 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'nome_estabelecimento',
         'email',
         'password',
         'role',
         'cpf',
+        'cnpj',
         'data_nascimento',
         'sexo',
         'endereco',
@@ -92,6 +94,14 @@ class User extends Authenticatable
     public function reservas(): HasMany
     {
         return $this->hasMany(Reserva::class);
+    }
+
+    /**
+     * Pedidos feitos por este usuário na loja.
+     */
+    public function pedidos(): HasMany
+    {
+        return $this->hasMany(Pedido::class);
     }
 
     /**

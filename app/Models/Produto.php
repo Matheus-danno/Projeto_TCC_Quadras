@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,7 +14,9 @@ class Produto extends Model
     protected $fillable = [
         'nome',
         'descricao',
+        'categoria',
         'preco',
+        'estoque',
         'imagem',
     ];
 
@@ -21,6 +24,14 @@ class Produto extends Model
     {
         return [
             'preco' => 'decimal:2',
+            'estoque' => 'integer',
         ];
+    }
+
+    protected function disponivel(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->estoque > 0,
+        );
     }
 }
