@@ -24,8 +24,8 @@
                         <span class="fw-bold fs-5 mb-2" style="color: #FF8C00;">R$ {{ number_format($reserva->quadra->valor_hora, 2, ',', '.') }}</span>
 
                         @if ($reserva->sala)
-                            <a href="{{ route('salas.detalhes', $reserva->sala) }}" class="btn btn-outline-orange btn-sm rounded-2 mb-2">
-                                Ver detalhes da Sala
+                            <a href="{{ route('salas.grupo', $reserva->sala) }}" class="btn btn-outline-orange btn-sm rounded-2 mb-2">
+                                Ver minha sala
                             </a>
                         @endif
 
@@ -96,8 +96,8 @@
                         } }} text-white">{{ $reserva->status->label() }}</span>
 
                         @if ($reserva->sala)
-                            <a href="{{ route('salas.detalhes', $reserva->sala) }}" class="btn btn-outline-orange btn-sm rounded-2">
-                                Ver detalhes da Sala
+                            <a href="{{ route('salas.grupo', $reserva->sala) }}" class="btn btn-outline-orange btn-sm rounded-2">
+                                Ver minha sala
                             </a>
                         @endif
                     </div>
