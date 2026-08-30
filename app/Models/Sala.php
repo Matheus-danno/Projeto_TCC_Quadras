@@ -99,6 +99,11 @@ class Sala extends Model
         return $this->hasMany(AtividadeSala::class)->latest();
     }
 
+    public function mensagens(): HasMany
+    {
+        return $this->hasMany(MensagemSala::class)->oldest();
+    }
+
     public function pedidosParticipacao(): HasMany
     {
         return $this->hasMany(PedidoParticipacao::class);

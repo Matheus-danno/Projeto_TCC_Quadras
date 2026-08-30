@@ -12,11 +12,41 @@ class Grupo extends Component
 
     public ?string $erro = null;
 
+    public string $novaMensagem = '';
+
     public function mount(Sala $sala): void
     {
         abort_unless(auth()->check() && $sala->participantes->contains('id', auth()->id()), 403);
 
-        $this->sala = $sala->load(['quadra', 'criador', 'participantes', 'atividades.user']);
+        $this->sala = $sala->load(['quadra', 'criador', 'participantes', 'atividades.user', 'mensagens.user']);
+    }
+
+    public function enviarMensagem(): void
+    {
+        $validated = $this->validate([
+            'novaMensagem' => ['required', 'string', 'max:500'],
+        ], [
+            'novaMensagem.required' => 'Escreva uma mensagem antes de enviar.',
+            'novaMensagem.max' => 'A mensagem pode ter no máximo 500 caracteres.',
+        ]);
+
+        $this->sala->mensagens()->create([
+            'user_id' => auth()->id(),
+            'texto' => trim($validated['novaMensagem']),
+        ]);
+
+        $this->novaMensagem = '';
+
+        $this->sala->load('mensagens.user');
+    }
+
+    /**
+     * Recarrega as mensagens do chat (chamado periodicamente via wire:poll para
+     * que os participantes vejam mensagens novas de outros usuários).
+     */
+    public function atualizarMensagens(): void
+    {
+        $this->sala->load('mensagens.user');
     }
 
     public function sairDaSala(): void

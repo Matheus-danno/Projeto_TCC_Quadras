@@ -72,6 +72,45 @@
         </div>
     </div>
 
+    <div class="card border-0 shadow-sm card-arredondado mb-3">
+        <div class="card-body p-4">
+            <p class="fw-semibold texto-jogo mb-3">Chat da sala</p>
+
+            <div
+                class="mb-3"
+                style="max-height: 320px; overflow-y: auto;"
+                wire:poll.5s="atualizarMensagens"
+                x-init="$el.scrollTop = $el.scrollHeight"
+            >
+                @forelse ($sala->mensagens as $index => $mensagem)
+                    <div class="d-flex gap-2 mb-3 {{ $mensagem->user_id === auth()->id() ? 'flex-row-reverse text-end' : '' }}" wire:key="mensagem-{{ $mensagem->id }}">
+                        <div class="grupo-avatar flex-shrink-0" style="width: 32px; height: 32px; font-size: 0.7rem; background-color: {{ ['#ffe0b2', '#c8e6c9', '#bbdefb', '#f8bbd0', '#d1c4e9', '#b2ebf2'][$index % 6] }};">
+                            {{ $mensagem->user?->initials() }}
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 {{ $mensagem->user_id === auth()->id() ? 'flex-row-reverse' : '' }}">
+                                <span class="fw-semibold small">{{ $mensagem->user_id === auth()->id() ? 'Você' : $mensagem->user?->name }}</span>
+                                @if ($mensagem->user_id === $sala->criador_id)
+                                    <span class="badge grupo-badge-organizador" style="font-size: 0.6rem;">Organizador</span>
+                                @endif
+                                <span class="text-muted" style="font-size: 0.7rem;">{{ $mensagem->tempoDecorrido() }} atrás</span>
+                            </div>
+                            <p class="mb-0 small">{{ $mensagem->texto }}</p>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-muted small text-center py-3 mb-0">Nenhuma mensagem ainda. Comece a conversa!</p>
+                @endforelse
+            </div>
+
+            <form wire:submit.prevent="enviarMensagem" class="d-flex gap-2">
+                <input type="text" class="form-control border-orange rounded-2" wire:model="novaMensagem" placeholder="Escreva uma mensagem..." maxlength="500">
+                <button type="submit" class="btn btn-laranja fw-bold px-4">Enviar</button>
+            </form>
+            @error('novaMensagem') <span class="text-danger small">{{ $message }}</span> @enderror
+        </div>
+    </div>
+
     @if (auth()->id() === $sala->criador_id && $sala->podeFecharComVagas())
         <div class="card border-0 shadow-sm card-arredondado mb-3">
             <div class="card-body p-4">
