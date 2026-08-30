@@ -11,10 +11,33 @@ test('listagem de quadras filtra por cidade', function () {
     Quadra::factory()->create(['nome' => 'Quadra Recife Centro', 'cidade' => 'Recife']);
     Quadra::factory()->create(['nome' => 'Quadra Olinda Praia', 'cidade' => 'Olinda']);
 
-    Livewire::test(Listagem::class)
-        ->set('cidade', 'Recife')
-        ->assertSee('Quadra Recife Centro')
-        ->assertDontSee('Quadra Olinda Praia');
+    $component = Livewire::test(Listagem::class)->set('cidade', 'Recife');
+
+    $component->assertSee('Quadra Recife Centro');
+
+    expect($component->instance()->quadras->pluck('nome')->all())
+        ->toBe(['Quadra Recife Centro']);
+});
+
+test('listagem de quadras filtra por nome da quadra', function () {
+    Quadra::factory()->create(['nome' => 'Quadra Recife Centro']);
+    Quadra::factory()->create(['nome' => 'Quadra Olinda Praia']);
+
+    $component = Livewire::test(Listagem::class)->set('quadraNome', 'Quadra Recife Centro');
+
+    expect($component->instance()->quadras->pluck('nome')->all())
+        ->toBe(['Quadra Recife Centro']);
+});
+
+test('listagem de quadras filtra por cobertura', function () {
+    Quadra::factory()->create(['nome' => 'Quadra Coberta', 'cobertura' => true]);
+    Quadra::factory()->create(['nome' => 'Quadra Descoberta', 'cobertura' => false]);
+
+    $coberta = Livewire::test(Listagem::class)->set('cobertura', '1');
+    expect($coberta->instance()->quadras->pluck('nome')->all())->toBe(['Quadra Coberta']);
+
+    $descoberta = Livewire::test(Listagem::class)->set('cobertura', '0');
+    expect($descoberta->instance()->quadras->pluck('nome')->all())->toBe(['Quadra Descoberta']);
 });
 
 test('usuário autenticado consegue reservar um horário disponível', function () {

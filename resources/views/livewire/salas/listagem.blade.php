@@ -51,10 +51,6 @@
                                 <div class="text-muted small d-flex align-items-center gap-1">
                                     Administrador: {{ $sala->criador->name }}
                                 </div>
-
-                                @if (isset($erros[$sala->id]))
-                                    <div class="text-danger small mt-2">{{ $erros[$sala->id] }}</div>
-                                @endif
                             </div>
 
                             <div class="d-flex flex-column align-items-md-end justify-content-between h-100">
@@ -67,11 +63,11 @@
                                     @endif
                                 </div>
 
-                                @if ($sala->participantes->count() >= $sala->max_participantes)
-                                    <button class="btn btn-outline-secondary fw-bold px-4 mt-auto rounded-pill" disabled>Sala cheia</button>
-                                @else
-                                    <button class="btn btn-outline-laranja fw-bold px-4 mt-auto rounded-pill" wire:click="entrar({{ $sala->id }})">Entrar</button>
-                                @endif
+                                <div class="d-flex gap-2 mt-auto">
+                                    <a href="{{ route('salas.detalhes', $sala) }}" class="btn btn-outline-secondary fw-bold px-3 rounded-pill">
+                                        Ver detalhes
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
