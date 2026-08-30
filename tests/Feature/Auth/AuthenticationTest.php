@@ -9,6 +9,18 @@ test('login screen can be rendered', function () {
     $response->assertOk();
 });
 
+test('login screen has a link to the dono de quadra login screen', function () {
+    $response = $this->get(route('login'));
+
+    $response->assertOk()->assertSee(route('login.dono'), escape: false);
+});
+
+test('dono de quadra login screen can be rendered', function () {
+    $response = $this->get(route('login.dono'));
+
+    $response->assertOk()->assertSee('Painel do Dono de Quadra');
+});
+
 test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
 
@@ -19,7 +31,7 @@ test('users can authenticate using the login screen', function () {
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('quadras.index', absolute: false));
 
     $this->assertAuthenticated();
 });

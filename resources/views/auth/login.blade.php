@@ -32,6 +32,12 @@
             <div class="text-center mt-3">
                 <small>Não tem uma conta? <a href="{{ route('registro') }}" class="text-orange fw-bold">Cadastre-se</a></small>
             </div>
+
+            <div class="d-grid mt-3">
+                <a href="{{ route('login.dono') }}" class="btn border border-orange text-orange fw-bold py-2 rounded-pill">
+                    Sou dono de quadra
+                </a>
+            </div>
         </form>
     </div>
 </div>

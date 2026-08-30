@@ -198,13 +198,6 @@ body {
     margin-bottom: 20px;
 }
 
-footer{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 150px;
-}
-
 /* Cores principais */
 :root {
     --primary-orange: #ff8c00;
@@ -474,6 +467,7 @@ footer{
     overflow: hidden;
     background: #ffffff;
     width: max-content;
+    flex-shrink: 0;
     margin: 0 auto;
 }
 .qty-btn {
@@ -482,6 +476,7 @@ footer{
     padding: 5px 15px;
     font-weight: bold;
     color: #495057;
+    flex-shrink: 0;
 }
 .qty-input {
     border: none;
@@ -491,8 +486,18 @@ footer{
     width: 60px;
     font-weight: bold;
     color: #4a5568;
+    flex-shrink: 0;
 }
 .qty-input:focus { outline: none; }
+
+/* Variante compacta do stepper, para caber ao lado de outros controles (ex: card de quadra) */
+.qty-grupo-sm .qty-btn {
+    padding: 4px 10px;
+}
+.qty-grupo-sm .qty-input {
+    width: 32px;
+    padding: 0;
+}
 
 /* Caixas de Destaque */
 .caixa-destaque {
@@ -572,6 +577,27 @@ footer{
 }
 .quadra-card.active {
     border-color: #FF8C00;
+}
+
+/* Pill compacta (variante do radio-card para grupos com várias opções lado a lado) */
+.radio-pill {
+    padding: 8px 14px;
+    gap: 8px;
+}
+.radio-pill .circulo-check {
+    width: 18px;
+    height: 18px;
+}
+
+/* Badge de horário indisponível no card de quadra */
+.badge-indisponivel {
+    background-color: #ffd2d2;
+    color: #a11919;
+    font-weight: bold;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
 }
 
 /* Avisos e Resumos */

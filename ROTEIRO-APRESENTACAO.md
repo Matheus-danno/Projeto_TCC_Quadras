@@ -59,13 +59,17 @@ Roteiro curto para seguir durante a defesa. Cobre: cadastro → busca → reserv
 ## 5. Loja
 
 - Clique em **Loja**.
-- Mostre a vitrine de produtos (nome, descrição, preço vindos do banco).
-- Deixe claro que carrinho e pagamento são **trabalho futuro** — a loja hoje é só catálogo.
+- Mostre a vitrine de produtos (nome, descrição, preço vindos do banco) e filtre por categoria ou busque um produto pelo nome.
+- Clique num produto pra abrir a página de detalhe, ajuste a quantidade e clique em **Adicionar ao carrinho**.
+- Clique em **Carrinho** no menu (repare no contador de itens badge) — ajuste a quantidade de um item e mostre o total recalculando.
+- Clique em **Finalizar Pedido** e mostre a página de confirmação com os itens e o total.
+- *Ponto forte para mencionar:* o pagamento é simulado — o pedido é confirmado na hora, sem cobrança real, do mesmo jeito que a reserva de quadra do passo 3. Também vale mostrar que um produto sem estoque aparece como **Esgotado** e não pode ser comprado.
 
 ## 6. Fechando: Meu Perfil
 
 - Clique em **Meu perfil**.
 - Mostre a aba **Minhas Reservas** com a reserva feita no passo 3 aparecendo em "Próximas".
+- Mostre a aba **Meus Pedidos** com o pedido feito no passo 5 (itens comprados e total).
 - Se quiser mostrar segurança da conta, a aba **Segurança** linka para troca de senha e ativação de 2FA (essas telas usam o layout padrão do Laravel/Flux, diferente do resto do site — é esperado).
 
 ## Se algo der errado ao vivo

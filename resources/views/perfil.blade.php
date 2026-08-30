@@ -55,6 +55,11 @@
             </button>
         </li>
         <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pedidos-tab" data-bs-toggle="tab" data-bs-target="#pedidos" type="button" role="tab">
+                <i class="bi bi-bag-check me-1"></i> Meus Pedidos
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
             <button class="nav-link" id="favoritas-tab" data-bs-toggle="tab" data-bs-target="#favoritas" type="button" role="tab">
                 <i class="bi bi-person me-1"></i> Quadras Favoritas
             </button>
@@ -77,6 +82,14 @@
             <div class="card border-0 shadow-sm" style="border-radius: 20px;">
                 <div class="card-body p-4">
                     <livewire:perfil.minhas-reservas />
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pedidos" role="tabpanel">
+            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                <div class="card-body p-4">
+                    <livewire:perfil.meus-pedidos />
                 </div>
             </div>
         </div>

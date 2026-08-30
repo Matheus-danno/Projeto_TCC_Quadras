@@ -43,10 +43,6 @@
         @yield('conteudo')
     </main>
 
-    <footer>
-        <p>&copy; {{ date('Y') }} - {{ config('app.name') }}</p>
-    </footer>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @livewireScripts
 </body>
