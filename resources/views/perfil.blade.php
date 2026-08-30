@@ -32,7 +32,7 @@
         <div class="card-body p-4">
             <div class="d-flex align-items-center flex-wrap">
                 <div class="position-relative me-4 mb-3 mb-md-0">
-                    <img src="https://i.pravatar.cc/150?u={{ auth()->user()->email }}" alt="Foto de Perfil" class="rounded-circle border border-4 border-warning" style="width: 130px; height: 130px; object-fit: cover;">
+                    <img src="{{ auth()->user()->avatarUrl() }}" alt="Foto de Perfil" class="rounded-circle border border-4 border-warning" style="width: 130px; height: 130px; object-fit: cover;">
                 </div>
 
                 <div class="flex-grow-1">
@@ -42,7 +42,7 @@
                         <span><i class="bi bi-person-badge me-1" style="color: #FF8C00;"></i> {{ auth()->user()->role->label() }}</span>
                         <span><i class="bi bi-calendar-event me-1" style="color: #FF8C00;"></i> Membro desde {{ auth()->user()->created_at->translatedFormat('F Y') }}</span>
                     </div>
-                    <a href="{{ route('profile.edit') }}" class="btn mt-3 text-white px-4 shadow-sm" style="background-color: #FF8C00; border-radius: 10px; font-weight: bold;">
+                    <a href="{{ route('perfil.editar') }}" class="btn mt-3 text-white px-4 shadow-sm" style="background-color: #FF8C00; border-radius: 10px; font-weight: bold;">
                         <i class="bi bi-pencil me-1"></i> Editar Perfil
                     </a>
                 </div>

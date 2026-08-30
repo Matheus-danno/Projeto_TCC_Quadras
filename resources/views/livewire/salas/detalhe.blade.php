@@ -132,7 +132,7 @@
 
     <div class="card border-0 shadow-sm card-arredondado mb-3">
         <div class="card-body p-4 d-flex align-items-center gap-3">
-            <img src="https://i.pravatar.cc/150?u={{ $sala->criador->id }}" alt="{{ $sala->criador->name }}" class="detalhes-avatar-admin">
+            <img src="{{ $sala->criador->avatarUrl() }}" alt="{{ $sala->criador->name }}" class="detalhes-avatar-admin">
 
             <div class="flex-grow-1">
                 <p class="fw-semibold texto-jogo mb-0">{{ $sala->criador->name }}</p>
@@ -161,7 +161,7 @@
 
             @foreach ($participantesExibidos as $participante)
                 <div class="d-flex align-items-center gap-3 py-2 {{ ! $loop->last ? 'border-bottom' : '' }}">
-                    <img src="https://i.pravatar.cc/150?u={{ $participante->id }}" alt="{{ $participante->name }}" class="detalhes-avatar-participante">
+                    <img src="{{ $participante->avatarUrl() }}" alt="{{ $participante->name }}" class="detalhes-avatar-participante">
 
                     <div class="flex-grow-1">
                         <p class="fw-semibold texto-jogo mb-0">
@@ -224,7 +224,7 @@
             <div class="card-body p-4">
                 @foreach ($this->pedidosPendentes as $pedido)
                     <div class="d-flex align-items-center gap-3 py-2 {{ ! $loop->last ? 'border-bottom' : '' }}">
-                        <img src="https://i.pravatar.cc/150?u={{ $pedido->user->id }}" alt="{{ $pedido->user->name }}" class="detalhes-avatar-participante">
+                        <img src="{{ $pedido->user->avatarUrl() }}" alt="{{ $pedido->user->name }}" class="detalhes-avatar-participante">
                         <p class="fw-semibold texto-jogo mb-0 flex-grow-1">{{ $pedido->user->name }}</p>
                         <button type="button" wire:click="aprovarPedido({{ $pedido->id }})" class="btn btn-laranja fw-bold btn-ver-detalhes">Aprovar</button>
                         <button type="button" wire:click="recusarPedido({{ $pedido->id }})" class="btn btn-outline-secondary fw-bold btn-ver-detalhes">Recusar</button>

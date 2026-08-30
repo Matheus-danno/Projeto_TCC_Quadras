@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
@@ -26,6 +27,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'avatar_path',
         'nome_estabelecimento',
         'email',
         'password',
@@ -82,6 +84,17 @@ class User extends Authenticatable
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
+    }
+
+    /**
+     * URL da foto de perfil: a enviada pelo usuário ou, na ausência dela,
+     * um avatar gerado a partir do e-mail.
+     */
+    public function avatarUrl(): string
+    {
+        return $this->avatar_path
+            ? Storage::disk('public')->url($this->avatar_path)
+            : 'https://i.pravatar.cc/150?u='.urlencode($this->email);
     }
 
     /**

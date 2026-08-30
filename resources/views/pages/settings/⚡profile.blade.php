@@ -4,15 +4,19 @@ use App\Concerns\ProfileValidationRules;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 new #[Title('Profile settings')] class extends Component {
-    use ProfileValidationRules;
+    use ProfileValidationRules, WithFileUploads;
 
     public string $name = '';
     public string $email = '';
+
+    public $avatar = null;
 
     /**
      * Mount the component.
@@ -21,6 +25,43 @@ new #[Title('Profile settings')] class extends Component {
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+    }
+
+    /**
+     * Salva a foto de perfil enviada, substituindo a anterior se houver.
+     */
+    public function updateAvatar(): void
+    {
+        $this->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ]);
+
+        $user = Auth::user();
+
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+        }
+
+        $user->update([
+            'avatar_path' => $this->avatar->store('avatars/'.$user->id, 'public'),
+        ]);
+
+        $this->avatar = null;
+
+        $this->dispatch('profile-updated', name: $user->name);
+    }
+
+    /**
+     * Remove a foto de perfil enviada, voltando ao avatar padrão.
+     */
+    public function removerAvatar(): void
+    {
+        $user = Auth::user();
+
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+            $user->update(['avatar_path' => null]);
+        }
     }
 
     /**
@@ -81,6 +122,35 @@ new #[Title('Profile settings')] class extends Component {
     <flux:heading class="sr-only">{{ __('Profile settings') }}</flux:heading>
 
     <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
+        <div class="my-6 flex items-center gap-4">
+            <img src="{{ auth()->user()->avatarUrl() }}" alt="{{ __('Foto de perfil') }}" class="size-16 rounded-full object-cover">
+
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <label class="cursor-pointer text-sm font-semibold text-orange-600 hover:text-orange-700">
+                        <input type="file" wire:model="avatar" accept="image/*" class="hidden">
+                        {{ __('Escolher foto') }}
+                    </label>
+
+                    @if ($avatar)
+                        <flux:button size="sm" variant="primary" wire:click="updateAvatar" wire:loading.attr="disabled">
+                            {{ __('Salvar foto') }}
+                        </flux:button>
+                    @elseif (auth()->user()->avatar_path)
+                        <flux:button size="sm" variant="ghost" wire:click="removerAvatar" wire:confirm="{{ __('Remover a foto de perfil?') }}">
+                            {{ __('Remover foto') }}
+                        </flux:button>
+                    @endif
+                </div>
+
+                @if ($avatar && $avatar->isPreviewable())
+                    <img src="{{ $avatar->temporaryUrl() }}" alt="{{ __('Pré-visualização') }}" class="size-16 rounded-full object-cover">
+                @endif
+
+                @error('avatar') <flux:text class="text-red-600">{{ $message }}</flux:text> @enderror
+            </div>
+        </div>
+
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
             <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
 

@@ -37,6 +37,9 @@ Route::get('/cadastro-dono', function () {
 Route::get('/perfil', function () {
     return view('perfil');
 })->middleware('auth')->name('perfil');
+Route::get('/perfil/editar', function () {
+    return view('perfil-editar');
+})->middleware('auth')->name('perfil.editar');
 Route::get('/encontre-um-time', function () {
     return view('encontre_time');
 })->name('encontre_time');
