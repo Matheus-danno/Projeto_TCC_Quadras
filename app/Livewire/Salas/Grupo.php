@@ -16,6 +16,8 @@ class Grupo extends Component
 
     public bool $mensagemPrivada = false;
 
+    public ?int $destinatarioId = null;
+
     public function mount(Sala $sala): void
     {
         abort_unless(auth()->check() && $sala->participantes->contains('id', auth()->id()), 403);
@@ -34,15 +36,30 @@ class Grupo extends Component
             'novaMensagem.max' => 'A mensagem pode ter no máximo 500 caracteres.',
         ]);
 
+        $ehOrganizador = auth()->id() === $this->sala->criador_id;
+
+        $destinatarioId = $ehOrganizador
+            ? ($this->destinatarioId && $this->sala->participantes->contains('id', $this->destinatarioId) ? $this->destinatarioId : null)
+            : ($this->mensagemPrivada ? $this->sala->criador_id : null);
+
         $this->sala->mensagens()->create([
             'user_id' => auth()->id(),
-            'destinatario_id' => $this->mensagemPrivada ? $this->sala->criador_id : null,
+            'destinatario_id' => $destinatarioId,
             'texto' => trim($validated['novaMensagem']),
         ]);
 
         $this->novaMensagem = '';
 
         $this->carregarMensagens();
+    }
+
+    /**
+     * Preenche o destinatário com quem enviou a mensagem privada recebida,
+     * para o organizador responder diretamente a essa pessoa.
+     */
+    public function responderPrivadamente(int $userId): void
+    {
+        $this->destinatarioId = $userId;
     }
 
     /**
@@ -66,7 +83,7 @@ class Grupo extends Component
             $query->where(fn ($sub) => $sub->whereNull('destinatario_id')
                 ->orWhere('user_id', $userId)
                 ->orWhere('destinatario_id', $userId)
-            )->with('user');
+            )->with(['user', 'destinatario']);
         }]);
     }
 

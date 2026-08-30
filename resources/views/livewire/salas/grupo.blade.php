@@ -96,11 +96,18 @@
                                     <span class="badge grupo-badge-organizador" style="font-size: 0.6rem;">Organizador</span>
                                 @endif
                                 @if ($mensagem->destinatario_id)
-                                    <span class="badge bg-secondary" style="font-size: 0.6rem;"><i class="bi bi-lock-fill"></i> Privado</span>
+                                    <span class="badge bg-secondary" style="font-size: 0.6rem;">
+                                        <i class="bi bi-lock-fill"></i> Privado{{ $mensagem->destinatario_id !== auth()->id() ? ' para '.$mensagem->destinatario?->name : '' }}
+                                    </span>
                                 @endif
                                 <span class="text-muted" style="font-size: 0.7rem;">{{ $mensagem->tempoDecorrido() }} atrás</span>
                             </div>
                             <p class="mb-0 small">{{ $mensagem->texto }}</p>
+                            @if ($mensagem->destinatario_id === auth()->id() && auth()->id() === $sala->criador_id)
+                                <button type="button" class="btn btn-link btn-sm p-0 small" wire:click="responderPrivadamente({{ $mensagem->user_id }})">
+                                    Responder no privado
+                                </button>
+                            @endif
                         </div>
                     </div>
                 @empty
@@ -108,14 +115,24 @@
                 @endforelse
             </div>
 
-            @unless (auth()->id() === $sala->criador_id)
+            @if (auth()->id() === $sala->criador_id)
+                <div class="mb-2">
+                    <label for="destinatarioId" class="small text-muted mb-1 d-block">Enviar para</label>
+                    <select wire:model="destinatarioId" id="destinatarioId" class="form-select form-select-sm border-orange rounded-2" style="max-width: 260px;">
+                        <option value="">Todos (chat da sala)</option>
+                        @foreach ($sala->participantes->where('id', '!=', auth()->id()) as $participante)
+                            <option value="{{ $participante->id }}">Privado para {{ $participante->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @else
                 <div class="form-check mb-2">
                     <input class="form-check-input" type="checkbox" wire:model="mensagemPrivada" id="mensagemPrivada">
                     <label class="form-check-label small text-muted" for="mensagemPrivada">
                         <i class="bi bi-lock-fill"></i> Enviar só para o organizador
                     </label>
                 </div>
-            @endunless
+            @endif
 
             <form wire:submit.prevent="enviarMensagem" class="d-flex gap-2">
                 <input type="text" class="form-control border-orange rounded-2" wire:model="novaMensagem" placeholder="Escreva uma mensagem..." maxlength="500">

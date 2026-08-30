@@ -135,3 +135,60 @@ test('organizador não vê a opção de enviar mensagem privada para si mesmo', 
         ->test(Grupo::class, ['sala' => $sala])
         ->assertDontSee('Enviar só para o organizador');
 });
+
+test('organizador consegue responder no privado para um participante específico', function () {
+    $criador = User::factory()->create();
+    $jogador = User::factory()->create(['name' => 'Ana Jogadora']);
+    $outroJogador = User::factory()->create();
+    $sala = Sala::factory()->create(['criador_id' => $criador->id]);
+    $sala->participantes()->attach([$criador->id, $jogador->id, $outroJogador->id]);
+
+    Livewire::actingAs($criador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->assertSee('Privado para Ana Jogadora')
+        ->set('destinatarioId', $jogador->id)
+        ->set('novaMensagem', 'Fechado, te espero lá!')
+        ->call('enviarMensagem')
+        ->assertHasNoErrors();
+
+    $mensagem = MensagemSala::first();
+
+    expect($mensagem->user_id)->toBe($criador->id)
+        ->and($mensagem->destinatario_id)->toBe($jogador->id);
+
+    Livewire::actingAs($jogador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->assertSee('Fechado, te espero lá!');
+
+    Livewire::actingAs($outroJogador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->assertDontSee('Fechado, te espero lá!');
+});
+
+test('responder no privado preenche o destinatário com quem enviou a mensagem recebida', function () {
+    $criador = User::factory()->create();
+    $jogador = User::factory()->create();
+    $sala = Sala::factory()->create(['criador_id' => $criador->id]);
+    $sala->participantes()->attach([$criador->id, $jogador->id]);
+
+    Livewire::actingAs($criador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->call('responderPrivadamente', $jogador->id)
+        ->assertSet('destinatarioId', $jogador->id);
+});
+
+test('organizador não consegue mandar mensagem privada para quem não participa da sala', function () {
+    $criador = User::factory()->create();
+    $sala = Sala::factory()->create(['criador_id' => $criador->id]);
+    $sala->participantes()->attach($criador->id);
+    $forasteiro = User::factory()->create();
+
+    Livewire::actingAs($criador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->set('destinatarioId', $forasteiro->id)
+        ->set('novaMensagem', 'Mensagem qualquer')
+        ->call('enviarMensagem')
+        ->assertHasNoErrors();
+
+    expect(MensagemSala::first()->destinatario_id)->toBeNull();
+});
