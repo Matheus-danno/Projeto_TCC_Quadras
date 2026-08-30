@@ -8,9 +8,10 @@ as marcas ` ``` ` e cole numa conversa nova do Claude Code. Cada sessão assume 
 anterior já foi commitada. Marque o checkbox `[x]` conforme terminar.
 
 **Sobre os commits:** os commits devem ficar registrados **somente no seu nome**
-(`Matheus-danno`). Não adicione `Co-Authored-By` de assistente nenhum. Use o estilo
-de mensagem dos commits que já existem (`git log --oneline`): imperativo, sem ponto
-final, sem prefixo `feat:/fix:`.
+(`Matheus-danno`). **Nunca** adicione `Co-Authored-By`, `Generated with`,
+`Assisted-by` nem qualquer outro crédito de IA/assistente — em nenhuma sessão,
+mesmo que a ferramenta sugira. Use o estilo de mensagem dos commits que já existem
+(`git log --oneline`): imperativo, sem ponto final, sem prefixo `feat:/fix:`.
 
 ---
 
