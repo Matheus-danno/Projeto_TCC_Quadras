@@ -79,6 +79,8 @@
     <div class="tab-content" id="perfilTabsContent">
 
         <div class="tab-pane fade show active" id="reservas" role="tabpanel">
+            <livewire:perfil.saldo-creditos />
+
             <div class="card border-0 shadow-sm" style="border-radius: 20px;">
                 <div class="card-body p-4">
                     <livewire:perfil.minhas-reservas />

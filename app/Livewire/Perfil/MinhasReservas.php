@@ -65,6 +65,8 @@ class MinhasReservas extends Component
                 $user = Auth::user();
                 $user->saldo_creditos = (float) $user->saldo_creditos + (float) ($reserva->quadra?->valor_hora ?? 0);
                 $user->save();
+
+                $this->dispatch('creditos-atualizados');
             }
 
             $reserva->update([
