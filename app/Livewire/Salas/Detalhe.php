@@ -16,9 +16,11 @@ class Detalhe extends Component
 
     public ?string $mensagemPendente = null;
 
+    public bool $mostrarTodosParticipantes = false;
+
     public function mount(Sala $sala): void
     {
-        $this->sala = $sala->load(['quadra.fotos', 'criador']);
+        $this->sala = $sala->load(['quadra.fotos', 'criador.avaliacoesRecebidas', 'atividades.user']);
     }
 
     #[Computed]
