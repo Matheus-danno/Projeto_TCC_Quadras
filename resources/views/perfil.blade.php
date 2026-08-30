@@ -127,10 +127,8 @@
 
         <div class="tab-pane fade" id="notificacoes" role="tabpanel">
             <div class="card border-0 shadow-sm" style="border-radius: 20px;">
-                <div class="card-body p-4 text-center py-5">
-                    <i class="bi bi-bell text-warning" style="font-size: 2rem;"></i>
-                    <h5 class="fw-bold text-secondary mt-3 mb-1">Notificações</h5>
-                    <p class="text-muted small mb-0">Essa funcionalidade ainda não existe — fica planejada para uma próxima versão.</p>
+                <div class="card-body p-4">
+                    <livewire:perfil.notificacoes />
                 </div>
             </div>
         </div>
