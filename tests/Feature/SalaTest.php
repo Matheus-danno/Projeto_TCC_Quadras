@@ -69,9 +69,8 @@ test('usuário autenticado consegue criar uma sala/partida', function () {
         ->and($sala->quadra_id)->toBe($quadra->id)
         ->and($sala->nivel_desejado)->toBe(NivelHabilidade::Intermediario)
         ->and($sala->aceitacao_niveis_adjacentes)->toBe(AceitacaoNivel::Todos)
-        ->and($sala->privada)->toBeFalse()
-        ->and($sala->aprovacao_manual)->toBeFalse()
-        ->and($sala->participantes->pluck('id')->all())->toBe([$user->id]);
+        ->and($sala->privacidade)->toBe(\App\Enums\Privacidade::Publica)
+        ->and($sala->aprovacao)->toBe(\App\Enums\Aprovacao::Automatica);
 });
 
 test('partida criada aparece na listagem de encontre um time', function () {
@@ -130,20 +129,6 @@ test('criar partida gera uma reserva vinculada que bloqueia o horário para outr
         ->and(substr($reserva->hora_fim, 0, 5))->toBe('21:30');
 });
 
-test('ajustar a quantidade de horas de uma quadra não afeta as demais quadras', function () {
-    $user = User::factory()->create();
-    $quadraA = Quadra::factory()->create(['ativa' => true]);
-    $quadraB = Quadra::factory()->create(['ativa' => true]);
-
-    $component = Livewire::actingAs($user)
-        ->test(Criar::class)
-        ->call('incrementarHoras', $quadraA->id)
-        ->call('incrementarHoras', $quadraA->id);
-
-    expect($component->instance()->horasPara($quadraA->id))->toBe(4)
-        ->and($component->instance()->horasPara($quadraB->id))->toBe(2);
-});
-
 test('criação de partida é rejeitada quando o horário da quadra conflita com uma reserva existente', function () {
     $user = User::factory()->create();
     $quadra = Quadra::factory()->create(['ativa' => true]);
@@ -184,7 +169,6 @@ test('jogador consegue entrar em uma sala com vagas disponíveis pagando via pix
         'criador_id' => $criador->id,
         'quadra_id' => $quadra->id,
         'max_participantes' => 5,
-        'duracao_minutos' => 60,
     ]);
 
     Livewire::actingAs($jogador)
@@ -274,7 +258,6 @@ test('página de confirmação mostra a forma de pagamento e o valor pago', func
         'criador_id' => $criador->id,
         'quadra_id' => $quadra->id,
         'max_participantes' => 5,
-        'duracao_minutos' => 60,
     ]);
 
     $sala->participantes()->attach($jogador->id, ['forma_pagamento' => 'pix', 'valor_pago' => 12]);

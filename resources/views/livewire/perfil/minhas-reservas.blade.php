@@ -2,6 +2,10 @@
     <h5 class="fw-bold text-secondary mb-1">Histórico de Reservas</h5>
     <p class="text-muted small mb-4">Confira todas as suas reservas anteriores e futuras</p>
 
+    @if ($erroCancelamento)
+        <div class="alert alert-danger">{{ $erroCancelamento }}</div>
+    @endif
+
     <h6 class="fw-bold text-secondary mb-3">Próximas</h6>
     <div class="d-flex flex-column gap-3 mb-4">
         @forelse ($this->futuras as $reserva)
@@ -22,6 +26,38 @@
                             'cancelada' => 'bg-secondary',
                         } }} text-white">{{ $reserva->status->label() }}</span>
                         <span class="fw-bold fs-5" style="color: #FF8C00;">R$ {{ number_format($reserva->quadra->valor_hora, 2, ',', '.') }}</span>
+
+                        @if ($reserva->podeCancelar())
+                            @if ($reserva->status->value === 'pendente')
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-danger mt-2"
+                                    wire:click="cancelar({{ $reserva->id }})"
+                                    wire:confirm="Cancelar essa reserva?"
+                                >
+                                    Cancelar
+                                </button>
+                            @else
+                                <div class="d-flex gap-2 mt-2">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-danger"
+                                        wire:click="cancelar({{ $reserva->id }}, 'credito')"
+                                        wire:confirm="Cancelar e receber R$ {{ number_format($reserva->quadra->valor_hora, 2, ',', '.') }} como crédito?"
+                                    >
+                                        Cancelar (receber crédito)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        wire:click="cancelar({{ $reserva->id }}, 'extorno')"
+                                        wire:confirm="Cancelar e solicitar extorno?"
+                                    >
+                                        Cancelar (extorno)
+                                    </button>
+                                </div>
+                            @endif
+                        @endif
                     </div>
                 </div>
             </div>
