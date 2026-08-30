@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\NivelHabilidade;
 use App\Enums\Sexo;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -38,6 +39,7 @@ class User extends Authenticatable
         'cidade',
         'estado',
         'telefone',
+        'nivel',
     ];
 
     /**
@@ -64,7 +66,9 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
             'sexo' => Sexo::class,
+            'nivel' => NivelHabilidade::class,
             'data_nascimento' => 'date',
+            'saldo_creditos' => 'decimal:2',
         ];
     }
 
@@ -120,5 +124,39 @@ class User extends Authenticatable
         return $this->belongsToMany(Sala::class, 'participacao_salas')
             ->using(ParticipacaoSala::class)
             ->withTimestamps();
+    }
+
+    /**
+     * Avaliações recebidas por este usuário como administrador de salas.
+     */
+    public function avaliacoesRecebidas(): HasMany
+    {
+        return $this->hasMany(Avaliacao::class, 'avaliado_id');
+    }
+
+    /**
+     * Nota média das avaliações recebidas, arredondada a 1 casa decimal.
+     */
+    public function notaMedia(): ?float
+    {
+        $media = $this->avaliacoesRecebidas->avg('nota');
+
+        return $media !== null ? round($media, 1) : null;
+    }
+
+    /**
+     * Quantidade de salas que este usuário organizou como administrador.
+     */
+    public function partidasOrganizadas(): int
+    {
+        return $this->salasCriadas()->count();
+    }
+
+    /**
+     * Ano em que o usuário se cadastrou.
+     */
+    public function membroDesde(): string
+    {
+        return $this->created_at->format('Y');
     }
 }
