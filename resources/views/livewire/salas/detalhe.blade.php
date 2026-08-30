@@ -259,23 +259,27 @@
             </button>
         </div>
         <div class="col-md-6">
-            @if ($sala->status->value === 'fechada')
-                <button class="btn btn-outline-secondary fw-bold w-100 py-3" disabled>Sala fechada</button>
-            @elseif ($sala->participantes->contains('id', auth()->id()))
-                <a href="{{ route('salas.grupo', $sala) }}" class="btn btn-laranja fw-bold w-100 py-3">Ver minha sala</a>
-            @elseif ($this->meuPedido?->status?->value === 'pendente')
-                <button class="btn btn-outline-laranja fw-bold w-100 py-3" style="color: #515151;" disabled>Pedido aguardando aprovação</button>
-            @elseif ($sala->participantes->count() >= $sala->max_participantes)
-                <button class="btn btn-outline-secondary fw-bold w-100 py-3" disabled>Sala cheia</button>
-            @elseif ($sala->aprovacao->value === 'automatica' && $sala->precoPessoaCalculado())
-                <a href="{{ route('salas.pagamento', $sala) }}" class="btn btn-laranja fw-bold w-100 py-3">
-                    Entrar e Pagar - R$ {{ number_format($sala->precoPessoaCalculado(), 2, ',', '.') }}
-                </a>
+            @guest
+                <p class="small mb-2 text-center">Você precisa <a href="{{ route('login') }}">entrar</a> para participar.</p>
             @else
-                <button wire:click="entrar" class="btn btn-laranja fw-bold w-100 py-3">
-                    {{ $sala->aprovacao->value === 'manual' ? 'Solicitar entrada' : 'Entrar' }}
-                </button>
-            @endif
+                @if ($sala->status->value === 'fechada')
+                    <button class="btn btn-outline-secondary fw-bold w-100 py-3" disabled>Sala fechada</button>
+                @elseif ($sala->participantes->contains('id', auth()->id()))
+                    <a href="{{ route('salas.grupo', $sala) }}" class="btn btn-laranja fw-bold w-100 py-3">Ver minha sala</a>
+                @elseif ($this->meuPedido?->status?->value === 'pendente')
+                    <button class="btn btn-outline-laranja fw-bold w-100 py-3" style="color: #515151;" disabled>Pedido aguardando aprovação</button>
+                @elseif ($sala->participantes->count() >= $sala->max_participantes)
+                    <button class="btn btn-outline-secondary fw-bold w-100 py-3" disabled>Sala cheia</button>
+                @elseif ($sala->aprovacao->value === 'automatica' && $sala->precoPessoaCalculado())
+                    <a href="{{ route('salas.pagamento', $sala) }}" class="btn btn-laranja fw-bold w-100 py-3">
+                        Entrar e Pagar - R$ {{ number_format($sala->precoPessoaCalculado(), 2, ',', '.') }}
+                    </a>
+                @else
+                    <button wire:click="entrar" class="btn btn-laranja fw-bold w-100 py-3">
+                        {{ $sala->aprovacao->value === 'manual' ? 'Solicitar entrada' : 'Entrar' }}
+                    </button>
+                @endif
+            @endguest
         </div>
     </div>
 

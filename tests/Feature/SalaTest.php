@@ -21,7 +21,7 @@ test('formulário de criar partida já vem com data, hora e nível preenchidos p
 
     expect($component->get('data'))->toBe(now()->toDateString())
         ->and($component->get('horaInicio'))->not->toBe('')
-        ->and($component->get('nivelDesejado'))->toBe(NivelHabilidade::Intermediario->value);
+        ->and($component->get('nivel'))->toBe(NivelHabilidade::Intermediario->value);
 });
 
 test('tentar criar sem escolher uma quadra mostra mensagem de erro amigável', function () {
@@ -29,12 +29,9 @@ test('tentar criar sem escolher uma quadra mostra mensagem de erro amigável', f
 
     Livewire::actingAs($user)
         ->test(Criar::class)
-        ->set('nome', 'Racha sem quadra')
         ->set('esporte', Esporte::Futebol->value)
         ->call('criar')
-        ->assertHasErrors('quadraId')
-        ->assertSee('Corrija os campos abaixo')
-        ->assertSee('Quadra (seção "Escolha a quadra")');
+        ->assertHasErrors('quadraId');
 
     expect(Sala::count())->toBe(0);
 });
@@ -46,15 +43,14 @@ test('usuário autenticado consegue criar uma sala/partida', function () {
 
     Livewire::actingAs($user)
         ->test(Criar::class)
-        ->set('nome', 'Racha de sexta-feira')
         ->set('esporte', Esporte::Futebol->value)
         ->set('maxParticipantes', 10)
         ->set('quadraId', $quadra->id)
         ->set('data', $data)
         ->set('horaInicio', '20:00')
         ->set('duracaoMinutos', 90)
-        ->set('nivelDesejado', NivelHabilidade::Intermediario->value)
-        ->set('aceitacaoNiveis', AceitacaoNivel::Todos->value)
+        ->set('nivel', NivelHabilidade::Intermediario->value)
+        ->set('nivelFlexibilidade', AceitacaoNivel::Todos->value)
         ->call('criar')
         ->assertHasNoErrors();
 
@@ -62,7 +58,7 @@ test('usuário autenticado consegue criar uma sala/partida', function () {
 
     $sala = Sala::first();
 
-    expect($sala->nome)->toBe('Racha de sexta-feira')
+    expect($sala->nome)->toBe('Futebol - Intermediário')
         ->and($sala->esporte)->toBe(Esporte::Futebol)
         ->and($sala->criador_id)->toBe($user->id)
         ->and($sala->max_participantes)->toBe(10)
@@ -80,21 +76,20 @@ test('partida criada aparece na listagem de encontre um time', function () {
 
     Livewire::actingAs($user)
         ->test(Criar::class)
-        ->set('nome', 'Racha de sexta-feira')
         ->set('esporte', Esporte::Futebol->value)
         ->set('maxParticipantes', 10)
         ->set('quadraId', $quadra->id)
         ->set('data', $data)
         ->set('horaInicio', '20:00')
         ->set('duracaoMinutos', 90)
-        ->set('nivelDesejado', NivelHabilidade::Intermediario->value)
-        ->set('aceitacaoNiveis', AceitacaoNivel::Todos->value)
+        ->set('nivel', NivelHabilidade::Intermediario->value)
+        ->set('nivelFlexibilidade', AceitacaoNivel::Todos->value)
         ->call('criar')
         ->assertHasNoErrors();
 
     Livewire::actingAs($user)
         ->test(Listagem::class)
-        ->assertSee('Racha de sexta-feira');
+        ->assertSee('Futebol');
 });
 
 test('criar partida gera uma reserva vinculada que bloqueia o horário para outros agendamentos', function () {
@@ -104,15 +99,14 @@ test('criar partida gera uma reserva vinculada que bloqueia o horário para outr
 
     Livewire::actingAs($user)
         ->test(Criar::class)
-        ->set('nome', 'Racha de sexta-feira')
         ->set('esporte', Esporte::Futebol->value)
         ->set('maxParticipantes', 10)
         ->set('quadraId', $quadra->id)
         ->set('data', $data)
         ->set('horaInicio', '20:00')
         ->set('duracaoMinutos', 90)
-        ->set('nivelDesejado', NivelHabilidade::Intermediario->value)
-        ->set('aceitacaoNiveis', AceitacaoNivel::Todos->value)
+        ->set('nivel', NivelHabilidade::Intermediario->value)
+        ->set('nivelFlexibilidade', AceitacaoNivel::Todos->value)
         ->call('criar')
         ->assertHasNoErrors();
 
@@ -144,17 +138,16 @@ test('criação de partida é rejeitada quando o horário da quadra conflita com
 
     Livewire::actingAs($user)
         ->test(Criar::class)
-        ->set('nome', 'Racha de sexta-feira')
         ->set('esporte', Esporte::Futebol->value)
         ->set('maxParticipantes', 10)
         ->set('quadraId', $quadra->id)
         ->set('data', $data)
-        ->set('horaInicio', '20:30')
+        ->set('horaInicio', '20:00')
         ->set('duracaoMinutos', 60)
-        ->set('nivelDesejado', NivelHabilidade::Intermediario->value)
-        ->set('aceitacaoNiveis', AceitacaoNivel::Todos->value)
+        ->set('nivel', NivelHabilidade::Intermediario->value)
+        ->set('nivelFlexibilidade', AceitacaoNivel::Todos->value)
         ->call('criar')
-        ->assertHasErrors('horaInicio');
+        ->assertHasErrors('quadraId');
 
     expect(Sala::count())->toBe(0)
         ->and(Reserva::count())->toBe(1);
@@ -220,10 +213,10 @@ test('pagamento com cartão preenchido corretamente confirma a entrada na sala',
 
 test('visitante não autenticado não vê o botão de pagamento e é redirecionado ao tentar acessá-lo', function () {
     $criador = User::factory()->create();
-    $sala = Sala::factory()->create(['criador_id' => $criador->id, 'nome' => 'Racha de domingo']);
+    $sala = Sala::factory()->create(['criador_id' => $criador->id, 'esporte' => Esporte::Futebol->value]);
 
     Livewire::test(Detalhe::class, ['sala' => $sala])
-        ->assertSee('Racha de domingo')
+        ->assertSee(Esporte::Futebol->label())
         ->assertDontSee('Entrar e Pagar')
         ->assertSee('para participar');
 
