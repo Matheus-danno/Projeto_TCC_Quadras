@@ -14,6 +14,7 @@ class MensagemSala extends Model
     protected $fillable = [
         'sala_id',
         'user_id',
+        'destinatario_id',
         'texto',
     ];
 
@@ -25,6 +26,15 @@ class MensagemSala extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Destinatário da mensagem quando ela é privada (visível só para o remetente
+     * e essa pessoa). Nulo para mensagens públicas do chat da sala.
+     */
+    public function destinatario(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'destinatario_id');
     }
 
     /**

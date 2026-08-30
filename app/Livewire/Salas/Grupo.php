@@ -14,11 +14,15 @@ class Grupo extends Component
 
     public string $novaMensagem = '';
 
+    public bool $mensagemPrivada = false;
+
     public function mount(Sala $sala): void
     {
         abort_unless(auth()->check() && $sala->participantes->contains('id', auth()->id()), 403);
 
-        $this->sala = $sala->load(['quadra', 'criador', 'participantes', 'atividades.user', 'mensagens.user']);
+        $this->sala = $sala->load(['quadra', 'criador', 'participantes', 'atividades.user']);
+
+        $this->carregarMensagens();
     }
 
     public function enviarMensagem(): void
@@ -32,12 +36,13 @@ class Grupo extends Component
 
         $this->sala->mensagens()->create([
             'user_id' => auth()->id(),
+            'destinatario_id' => $this->mensagemPrivada ? $this->sala->criador_id : null,
             'texto' => trim($validated['novaMensagem']),
         ]);
 
         $this->novaMensagem = '';
 
-        $this->sala->load('mensagens.user');
+        $this->carregarMensagens();
     }
 
     /**
@@ -46,7 +51,23 @@ class Grupo extends Component
      */
     public function atualizarMensagens(): void
     {
-        $this->sala->load('mensagens.user');
+        $this->carregarMensagens();
+    }
+
+    /**
+     * Carrega as mensagens visíveis para o usuário autenticado: as públicas do
+     * chat da sala, mais as privadas que ele enviou ou recebeu.
+     */
+    private function carregarMensagens(): void
+    {
+        $userId = auth()->id();
+
+        $this->sala->load(['mensagens' => function ($query) use ($userId) {
+            $query->where(fn ($sub) => $sub->whereNull('destinatario_id')
+                ->orWhere('user_id', $userId)
+                ->orWhere('destinatario_id', $userId)
+            )->with('user');
+        }]);
     }
 
     public function sairDaSala(): void

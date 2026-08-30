@@ -80,3 +80,58 @@ test('usuário que não participa da sala não consegue ver nem enviar mensagens
         ->get(route('salas.grupo', $sala))
         ->assertForbidden();
 });
+
+test('participante consegue enviar mensagem privada só para o organizador', function () {
+    $criador = User::factory()->create();
+    $jogador = User::factory()->create();
+    $sala = Sala::factory()->create(['criador_id' => $criador->id]);
+    $sala->participantes()->attach([$criador->id, $jogador->id]);
+
+    Livewire::actingAs($jogador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->set('novaMensagem', 'Posso levar um amigo?')
+        ->set('mensagemPrivada', true)
+        ->call('enviarMensagem')
+        ->assertHasNoErrors();
+
+    $mensagem = MensagemSala::first();
+
+    expect($mensagem->destinatario_id)->toBe($criador->id);
+});
+
+test('mensagem privada aparece para quem enviou e para o organizador, mas não para outros participantes', function () {
+    $criador = User::factory()->create();
+    $jogador = User::factory()->create();
+    $outroJogador = User::factory()->create();
+    $sala = Sala::factory()->create(['criador_id' => $criador->id]);
+    $sala->participantes()->attach([$criador->id, $jogador->id, $outroJogador->id]);
+
+    MensagemSala::factory()->create([
+        'sala_id' => $sala->id,
+        'user_id' => $jogador->id,
+        'destinatario_id' => $criador->id,
+        'texto' => 'Mensagem confidencial para o organizador',
+    ]);
+
+    Livewire::actingAs($jogador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->assertSee('Mensagem confidencial para o organizador');
+
+    Livewire::actingAs($criador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->assertSee('Mensagem confidencial para o organizador');
+
+    Livewire::actingAs($outroJogador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->assertDontSee('Mensagem confidencial para o organizador');
+});
+
+test('organizador não vê a opção de enviar mensagem privada para si mesmo', function () {
+    $criador = User::factory()->create();
+    $sala = Sala::factory()->create(['criador_id' => $criador->id]);
+    $sala->participantes()->attach($criador->id);
+
+    Livewire::actingAs($criador)
+        ->test(Grupo::class, ['sala' => $sala])
+        ->assertDontSee('Enviar só para o organizador');
+});

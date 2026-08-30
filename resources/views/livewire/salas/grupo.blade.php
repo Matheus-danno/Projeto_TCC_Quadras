@@ -95,6 +95,9 @@
                                 @if ($mensagem->user_id === $sala->criador_id)
                                     <span class="badge grupo-badge-organizador" style="font-size: 0.6rem;">Organizador</span>
                                 @endif
+                                @if ($mensagem->destinatario_id)
+                                    <span class="badge bg-secondary" style="font-size: 0.6rem;"><i class="bi bi-lock-fill"></i> Privado</span>
+                                @endif
                                 <span class="text-muted" style="font-size: 0.7rem;">{{ $mensagem->tempoDecorrido() }} atrás</span>
                             </div>
                             <p class="mb-0 small">{{ $mensagem->texto }}</p>
@@ -104,6 +107,15 @@
                     <p class="text-muted small text-center py-3 mb-0">Nenhuma mensagem ainda. Comece a conversa!</p>
                 @endforelse
             </div>
+
+            @unless (auth()->id() === $sala->criador_id)
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" wire:model="mensagemPrivada" id="mensagemPrivada">
+                    <label class="form-check-label small text-muted" for="mensagemPrivada">
+                        <i class="bi bi-lock-fill"></i> Enviar só para o organizador
+                    </label>
+                </div>
+            @endunless
 
             <form wire:submit.prevent="enviarMensagem" class="d-flex gap-2">
                 <input type="text" class="form-control border-orange rounded-2" wire:model="novaMensagem" placeholder="Escreva uma mensagem..." maxlength="500">
