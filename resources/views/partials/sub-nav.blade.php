@@ -21,14 +21,8 @@
                 <i class="bi bi-plus-circle"></i> Criar Sala
             </a>
         @endauth
-        <a href="{{ route('loja') }}" class="sub-nav-link {{ request()->routeIs('loja') ? 'active' : '' }}">
+        <a href="{{ route('loja') }}" class="sub-nav-link {{ request()->routeIs('loja') || request()->routeIs('loja.*') ? 'active' : '' }}">
             <i class="bi bi-shop"></i> Loja
-        </a>
-        <a href="{{ route('carrinho.index') }}" class="sub-nav-link {{ request()->routeIs('carrinho.index') ? 'active' : '' }}">
-            <i class="bi bi-cart"></i> Carrinho
-            @if (\App\Support\Carrinho::quantidadeTotal() > 0)
-                <span class="badge bg-white text-laranja-loja rounded-pill ms-1">{{ \App\Support\Carrinho::quantidadeTotal() }}</span>
-            @endif
         </a>
     </div>
 </nav>
