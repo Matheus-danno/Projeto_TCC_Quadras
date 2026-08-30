@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    <ul class="nav custom-tabs gap-2 mb-4 flex-nowrap overflow-auto pb-2 border-0" id="perfilTabs" role="tablist">
+    <ul class="nav custom-tabs gap-2 mb-4 flex-wrap border-0" id="perfilTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="reservas-tab" data-bs-toggle="tab" data-bs-target="#reservas" type="button" role="tab">
                 <i class="bi bi-clock-history me-1"></i> Minhas Reservas
