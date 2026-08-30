@@ -1,0 +1,797 @@
+.courts-page {
+    background: #f5f3f1;
+    min-height: 620px;
+    padding: 24px 0 44px;
+}
+
+.courts-page__inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 18px;
+}
+
+.court-filters {
+    display: grid;
+    grid-template-columns: auto repeat(5, minmax(125px, 1fr));
+    gap: 16px;
+    align-items: center;
+    margin: 0 auto 32px;
+    padding: 0 6px;
+}
+
+.court-filters__label {
+    color: #57514c;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+}
+
+.court-filter-control {
+    position: relative;
+}
+
+.court-filter-control select {
+    width: 100%;
+    height: 38px;
+    appearance: auto;
+    border: 1px solid #aaa39d;
+    border-radius: 7px;
+    padding: 0 12px;
+    color: #393430;
+    background: #fff;
+    font-size: .84rem;
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.court-filter-control select:focus {
+    border-color: #f28a2e;
+    box-shadow: 0 0 0 3px rgba(242, 138, 46, .12);
+}
+
+.court-filter-control--presentation select {
+    color: #4b4540;
+}
+
+.court-feedback {
+    margin: -14px 6px 24px;
+    padding: 12px 15px;
+    border: 1px solid #b9dfbd;
+    border-radius: 9px;
+    background: #eef9ef;
+    color: #317139;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: .88rem;
+}
+
+.courts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 42px 28px;
+}
+
+.court-card {
+    min-width: 0;
+    min-height: 230px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 42% 58%;
+    background: #fff;
+    border: 1px solid #f0ece8;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(38, 31, 26, .035);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.court-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(76, 57, 43, .08);
+}
+
+.court-card__media {
+    position: relative;
+    min-height: 230px;
+    margin: 16px 0 16px 16px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #e9e5e1;
+}
+
+.court-card__media img {
+    width: 100%;
+    height: 100%;
+    min-height: 198px;
+    object-fit: cover;
+    display: block;
+}
+
+.court-card__arrow {
+    position: absolute;
+    top: 50%;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: rgba(43, 42, 39, .55);
+    font-size: .75rem;
+    pointer-events: none;
+}
+
+.court-card__arrow--left { left: 6px; }
+.court-card__arrow--right { right: 6px; }
+
+.court-card__body {
+    min-width: 0;
+    padding: 17px 16px 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.court-card__headline {
+    min-height: 45px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.court-card__headline h2 {
+    margin: 2px 0 0;
+    color: #332e2a;
+    font-size: 1.03rem;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.court-card__price {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+}
+
+.court-card__price strong {
+    color: #0f0d0c;
+    font-size: .96rem;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.court-card__price span {
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: #dff2d9;
+    color: #26752f;
+    font-size: .55rem;
+    font-weight: 700;
+}
+
+.court-card__description {
+    margin-top: 8px;
+    padding: 9px 10px 8px;
+    min-height: 73px;
+    border: 1px solid #c9c2bc;
+    border-radius: 6px;
+}
+
+.court-card__description-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #e9791b;
+    font-size: .69rem;
+}
+
+.court-card__description-title i {
+    color: #6b655f;
+}
+
+.court-card__description p {
+    margin: 5px 0 0;
+    color: #665f59;
+    font-size: .64rem;
+    line-height: 1.4;
+}
+
+.court-card__description p span {
+    color: #a49c95;
+    margin: 0 3px;
+}
+
+.court-card__meta {
+    margin-top: 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.court-card__meta strong {
+    color: #302c29;
+    font-size: .66rem;
+}
+
+.court-card__meta span {
+    overflow: hidden;
+    color: #77716b;
+    font-size: .56rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.court-card__meta i {
+    margin-right: 2px;
+    color: #302c29;
+}
+
+.court-card__actions {
+    margin-top: auto;
+    padding-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+}
+
+.court-hours {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #403b37;
+    font-size: .62rem;
+    font-weight: 700;
+}
+
+.court-hours select {
+    width: 51px;
+    height: 27px;
+    border: 1px solid #c8c1bb;
+    border-radius: 15px;
+    padding: 0 7px;
+    color: #423c38;
+    background: #fff;
+    font-size: .65rem;
+}
+
+.court-button {
+    min-width: 83px;
+    height: 29px;
+    border: 0;
+    border-radius: 16px;
+    padding: 0 15px;
+    color: #fff;
+    background: #f28a2e;
+    font-size: .7rem;
+    font-weight: 800;
+    transition: background .18s ease, transform .18s ease;
+}
+
+.court-button:hover {
+    background: #db721a;
+    transform: translateY(-1px);
+}
+
+.court-button:disabled {
+    opacity: .6;
+    transform: none;
+}
+
+.court-button--secondary {
+    color: #625b55;
+    background: #f0ece9;
+}
+
+.court-button--secondary:hover {
+    color: #403a35;
+    background: #e6dfda;
+}
+
+.court-card__booking {
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px solid #eee9e5;
+}
+
+.court-card__login-note {
+    margin: 0 0 7px;
+    color: #706962;
+    font-size: .66rem;
+}
+
+.court-card__login-note a {
+    color: #df7218;
+    font-weight: 700;
+}
+
+.court-booking-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.court-booking-fields label {
+    min-width: 0;
+    color: #4b4540;
+    font-size: .62rem;
+    font-weight: 700;
+}
+
+.court-booking-fields input,
+.court-booking-fields select {
+    width: 100%;
+    height: 30px;
+    margin-top: 3px;
+    border: 1px solid #c9c2bc;
+    border-radius: 5px;
+    padding: 0 7px;
+    background: #fff;
+    color: #3e3935;
+    font-size: .67rem;
+}
+
+.court-booking-fields small {
+    display: block;
+    margin-top: 2px;
+    color: #b64134;
+    font-weight: 500;
+}
+
+.court-booking-actions {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 7px;
+}
+
+.courts-empty {
+    grid-column: 1 / -1;
+    min-height: 220px;
+    border: 1px dashed #d6cec7;
+    border-radius: 10px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: #7b746e;
+}
+
+.courts-empty i {
+    color: #f28a2e;
+    font-size: 1.7rem;
+}
+
+.courts-empty strong {
+    color: #4d4742;
+}
+
+.courts-empty span {
+    font-size: .82rem;
+}
+
+@media (max-width: 980px) {
+    .court-filters {
+        grid-template-columns: auto repeat(3, minmax(130px, 1fr));
+    }
+
+    .courts-grid {
+        grid-template-columns: 1fr;
+        max-width: 680px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 660px) {
+    .courts-page {
+        padding-top: 18px;
+    }
+
+    .court-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .court-filters__label {
+        grid-column: 1 / -1;
+    }
+
+    .court-card {
+        grid-template-columns: 1fr;
+    }
+
+    .court-card__media {
+        min-height: 190px;
+        margin: 12px 12px 0;
+    }
+
+    .court-card__body {
+        padding: 14px;
+    }
+
+    .court-card__actions {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 430px) {
+    .court-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .court-hours span {
+        display: none;
+    }
+}
+
+/* =========================================
+   AGENDAMENTO — checkpoint de fidelidade visual.
+   Slots de meia hora não suportados pelo backend são exibidos desabilitados.
+   ========================================= */
+.scheduler {
+    width: min(100%, 660px);
+    margin: 0 auto;
+    color: #3c3835;
+}
+
+.scheduler__topbar {
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 14px;
+}
+
+.scheduler__topbar h1 {
+    margin: 0;
+    font-size: .98rem;
+    font-weight: 700;
+}
+
+.scheduler__back {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    padding: 0;
+    border: 1px solid #ef862d;
+    border-radius: 3px;
+    background: #fff;
+    color: #ef862d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .55rem;
+}
+
+.scheduler-court,
+.scheduler-calendar,
+.scheduler-section,
+.scheduler-duration {
+    border: 1px solid #ededed;
+    border-radius: 15px;
+    background: #fff;
+}
+
+.scheduler-court {
+    min-height: 92px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+}
+
+.scheduler-court > strong {
+    color: #494440;
+    font-size: .76rem;
+}
+
+.scheduler-court > span:not(.scheduler-court__price) {
+    max-width: 100%;
+    overflow: hidden;
+    color: #8c8782;
+    font-size: .58rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.scheduler-court__price {
+    color: #ef862d;
+    font-size: .67rem;
+    font-weight: 700;
+}
+
+.scheduler-calendar {
+    margin-top: 12px;
+    padding: 14px 18px 16px;
+}
+
+.scheduler-calendar__header {
+    display: grid;
+    grid-template-columns: 32px 1fr 32px;
+    align-items: center;
+    text-align: center;
+}
+
+.scheduler-calendar__header strong {
+    font-size: .68rem;
+}
+
+.scheduler-calendar__header button {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 6px;
+    background: #f3f3f3;
+    color: #a3a09d;
+    font-size: .55rem;
+}
+
+.scheduler-calendar__weekdays,
+.scheduler-calendar__days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.scheduler-calendar__weekdays {
+    margin: 12px 0 5px;
+}
+
+.scheduler-calendar__weekdays span {
+    color: #aaa6a2;
+    text-align: center;
+    font-size: .49rem;
+}
+
+.scheduler-day {
+    width: 31px;
+    height: 29px;
+    justify-self: center;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #57524e;
+    font-size: .56rem;
+}
+
+.scheduler-day.is-selected {
+    background: #ef862d;
+    color: #fff;
+    font-weight: 700;
+}
+
+.scheduler-day.is-unavailable {
+    background: #f2f2f2;
+    color: #c9c6c3;
+}
+
+.scheduler-day--empty {
+    background: transparent;
+}
+
+.scheduler-section {
+    margin-top: 12px;
+    padding: 15px 0 0;
+    border: 0;
+    background: transparent;
+}
+
+.scheduler-section__heading strong,
+.scheduler-duration > div:first-child strong {
+    display: block;
+    color: #4b4642;
+    font-size: .63rem;
+}
+
+.scheduler-duration > div:first-child span {
+    display: block;
+    margin-top: 3px;
+    color: #98938f;
+    font-size: .54rem;
+}
+
+.scheduler-times {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.scheduler-time {
+    min-height: 31px;
+    border: 1px solid #dedede;
+    border-radius: 6px;
+    background: #fff;
+    color: #5d5854;
+    font-size: .55rem;
+}
+
+.scheduler-time.is-selected {
+    border-color: #ef862d;
+    background: #ef862d;
+    color: #fff;
+    font-weight: 700;
+}
+
+.scheduler-time.is-unavailable,
+.scheduler-time:disabled {
+    border-color: #efefef;
+    background: #f1f1f1;
+    color: #bbb7b4;
+    opacity: 1;
+}
+
+.scheduler-legend {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    color: #99948f;
+    font-size: .5rem;
+}
+
+.scheduler-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.scheduler-legend__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.scheduler-legend__dot--free {
+    border: 1px solid #cfcac6;
+    background: #fff;
+}
+
+.scheduler-legend__dot--selected {
+    background: #ef862d;
+}
+
+.scheduler-legend__dot--occupied {
+    background: #d9d7d5;
+}
+
+.scheduler-duration {
+    margin-top: 12px;
+    padding: 16px 18px 13px;
+}
+
+.scheduler-duration__control {
+    margin: 13px auto 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 34px;
+}
+
+.scheduler-duration__control button {
+    width: 29px;
+    height: 29px;
+    border: 1px solid #ef862d;
+    border-radius: 50%;
+    background: #fff;
+    color: #ef862d;
+    font-size: .9rem;
+    line-height: 1;
+}
+
+.scheduler-duration__control button:last-child {
+    background: #ef862d;
+    color: #fff;
+}
+
+.scheduler-duration__control button:disabled {
+    opacity: 1;
+}
+
+.scheduler-duration__control strong {
+    min-width: 34px;
+    color: #4b4642;
+    text-align: center;
+    font-size: .72rem;
+}
+
+.scheduler-duration small {
+    display: block;
+    color: #aaa5a1;
+    text-align: center;
+    font-size: .48rem;
+}
+
+.scheduler-error {
+    margin-top: 9px;
+    padding: 8px 10px;
+    border: 1px solid #edc6c0;
+    border-radius: 7px;
+    background: #fff4f2;
+    color: #a94c40;
+    font-size: .55rem;
+}
+
+.scheduler-summary {
+    margin-top: 11px;
+    padding: 10px 13px;
+    border: 0;
+    border-radius: 10px;
+    background: #fff0e2;
+    color: #8a5b31;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.scheduler-summary > i {
+    display: none;
+}
+
+.scheduler-summary div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px 5px;
+    align-items: baseline;
+}
+
+.scheduler-summary strong {
+    font-size: .55rem;
+}
+
+.scheduler-summary span {
+    font-size: .54rem;
+}
+
+.scheduler-submit {
+    width: 100%;
+    min-height: 40px;
+    margin-top: 10px;
+    border: 0;
+    border-radius: 8px;
+    padding: 0 16px;
+    background: #ef862d;
+    color: #fff;
+    font-size: .62rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.scheduler-submit:disabled {
+    background: #d8b79c;
+}
+
+.scheduler-submit--link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+@media (max-width: 520px) {
+    .scheduler-calendar {
+        padding-inline: 12px;
+    }
+
+    .scheduler-times {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 5px;
+    }
+
+    .scheduler-day {
+        width: 28px;
+        height: 27px;
+    }
+}

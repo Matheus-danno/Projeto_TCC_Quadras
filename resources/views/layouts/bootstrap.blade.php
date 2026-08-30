@@ -7,47 +7,53 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app-shell.css') }}">
+    @stack('styles')
     @livewireStyles
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar_logo">
-            <img src="{{ asset('imagens/tela_inicial/Logo.png') }}" alt="Logo">
-        </div>
-            <div class="button">
-                @guest
-                    <a href="{{ route('login') }}" class="navbar_btn_login" style="text-decoration: none;">
-                        Entrar
-                    </a>
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a href="{{ route('home') }}" class="site-brand" aria-label="AlugaQuadra - início">
+                <img src="{{ asset('imagens/tela_inicial/Logo.png') }}" alt="AlugaQuadra">
+            </a>
 
-                    <a href="{{ route('registro') }}" class="navbar_btn_register" style="text-decoration: none;">
-                        Cadastrar-se
-                    </a>
-                @else
-                    <a href="{{ route('perfil') }}" class="navbar_btn_register" style="text-decoration: none;">
-                        Meu perfil
-                    </a>
-
-                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                        @csrf
-                        <button type="submit" class="navbar_btn_login border-0" style="text-decoration: none;">
-                            Sair
-                        </button>
-                    </form>
-                @endguest
+            <div class="site-search" role="search" aria-label="Pesquisar quadra">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="search" placeholder="Pesquisar quadra" aria-label="Pesquisar quadra">
             </div>
 
-    </nav>
+            <nav class="site-actions" aria-label="Ações da conta">
+                <button class="site-action" type="button" title="Ajuda" aria-label="Ajuda">
+                    <i class="bi bi-question-circle"></i>
+                </button>
+                <a href="{{ route('loja') }}" class="site-action" title="Loja" aria-label="Loja">
+                    <i class="bi bi-cart3"></i>
+                </a>
+
+                @guest
+                    <a href="{{ route('login') }}" class="site-profile" title="Entrar" aria-label="Entrar">
+                        <i class="bi bi-person-fill"></i>
+                    </a>
+                @else
+                    <a href="{{ route('perfil') }}" class="site-profile" title="Meu perfil" aria-label="Meu perfil">
+                        <i class="bi bi-person-fill"></i>
+                    </a>
+                @endguest
+            </nav>
+        </div>
+    </header>
 
     <main>
         @yield('conteudo')
     </main>
 
-    <footer>
-        <p>&copy; {{ date('Y') }} - {{ config('app.name') }}</p>
+    <footer class="site-footer">
+        <div>Inserir informações Rodapé</div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @stack('scripts')
     @livewireScripts
 </body>
 </html>
