@@ -104,7 +104,7 @@ class Quadra extends Model
 
     /**
      * Lista de imagens da quadra. Usa as fotos cadastradas ou, na ausência delas,
-     * a imagem padrão do esporte como único item.
+     * as imagens padrão do esporte (permitindo o carrossel mesmo sem fotos reais).
      *
      * @return list<string>
      */
@@ -112,7 +112,7 @@ class Quadra extends Model
     {
         return $this->fotos->isNotEmpty()
             ? $this->fotos->map(fn (QuadraFoto $foto) => $foto->url())->all()
-            : [$this->esporte->imagem()];
+            : array_values(array_filter([$this->esporte->imagem(), $this->esporte->imagemBola()]));
     }
 
     /**

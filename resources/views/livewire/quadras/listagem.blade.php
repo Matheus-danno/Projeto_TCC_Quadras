@@ -74,7 +74,7 @@
         @forelse ($this->quadras as $quadra)
             <div class="col-md-6 {{ $quadraSelecionada === $quadra->id ? 'col-md-12' : '' }}" wire:key="quadra-{{ $quadra->id }}">
                 <div class="card card-quadra h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                    <div class="row g-0 quadra-listagem-row">
+                    <div class="row g-0 h-100 quadra-listagem-row">
                         @php $imagensQuadra = collect($quadra->listaImagens())->map(fn ($img) => asset($img))->all(); @endphp
                         <div class="col-5 position-relative quadra-listagem-img-wrap" x-data="{ imagens: @js($imagensQuadra), indice: 0 }">
                             <img :src="imagens[indice]" alt="{{ $quadra->nome }}">
