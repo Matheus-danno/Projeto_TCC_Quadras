@@ -14,7 +14,7 @@ body {
     align-items: center;
     background-color: rgb(255, 255, 255);
     height: 70px;
-    padding: 10px;
+    padding: 10px 40px;
     box-shadow: 0 2px 30px rgba(181, 141, 80, 0.1);
 }
 
@@ -33,6 +33,63 @@ body {
     height: 35px;
 }
 
+.navbar_busca {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border: 1.5px solid var(--cor-principal);
+    border-radius: 999px;
+    padding: 0.3rem 1.1rem;
+    width: 380px;
+    max-width: 100%;
+    background-color: #fff;
+}
+.navbar_busca i {
+    color: var(--cor-principal);
+    font-size: 1rem;
+}
+.navbar_busca_input {
+    border: none;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+    font-size: 0.95rem;
+    background: transparent;
+}
+.navbar_busca_input::placeholder {
+    color: #a3a3a3;
+}
+
+.navbar_icones {
+    display: flex;
+    align-items: center;
+    gap: 1.15rem;
+    margin-left: auto;
+    margin-right: 70px;
+}
+.navbar_icone-btn {
+    font-size: 1.35rem;
+    color: var(--cor-principal);
+    display: inline-flex;
+}
+.navbar_icone-usuario {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: var(--cor-principal);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+.navbar_icone-usuario:hover {
+    background-color: var(--cor-secundaria);
+    color: #fff;
+}
+
 .button {
     font-display: block;
     justify-content: end;
@@ -42,6 +99,10 @@ body {
 
 .navbar_btn_login,
 .navbar_btn_register {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     border: solid var(--cor-principal) 1px;
     border-radius: 10px;
     padding: 10px 20px;
@@ -198,6 +259,13 @@ body {
     margin-bottom: 20px;
 }
 
+footer{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 150px;
+}
+
 /* Cores principais */
 :root {
     --primary-orange: #ff8c00;
@@ -221,25 +289,246 @@ body {
     gap: 0.4rem;
     font-weight: 500;
     white-space: nowrap;
-    padding-bottom: 2px;
-    border-bottom: 2px solid transparent;
+    padding: 0.3rem 0.9rem;
+    border-radius: 10px;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 .sub-nav-link:hover {
     color: #fff;
     opacity: 0.85;
 }
 .sub-nav-link.active {
+    background-color: #fff;
+    color: #ff7d14;
     font-weight: 700;
-    border-bottom-color: #fff;
+    opacity: 1;
+}
+.sub-nav-link.active:hover {
+    color: #ff7d14;
 }
 
 /* Card Estilo */
-.card-quadra { transition: transform 0.2s; }
-.card-quadra:hover { transform: translateY(-5px); }
+.card-quadra { transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; border: 2px solid transparent !important; }
+.card-quadra:hover { transform: translateY(-3px); }
+.card-quadra.quadra-selecionada { border-color: #FF8C00 !important; }
+.quadra-card-row {
+    height: 296px;
+}
+.quadra-card-img-wrap {
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.quadra-card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
 
+/* Card da listagem "Todas as Quadras" */
+.quadra-listagem-row {
+    min-height: 220px;
+}
+.quadra-listagem-img-wrap {
+    height: 100%;
+    min-height: 220px;
+    overflow: hidden;
+}
+.quadra-listagem-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.quadra-listagem-titulo {
+    font-size: 1.05rem;
+    min-width: 0;
+    line-height: 1.25;
+}
+.quadra-listagem-preco {
+    font-size: 1.15rem;
+    white-space: nowrap;
+}
+.quadra-listagem-badge {
+    font-size: 0.7rem;
+}
+.quadra-listagem-texto-sec {
+    font-size: 0.78rem;
+    line-height: 1.3;
+}
+.quadra-carrossel-seta {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.45);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 0;
+    line-height: 1;
+    transition: background 0.15s ease;
+}
+.quadra-carrossel-seta:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+.quadra-carrossel-seta-esquerda {
+    left: 6px;
+}
+.quadra-carrossel-seta-direita {
+    right: 6px;
+}
+.quadras-scroll-area {
+    max-height: 620px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.quadras-scroll-area::-webkit-scrollbar {
+    width: 8px;
+}
+.quadras-scroll-area::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 8px;
+}
+.quadras-scroll-area::-webkit-scrollbar-thumb {
+    background: #FF8C00;
+    border-radius: 8px;
+}
+.quadra-card-titulo {
+    font-size: 0.95rem;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.quadra-card-preco {
+    font-size: 1rem;
+    white-space: nowrap;
+}
+.quadra-card-descricao-box {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+.quadra-card-icone {
+    display: inline-block;
+    width: 1.2em;
+    text-align: center;
+}
+.quadra-card-distancia {
+    padding-left: 1.2em;
+}
+.quadra-card-descricao {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.min-w-0 { min-width: 0; }
+.grupo-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #515151;
+    flex-shrink: 0;
+}
+.grupo-avatar-vazio {
+    background-color: transparent;
+    border: 1px dashed #ced4da;
+}
+.grupo-badge-organizador {
+    background-color: rgba(255, 140, 0, 0.15);
+    color: #FF8C00;
+    font-weight: 600;
+    padding: 0.35rem 0.7rem;
+    border-radius: 20px;
+}
+.grupo-badge-voce {
+    background-color: #d4edda;
+    color: #2e7d32;
+    font-weight: 600;
+    padding: 0.35rem 0.7rem;
+    border-radius: 20px;
+}
+.confirmacao-icone-sucesso {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background-color: #d4edda;
+    color: #2e7d32;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+}
+.caixa-destaque.caixa-resumo-financeiro {
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+}
+.caixa-resumo-financeiro .subtitulo-campo {
+    margin-bottom: 0.15rem;
+}
+.caixa-resumo-valor {
+    font-size: 1.3rem;
+}
 .btn-orange-action {
     background-color: var(--primary-orange);
-    border: none;
+    border: 1px solid var(--primary-orange);
+    color: #fff;
+}
+.btn-orange-action:hover {
+    background-color: #fff;
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+}
+.btn-outline-orange {
+    background-color: #fff;
+    border: 1px solid var(--primary-orange);
+    color: var(--primary-orange);
+}
+.filtro-select {
+    min-width: 88px;
+    width: auto;
+    font-size: 0.78rem;
+    padding: 0.25rem 1.4rem 0.25rem 0.5rem;
+    background-position: right 0.4rem center;
+    background-size: 12px 10px;
+}
+.btn-outline-orange:hover {
+    background-color: #fff5eb;
+    color: var(--primary-orange);
+}
+.btn-outline-orange-active {
+    background-color: #fff;
+    border-width: 2px;
+    color: var(--primary-orange);
+}
+.btn-orange-quadras-proximas {
+    background-color: var(--primary-orange);
+    border: 1px solid var(--primary-orange);
+    color: #fff;
+}
+.btn-orange-quadras-proximas:hover {
+    background-color: #fff;
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+}
+.btn-outline-orange-active:hover {
+    background-color: #fff5eb;
+    color: var(--primary-orange);
 }
 
 .btn-arrow {
@@ -318,8 +607,14 @@ body {
 }
 
 .btn-outline-laranja {
+    background-color: #ffffff;
     border-color: #FF8C00;
     color: #FF8C00;
+}
+
+.btn-outline-laranja:disabled {
+    background-color: #ffffff;
+    opacity: 1;
 }
 
 .btn-outline-laranja:hover {
@@ -347,16 +642,16 @@ body {
    Detalhes do Card de Partida
    ========================================= */
 .badge-destaque {
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-color: #ffc107; /* warning color */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background-color: #ff7d14;
     color: #fff;
     font-weight: bold;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px 0 12px 0;
-    font-size: 0.8rem;
-    z-index: 10;
+    text-transform: uppercase;
+    padding: 0.3rem 0.9rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
 }
 
 .icone-esporte {
@@ -424,8 +719,8 @@ body {
     text-transform: uppercase;
 }
 .subtitulo-campo {
-    font-size: 0.85rem;
-    font-weight: bold;
+    font-size: 0.75rem;
+    font-weight: 600;
     color: #718096;
     margin-bottom: 0.5rem;
     display: block;
@@ -449,13 +744,20 @@ body {
 }
 .esporte-img-box {
     border-radius: 8px;
-    height: 80px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 10px;
     color: white;
     font-size: 40px;
+    overflow: hidden;
+}
+.esporte-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* Controle de Quantidade (+ e -) */
@@ -467,13 +769,13 @@ body {
     overflow: hidden;
     background: #ffffff;
     width: max-content;
-    flex-shrink: 0;
+    max-width: 100%;
     margin: 0 auto;
 }
 .qty-btn {
     background: transparent;
     border: none;
-    padding: 5px 15px;
+    padding: 5px 10px;
     font-weight: bold;
     color: #495057;
     flex-shrink: 0;
@@ -483,26 +785,18 @@ body {
     border-left: 1px solid #ced4da;
     border-right: 1px solid #ced4da;
     text-align: center;
-    width: 60px;
+    width: 36px;
+    padding: 5px 0;
     font-weight: bold;
     color: #4a5568;
-    flex-shrink: 0;
+    min-width: 0;
 }
 .qty-input:focus { outline: none; }
-
-/* Variante compacta do stepper, para caber ao lado de outros controles (ex: card de quadra) */
-.qty-grupo-sm .qty-btn {
-    padding: 4px 10px;
-}
-.qty-grupo-sm .qty-input {
-    width: 32px;
-    padding: 0;
-}
 
 /* Caixas de Destaque */
 .caixa-destaque {
     border-radius: 8px;
-    padding: 15px;
+    padding: 10px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -518,6 +812,60 @@ body {
     border: 1px solid #ffd8a8;
 }
 .caixa-laranja-texto { color: #e67e00; }
+.texto-formato-label {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+}
+.texto-formato-valor {
+    font-size: 0.95rem;
+}
+
+/* Grupo de opções em pílula (Aceitar níveis adjacentes) */
+.pill-radio-grupo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 50px;
+    padding: 10px 18px;
+    background: #ffffff;
+}
+.detalhes-input.select-nivel-desejado {
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+}
+.pill-radio-opcao {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    cursor: pointer;
+}
+.pill-radio-opcao input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.pill-radio-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #FF8C00;
+    background: transparent;
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+}
+.pill-radio-opcao input:checked + .pill-radio-dot {
+    background: #FF8C00;
+}
+.pill-radio-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap;
+}
 .caixa-azul {
     background-color: #d1ecf1;
     border: 1px solid #bee5eb;
@@ -577,27 +925,6 @@ body {
 }
 .quadra-card.active {
     border-color: #FF8C00;
-}
-
-/* Pill compacta (variante do radio-card para grupos com várias opções lado a lado) */
-.radio-pill {
-    padding: 8px 14px;
-    gap: 8px;
-}
-.radio-pill .circulo-check {
-    width: 18px;
-    height: 18px;
-}
-
-/* Badge de horário indisponível no card de quadra */
-.badge-indisponivel {
-    background-color: #ffd2d2;
-    color: #a11919;
-    font-weight: bold;
-    font-size: 0.75rem;
-    padding: 6px 12px;
-    border-radius: 20px;
-    white-space: nowrap;
 }
 
 /* Avisos e Resumos */
@@ -716,4 +1043,428 @@ body {
 .produto-btn-esgotado {
     border-radius: 8px;
     cursor: not-allowed;
+}
+
+/* =========================================
+   Encontrar um Jogo - Filtros e Cards
+   ========================================= */
+.filtros-card select,
+.filtros-card input {
+    font-size: 0.9rem;
+}
+
+.card-jogo {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.texto-jogo {
+    color: #515151;
+}
+
+.card-jogo-imagem {
+    width: 190px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 3px solid transparent;
+}
+
+.card-jogo-imagem-wrap {
+    width: 260px;
+    height: 100%;
+    min-height: 205px;
+    overflow: hidden;
+    border-radius: 14px;
+    flex-shrink: 0;
+}
+.card-jogo-imagem-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 14px;
+}
+
+.badge-vagas {
+    background-color: #b6ddff;
+    color: #4c9ce2;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 5px;
+}
+
+.badge-tempo {
+    background-color: rgba(255, 125, 20, 0.25);
+    color: #ff9802;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 5px;
+}
+
+.btn-ver-detalhes {
+    border-width: 2px;
+    border-radius: 8px;
+    padding: 0.25rem 0.9rem;
+    font-size: 0.85rem;
+}
+
+/* =========================================
+   Detalhes da Sala
+   ========================================= */
+.detalhes-topo {
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detalhes-link-topo {
+    color: #ff7d14;
+    font-weight: bold;
+}
+
+.detalhes-link-topo:hover {
+    color: #e67e00;
+}
+
+.detalhes-galeria-img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.detalhes-subtitulo {
+    color: #757575;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.detalhes-linha {
+    border-top: 1px solid #d9d9d9;
+    opacity: 1;
+    margin: 1.25rem 0;
+}
+
+.detalhes-descricao-box {
+    border: 1px solid #989898;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.detalhes-avatar-admin {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.detalhes-avatar-participante {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.detalhes-regras-lista {
+    list-style: none;
+    padding-left: 0;
+    color: #757575;
+    font-weight: 600;
+}
+
+.detalhes-regras-lista li {
+    margin-bottom: 0.75rem;
+}
+
+.alert-compativel {
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+}
+
+.alert-compativel-sim {
+    background-color: rgba(26, 176, 0, 0.1);
+    border: 1px solid #137e00;
+    color: #137e00;
+}
+
+.alert-compativel-nao {
+    background-color: rgba(255, 187, 92, 0.15);
+    border: 1px solid #ffbb5c;
+    color: #a15c00;
+}
+
+.badge-tempo-forte {
+    background-color: rgba(255, 2, 2, 0.1);
+    color: #ff0202;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 5px;
+}
+
+.caixa-info-pagamento {
+    background-color: rgba(255, 187, 92, 0.15);
+    border: 2px solid #ffbb5c;
+    border-radius: 10px;
+    padding: 1.25rem;
+    color: #757575;
+}
+
+.caixa-reserva-temporaria {
+    background-color: rgba(76, 156, 226, 0.12);
+    border: 2px solid #4c9ce2;
+    border-radius: 10px;
+    padding: 1.25rem;
+    color: #4c9ce2;
+}
+
+/* =========================================
+   Pagamento
+   ========================================= */
+.detalhes-metodo-pagamento {
+    background-color: #ffffff;
+    border: 1px solid #757575;
+    border-radius: 20px;
+    padding: 0.9rem 1rem;
+    color: #757575;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.detalhes-metodo-pagamento-ativo {
+    background-color: rgba(255, 187, 92, 0.2);
+    border-color: #ff7d14;
+    color: #757575;
+}
+
+.detalhes-input {
+    border: 1px solid #515151;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+
+.detalhes-input:focus {
+    border-color: #ff7d14;
+    box-shadow: 0 0 0 0.25rem rgba(255, 125, 20, 0.15);
+}
+
+.detalhes-qr-pix {
+    width: 200px;
+    height: 200px;
+    border: 1px solid #d9d9d9;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    color: #515151;
+}
+
+.mapa-container {
+    height: 200px;
+}
+
+/* Tela Inicial - Login (fiel ao Figma) */
+.tela-login {
+    background-color: #fff;
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+.login-page-row {
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+}
+.login-grupo {
+    gap: 3rem;
+}
+.login-coluna-logo {
+    max-width: 420px;
+}
+.login-logo-img {
+    width: 420px;
+    max-width: 80vw;
+}
+.login-legal {
+    color: #6c757d;
+    font-size: 0.9rem;
+    max-width: 380px;
+}
+.login-legal a {
+    color: var(--cor-principal);
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.card-login {
+    background-color: var(--cor-principal);
+    border-radius: 35px;
+    padding: 1.8rem 1.7rem;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+.login-bola-marca-dagua {
+    position: absolute;
+    top: 19%;
+    left: 13%;
+    width: 74%;
+    height: auto;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+}
+.card-login form,
+.login-titulo {
+    position: relative;
+    z-index: 1;
+}
+.login-titulo {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.25rem;
+    text-decoration: underline;
+    margin-bottom: 2.2rem;
+}
+.login-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 0.3rem 1.2rem;
+}
+.login-input-wrap i {
+    color: var(--cor-principal);
+    font-size: 1.1rem;
+}
+.login-input {
+    border: none;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    font-size: 0.95rem;
+}
+.login-esqueci {
+    display: block;
+    color: #fff;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin: 0.4rem 0 1.6rem;
+}
+.login-esqueci:hover {
+    color: #fff;
+    opacity: 0.85;
+}
+.login-botao {
+    display: block;
+    width: 100%;
+    max-width: 130px;
+    margin: 0 auto;
+    background-color: #fff;
+    color: var(--cor-principal);
+    border: none;
+    border-radius: 12px;
+    padding: 0.35rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+.login-botao:hover {
+    background-color: #fff5eb;
+}
+.login-criar-conta {
+    display: block;
+    text-align: center;
+    color: #fff;
+    font-weight: 700;
+    margin-top: 1rem;
+    text-decoration: none;
+}
+.login-criar-conta:hover {
+    color: #fff;
+    opacity: 0.85;
+}
+.login-botao-dono {
+    display: block;
+    text-align: center;
+    width: 100%;
+    max-width: 220px;
+    margin: 1rem auto 0;
+    background-color: transparent;
+    color: #fff;
+    border: 1.5px solid #fff;
+    border-radius: 12px;
+    padding: 0.45rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+.login-botao-dono:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+.login-erro {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+    margin: -0.6rem 0 0.8rem;
+}
+
+.login-arcos {
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+.login-arcos span {
+    position: absolute;
+    border-radius: 50%;
+    border: 3px solid var(--cor-principal);
+}
+.login-arcos-topo {
+    top: 0;
+    right: 0;
+}
+.login-arcos-topo span {
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+}
+.login-arcos-base {
+    bottom: 0;
+    left: 0;
+}
+.login-arcos-base span {
+    bottom: 0;
+    left: 0;
+    transform: translate(-50%, 50%);
+}
+.login-arcos span:nth-child(1) { width: 160px; height: 160px; opacity: 1; }
+.login-arcos span:nth-child(2) { width: 260px; height: 260px; opacity: 0.7; }
+.login-arcos span:nth-child(3) { width: 360px; height: 360px; opacity: 0.4; }
+.login-arcos span:nth-child(4) { width: 460px; height: 460px; opacity: 0.2; }
+/* Pill compacta (variante do radio-card para grupos com várias opções lado a lado) */
+.radio-pill {
+    padding: 8px 14px;
+    gap: 8px;
+}
+.radio-pill .circulo-check {
+    width: 18px;
+    height: 18px;
+}
+
+/* Badge de horário indisponível no card de quadra */
+.badge-indisponivel {
+    background-color: #ffd2d2;
+    color: #a11919;
+    font-weight: bold;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
 }

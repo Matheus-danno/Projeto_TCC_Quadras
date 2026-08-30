@@ -14,11 +14,21 @@
             <nav class="busca_quadra">
                 <div class="container-fluid">
                     <h6>Buscar Quadras</h6>
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Digite sua localização ou bairro" aria-label="Search" />
+                    <form class="d-flex" role="search" action="{{ route('quadras.index') }}" method="GET">
+                        <input class="form-control me-2" type="search" name="busca" placeholder="Digite sua localização ou bairro" aria-label="Search" />
                         <button class="btn btn-outline-success" type="submit">Pesquisar</button>
                     </form>
-                    <button class="btn btn-location" type="submit">
+                    <button
+                        class="btn btn-location"
+                        type="button"
+                        x-data
+                        @click="
+                            navigator.geolocation.getCurrentPosition(
+                                (posicao) => { window.location.href = '{{ route('quadras.index') }}?lat=' + posicao.coords.latitude + '&lng=' + posicao.coords.longitude; },
+                                () => alert('Não foi possível obter sua localização.')
+                            )
+                        "
+                    >
                         <img src="{{ asset('imagens/tela_inicial/localizacao.png') }}" alt="">
                         Usar minha localização
                     </button>

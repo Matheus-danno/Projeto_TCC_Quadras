@@ -1,44 +1,68 @@
-@extends('layouts.bootstrap')
-
-@section('titulo', 'Entrar')
-
-@section('conteudo')
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card p-4 shadow-sm border-0 rounded-4" style="width: 100%; max-width: 400px;">
-        <div class="text-center mb-4">
-            <h3 class="fw-bold">Entrar</h3>
-            <p class="text-muted">Acesse sua conta para reservar sua quadra</p>
-        </div>
-
-        <form method="POST" action="{{ route('login.store') }}">
-            @csrf
-
-            <div class="mb-3">
-                <label class="form-label fw-bold">E-mail</label>
-                <input type="email" name="email" value="{{ old('email') }}" class="form-control border-orange" placeholder="seu@email.com" required autofocus>
-                @error('email') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label fw-bold">Senha</label>
-                <input type="password" name="password" class="form-control border-orange" placeholder="******" required>
-                @error('password') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-            </div>
-
-            <div class="d-grid gap-2 mt-4">
-                <button type="submit" class="btn btn-orange text-white fw-bold py-2 rounded-pill">Entrar</button>
-            </div>
-
-            <div class="text-center mt-3">
-                <small>Não tem uma conta? <a href="{{ route('registro') }}" class="text-orange fw-bold">Cadastre-se</a></small>
-            </div>
-
-            <div class="d-grid mt-3">
-                <a href="{{ route('login.dono') }}" class="btn border border-orange text-orange fw-bold py-2 rounded-pill">
-                    Sou dono de quadra
-                </a>
-            </div>
-        </form>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - {{ config('app.name') }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+</head>
+<body class="tela-login">
+    <div class="login-arcos login-arcos-topo">
+        <span></span><span></span><span></span><span></span>
     </div>
-</div>
-@endsection
+    <div class="login-arcos login-arcos-base">
+        <span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="container-fluid">
+        <div class="login-page-row d-flex justify-content-center align-items-center">
+            <div class="login-grupo d-flex align-items-center flex-wrap justify-content-center">
+                <div class="login-coluna-logo text-center text-lg-start">
+                    <a href="{{ route('home') }}" class="d-inline-block text-decoration-none mb-4">
+                        <img src="{{ asset('imagens/tela_inicial/logo_login.png') }}" alt="AlugaQuadra" class="login-logo-img">
+                    </a>
+                    <p class="login-legal mx-auto mx-lg-0">
+                        Ao clicar em Entrar você concorda a <a href="#">Política de Privacidade</a> do AlugaQuadra.
+                    </p>
+                </div>
+
+                <div class="card-login">
+                    <img src="{{ asset('imagens/tela_inicial/bola_marca_dagua.png') }}" alt="" class="login-bola-marca-dagua">
+
+                    <h3 class="login-titulo">Entrar</h3>
+
+                    <form method="POST" action="{{ route('login.store') }}">
+                        @csrf
+
+                        <div class="login-input-wrap mb-4">
+                            <i class="bi bi-envelope-fill"></i>
+                            <input type="email" name="email" value="{{ old('email') }}" class="login-input" placeholder="Digite seu e-mail" required autofocus autocomplete="email">
+                        </div>
+                        @error('email') <div class="login-erro">{{ $message }}</div> @enderror
+
+                        <div class="login-input-wrap mb-2">
+                            <i class="bi bi-lock-fill"></i>
+                            <input type="password" name="password" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
+                        </div>
+                        @error('password') <div class="login-erro">{{ $message }}</div> @enderror
+
+                        <a href="{{ route('password.request') }}" class="login-esqueci">Esqueceu sua senha?</a>
+
+                        <button type="submit" class="login-botao">Entrar</button>
+
+                        <a href="{{ route('registro') }}" class="login-criar-conta">Criar uma conta</a>
+
+                        <a href="{{ route('login.dono') }}" class="login-botao-dono">
+                            <i class="bi bi-shop"></i> Sou dono de quadra
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

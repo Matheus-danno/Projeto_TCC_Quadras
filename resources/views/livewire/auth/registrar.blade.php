@@ -141,5 +141,9 @@
             <a href="{{ route('home') }}" class="btn btn-cadastro-cancelar w-50">Cancelar</a>
             <button type="submit" class="btn btn-cadastro-criar w-50" wire:loading.attr="disabled">Criar conta</button>
         </div>
+
+        <p class="text-center small mt-3 mb-0">
+            É dono de quadra? <a href="{{ route('cadastro.dono') }}" class="text-orange fw-bold">Cadastre seu estabelecimento</a>
+        </p>
     </form>
 </div>
