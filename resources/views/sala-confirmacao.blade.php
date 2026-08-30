@@ -33,11 +33,13 @@
             <div class="d-flex align-items-center gap-2 mb-3">
                 <i class="bi bi-clock text-warning"></i>
                 <span>
-                    @if ($sala->data && $sala->hora_inicio)
+                    @if ($sala->data && $sala->horario_inicio)
                         {{ $sala->data->isToday() ? 'Hoje' : $sala->data->format('d/m/Y') }},
-                        {{ \Illuminate\Support\Carbon::parse($sala->hora_inicio)->format('H:i') }}
-                        - {{ \Illuminate\Support\Carbon::parse($sala->horaFim)->format('H:i') }}
-                        ({{ intdiv($sala->duracao_minutos, 60) }}h{{ str_pad($sala->duracao_minutos % 60, 2, '0', STR_PAD_LEFT) }}min)
+                        {{ $sala->horario_inicio->format('H:i') }}
+                        - {{ $sala->horario_fim?->format('H:i') }}
+                        @if ($sala->duracaoFormatada())
+                            ({{ $sala->duracaoFormatada() }})
+                        @endif
                     @else
                         Horário a combinar
                     @endif

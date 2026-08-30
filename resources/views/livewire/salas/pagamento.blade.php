@@ -19,11 +19,13 @@
             @endif
         </p>
         <p class="text-muted mb-0">
-            @if ($sala->data && $sala->hora_inicio)
+            @if ($sala->data && $sala->horario_inicio)
                 {{ $sala->data->isToday() ? 'Hoje' : $sala->data->format('d/m/Y') }},
-                {{ \Illuminate\Support\Carbon::parse($sala->hora_inicio)->format('H:i') }}
-                - {{ \Illuminate\Support\Carbon::parse($sala->horaFim)->format('H:i') }}
-                ({{ intdiv($sala->duracao_minutos, 60) }}h{{ str_pad($sala->duracao_minutos % 60, 2, '0', STR_PAD_LEFT) }}min)
+                {{ $sala->horario_inicio->format('H:i') }}
+                - {{ $sala->horario_fim?->format('H:i') }}
+                @if ($sala->duracaoFormatada())
+                    ({{ $sala->duracaoFormatada() }})
+                @endif
             @else
                 Horário a combinar
             @endif
@@ -108,8 +110,8 @@
     <div class="card border-0 shadow-sm card-arredondado p-4 mb-4 d-flex flex-row justify-content-between align-items-center">
         <span class="text-muted">Valor a pagar</span>
         <span class="fw-bold fs-3" style="color: #FF8C00;">
-            @if ($sala->quadra)
-                R$ {{ number_format($sala->valorPorPessoa(), 2, ',', '.') }}
+            @if ($sala->precoPessoaCalculado())
+                R$ {{ number_format($sala->precoPessoaCalculado(), 2, ',', '.') }}
             @else
                 A combinar
             @endif

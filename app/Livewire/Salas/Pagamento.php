@@ -66,7 +66,7 @@ class Pagamento extends Component
         return sprintf(
             '00020126580014BR.GOV.BCB.PIX0117alugaquadra%04d520400005303986540%s5802BR5913AlugaQuadra6009SAO PAULO6304ABCD',
             $this->sala->id,
-            number_format($this->sala->valorPorPessoa(), 2, '.', '')
+            number_format($this->sala->precoPessoaCalculado() ?? 0, 2, '.', '')
         );
     }
 
@@ -74,25 +74,27 @@ class Pagamento extends Component
     {
         $this->erro = null;
 
-        if ($this->sala->participantes->contains('id', auth()->id())) {
-            $this->erro = 'Você já está nessa sala.';
-
-            return null;
-        }
-
-        if ($this->sala->participantes->count() >= $this->sala->max_participantes) {
-            $this->erro = 'Essa sala já está cheia.';
-
-            return null;
-        }
-
         if ($this->formaPagamento === FormaPagamento::Cartao->value) {
             $this->validate();
         }
 
-        $this->sala->participantes()->attach(auth()->id(), [
+        $resultado = $this->sala->entrarComo(auth()->user());
+
+        if (! $resultado['sucesso'] && ! $resultado['pendente']) {
+            $this->erro = $resultado['mensagem'];
+
+            return null;
+        }
+
+        if (! $resultado['sucesso']) {
+            session()->flash('sala-criada', 'Pagamento confirmado! '.$resultado['mensagem']);
+
+            return redirect()->route('salas.detalhes', $this->sala);
+        }
+
+        $this->sala->participantes()->updateExistingPivot(auth()->id(), [
             'forma_pagamento' => $this->formaPagamento,
-            'valor_pago' => $this->sala->valorPorPessoa(),
+            'valor_pago' => $this->sala->precoPessoaCalculado(),
         ]);
 
         return redirect()->route('salas.confirmacao', $this->sala);

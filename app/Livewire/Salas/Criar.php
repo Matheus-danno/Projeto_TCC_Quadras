@@ -3,9 +3,12 @@
 namespace App\Livewire\Salas;
 
 use App\Enums\AceitacaoNivel;
+use App\Enums\Aprovacao;
 use App\Enums\Esporte;
 use App\Enums\NivelHabilidade;
+use App\Enums\Privacidade;
 use App\Enums\ReservaStatus;
+use App\Models\AtividadeSala;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\Sala;
@@ -23,6 +26,8 @@ class Criar extends Component
 
     public ?int $quadraId = null;
 
+    public int $totalJogadores = 10;
+
     public int $maxParticipantes = 10;
 
     public string $data = '';
@@ -31,33 +36,33 @@ class Criar extends Component
 
     public int $duracaoMinutos = 90;
 
-    public int $quantidadeHoras = 2;
-
     public string $nivelDesejado = '';
 
     public string $aceitacaoNiveis = 'nenhum';
 
-    public bool $privada = false;
+    public string $privacidade = 'publica';
 
-    public bool $aprovacaoManual = false;
+    public string $aprovacao = 'automatica';
 
     public string $regrasAdicionais = '';
 
     public string $buscaQuadra = '';
 
-    /**
-     * Quantidade de horas escolhida em cada card de quadra, independente por quadra
-     * (`quadra_id => horas`), para que ajustar uma não afete as demais.
-     *
-     * @var array<int, int>
-     */
-    public array $horasPorQuadra = [];
+    public ?float $userLat = null;
+
+    public ?float $userLng = null;
 
     public function mount(): void
     {
         $this->data = now()->toDateString();
         $this->horaInicio = $this->proximoHorarioDisponivel();
         $this->nivelDesejado = NivelHabilidade::Intermediario->value;
+    }
+
+    public function usarLocalizacao(float $lat, float $lng): void
+    {
+        $this->userLat = $lat;
+        $this->userLng = $lng;
     }
 
     /**
@@ -80,10 +85,13 @@ class Criar extends Component
             'quadraId' => ['required', 'integer', 'exists:quadras,id'],
             'data' => ['required', 'date', 'after_or_equal:today'],
             'horaInicio' => ['required', 'in:'.implode(',', $this->horariosDisponiveis())],
-            'duracaoMinutos' => ['required', 'integer', 'min:30', 'max:240'],
-            'maxParticipantes' => ['required', 'integer', 'min:2', 'max:50'],
+            'duracaoMinutos' => ['required', 'in:'.implode(',', $this->duracoesDisponiveis())],
+            'totalJogadores' => ['required', 'integer', 'min:2', 'max:50'],
+            'maxParticipantes' => ['required', 'integer', 'min:2', 'max:50', 'lte:totalJogadores'],
             'nivelDesejado' => ['required', 'in:'.implode(',', array_column(NivelHabilidade::cases(), 'value'))],
             'aceitacaoNiveis' => ['required', 'in:'.implode(',', array_column(AceitacaoNivel::cases(), 'value'))],
+            'privacidade' => ['required', 'in:'.implode(',', array_column(Privacidade::cases(), 'value'))],
+            'aprovacao' => ['required', 'in:'.implode(',', array_column(Aprovacao::cases(), 'value'))],
             'regrasAdicionais' => ['nullable', 'string', 'max:1000'],
         ];
     }
@@ -101,21 +109,21 @@ class Criar extends Component
     }
 
     /**
-     * Durações disponíveis para a partida, em minutos => rótulo.
+     * Durações disponíveis para a partida, em minutos.
      *
-     * @return array<int, string>
+     * @return list<int>
      */
     public function duracoesDisponiveis(): array
     {
-        return [
-            60 => '1h',
-            90 => '1h 30min',
-            120 => '2h',
-            150 => '2h 30min',
-            180 => '3h',
-            210 => '3h 30min',
-            240 => '4h',
-        ];
+        return [60, 90, 120, 150, 180];
+    }
+
+    public function duracaoFormatada(int $minutos): string
+    {
+        $horas = intdiv($minutos, 60);
+        $resto = $minutos % 60;
+
+        return $resto > 0 ? "{$horas}h {$resto}min" : "{$horas}h";
     }
 
     #[Computed]
@@ -123,10 +131,17 @@ class Criar extends Component
     {
         $quadras = Quadra::query()
             ->where('ativa', true)
+            ->when($this->esporte, fn ($query) => $query->where('esporte', $this->esporte))
             ->when($this->buscaQuadra, fn ($query) => $query->where('nome', 'like', '%'.$this->buscaQuadra.'%'))
             ->with('fotos')
             ->orderBy('nome')
             ->get();
+
+        if ($this->userLat !== null && $this->userLng !== null) {
+            $quadras->each(function (Quadra $quadra) {
+                $quadra->distanciaKm = $quadra->distanciaKmAte($this->userLat, $this->userLng);
+            });
+        }
 
         $indisponiveis = [];
 
@@ -160,72 +175,32 @@ class Criar extends Component
         $horaFim = $this->horaInicio ? Carbon::parse($this->horaInicio.':00')->addMinutes($this->duracaoMinutos)->format('H:i') : '—';
 
         $valorHora = (float) ($quadra->valor_hora ?? 0);
-        $valorTotal = $valorHora * $this->quantidadeHoras;
+        $horas = $this->duracaoMinutos / 60;
+        $valorTotal = $valorHora * $horas;
         $valorPorPessoa = $this->maxParticipantes > 0 ? $valorTotal / $this->maxParticipantes : 0;
 
         return [
             'esporteNivel' => trim(($esporte?->label() ?? '—').($nivel ? ' - '.$nivel->label() : '')),
             'quadraEndereco' => $quadra ? "{$quadra->nome} - {$quadra->endereco}, {$quadra->bairro} - {$quadra->cidade}" : 'Quadra não selecionada',
             'dataHora' => $this->horaInicio ? "{$dataFormatada}, {$this->horaInicio} - {$horaFim} ({$this->duracaoMinutos} min)" : $dataFormatada,
-            'jogadores' => "{$this->maxParticipantes} jogadores",
+            'jogadores' => "{$this->maxParticipantes} de {$this->totalJogadores} jogadores",
             'nivelAceitacao' => 'Nível: '.($nivel?->label() ?? '—')." ({$aceitacao->label()})",
-            'privacidadeAprovacao' => ($this->privada ? 'Sala privada' : 'Sala pública').' com '.($this->aprovacaoManual ? 'aprovação manual' : 'entrada automática'),
+            'privacidadeAprovacao' => Privacidade::from($this->privacidade)->label().' com '.Aprovacao::from($this->aprovacao)->label(),
             'valorTotal' => 'Valor total: R$ '.number_format($valorTotal, 2, ',', '.'),
             'valorPorPessoa' => 'R$ '.number_format($valorPorPessoa, 2, ',', '.').' / pessoa',
         ];
     }
 
-    public function incrementarVagas(): void
+    public function updatedEsporte(): void
     {
-        $this->maxParticipantes = min(50, $this->maxParticipantes + 1);
-    }
-
-    public function decrementarVagas(): void
-    {
-        $this->maxParticipantes = max(2, $this->maxParticipantes - 1);
-    }
-
-    /**
-     * Quantidade de horas escolhida para uma quadra específica (independente das demais).
-     */
-    public function horasPara(int $quadraId): int
-    {
-        return $this->horasPorQuadra[$quadraId] ?? max(1, (int) ceil($this->duracaoMinutos / 60));
-    }
-
-    public function incrementarHoras(int $quadraId): void
-    {
-        $this->horasPorQuadra[$quadraId] = min(6, $this->horasPara($quadraId) + 1);
-        $this->sincronizarHorasSelecionadas($quadraId);
-    }
-
-    public function decrementarHoras(int $quadraId): void
-    {
-        $this->horasPorQuadra[$quadraId] = max(1, $this->horasPara($quadraId) - 1);
-        $this->sincronizarHorasSelecionadas($quadraId);
-    }
-
-    /**
-     * Quando a quadra ajustada é a que está atualmente selecionada, propaga a
-     * quantidade de horas para os campos que definem a duração real da partida.
-     */
-    private function sincronizarHorasSelecionadas(int $quadraId): void
-    {
-        if ($quadraId !== $this->quadraId) {
+        if ($this->esporte === '') {
             return;
         }
 
-        $this->quantidadeHoras = $this->horasPorQuadra[$quadraId];
-        $this->duracaoMinutos = $this->quantidadeHoras * 60;
-    }
-
-    public function updatedDuracaoMinutos(): void
-    {
-        $this->quantidadeHoras = max(1, (int) ceil($this->duracaoMinutos / 60));
-
-        if ($this->quadraId) {
-            $this->horasPorQuadra[$this->quadraId] = $this->quantidadeHoras;
-        }
+        $jogadores = Esporte::from($this->esporte)->formatoRecomendado()['jogadores'];
+        $this->totalJogadores = $jogadores;
+        $this->maxParticipantes = $jogadores;
+        $this->quadraId = null;
     }
 
     public function aplicarFormato(string $tipo): void
@@ -238,7 +213,29 @@ class Criar extends Component
             ? Esporte::from($this->esporte)->formatoAlternativo()
             : Esporte::from($this->esporte)->formatoRecomendado();
 
-        $this->maxParticipantes = min(50, max(2, $formato['jogadores']));
+        $this->totalJogadores = min(50, max(2, $formato['jogadores']));
+        $this->maxParticipantes = $this->totalJogadores;
+    }
+
+    public function incrementarTotalJogadores(): void
+    {
+        $this->totalJogadores = min(50, $this->totalJogadores + 1);
+    }
+
+    public function decrementarTotalJogadores(): void
+    {
+        $this->totalJogadores = max(2, $this->totalJogadores - 1);
+        $this->maxParticipantes = min($this->maxParticipantes, $this->totalJogadores);
+    }
+
+    public function incrementarVagas(): void
+    {
+        $this->maxParticipantes = min($this->totalJogadores, $this->maxParticipantes + 1);
+    }
+
+    public function decrementarVagas(): void
+    {
+        $this->maxParticipantes = max(2, $this->maxParticipantes - 1);
     }
 
     public function selecionarQuadra(int $quadraId): void
@@ -249,12 +246,10 @@ class Criar extends Component
             return;
         }
 
-        $this->quadraId = $quadraId;
-        $this->quantidadeHoras = $this->horasPara($quadraId);
-        $this->duracaoMinutos = $this->quantidadeHoras * 60;
+        $this->quadraId = $this->quadraId === $quadraId ? null : $quadraId;
     }
 
-    public function criar(): void
+    public function criar()
     {
         abort_unless(auth()->check(), 403);
 
@@ -273,12 +268,16 @@ class Criar extends Component
             ->exists();
 
         if ($conflito) {
-            $this->addError('horaInicio', 'Essa quadra já está reservada nesse horário.');
+            $this->addError('quadraId', 'Essa quadra já está reservada nesse horário.');
 
             return;
         }
 
-        $sala = DB::transaction(function () use ($validated, $quadra, $horaInicioSql, $horaFimSql) {
+        $horas = $validated['duracaoMinutos'] / 60;
+        $valorTotal = (float) $quadra->valor_hora * $horas;
+        $precoPessoa = $validated['maxParticipantes'] > 0 ? round($valorTotal / $validated['maxParticipantes'], 2) : null;
+
+        $sala = DB::transaction(function () use ($validated, $quadra, $horaInicioSql, $horaFimSql, $precoPessoa) {
             $reserva = Reserva::create([
                 'quadra_id' => $quadra->id,
                 'user_id' => auth()->id(),
@@ -294,26 +293,29 @@ class Criar extends Component
                 'nome' => $validated['nome'],
                 'esporte' => $validated['esporte'],
                 'max_participantes' => $validated['maxParticipantes'],
+                'total_jogadores' => $validated['totalJogadores'],
                 'data' => $validated['data'],
-                'hora_inicio' => $horaInicioSql,
-                'duracao_minutos' => $validated['duracaoMinutos'],
-                'quantidade_horas' => $this->quantidadeHoras,
+                'horario_inicio' => $horaInicioSql,
+                'horario_fim' => $horaFimSql,
                 'nivel_desejado' => $validated['nivelDesejado'],
                 'aceitacao_niveis_adjacentes' => $validated['aceitacaoNiveis'],
-                'privada' => $this->privada,
-                'aprovacao_manual' => $this->aprovacaoManual,
+                'privacidade' => $validated['privacidade'],
+                'aprovacao' => $validated['aprovacao'],
+                'preco_pessoa' => $precoPessoa,
                 'regras_adicionais' => $validated['regrasAdicionais'] ?: null,
                 'reserva_id' => $reserva->id,
             ]);
 
-            $sala->participantes()->attach(auth()->id());
+            AtividadeSala::create([
+                'sala_id' => $sala->id,
+                'user_id' => auth()->id(),
+                'descricao' => 'Sala criada por '.auth()->user()->name,
+            ]);
 
             return $sala;
         });
 
-        session()->flash('sala-criada', "Sala \"{$sala->nome}\" criada com sucesso!");
-
-        $this->redirect(route('encontre_time'), navigate: false);
+        return $this->redirect(route('salas.pagamento', $sala), navigate: false);
     }
 
     /**
@@ -333,6 +335,8 @@ class Criar extends Component
             'esportes' => Esporte::cases(),
             'niveis' => NivelHabilidade::cases(),
             'aceitacoes' => AceitacaoNivel::cases(),
+            'privacidades' => Privacidade::cases(),
+            'aprovacoes' => Aprovacao::cases(),
         ]);
     }
 }

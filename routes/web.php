@@ -55,6 +55,12 @@ Route::get('/salas/{sala}/confirmacao', function (Sala $sala) {
 
     return view('sala-confirmacao', ['sala' => $sala, 'participacao' => $participacao]);
 })->middleware('auth')->name('salas.confirmacao');
+Route::get('/salas/{sala}/grupo', function (Sala $sala) {
+    return view('sala-grupo', ['sala' => $sala]);
+})->middleware('auth')->name('salas.grupo');
+Route::get('/salas/{sala}/pagar-diferenca', function (Sala $sala) {
+    return view('sala-pagar-diferenca', ['sala' => $sala]);
+})->middleware('auth')->name('salas.pagar-diferenca');
 Route::get('/loja', function () {
     return view('loja');
 })->name('loja');

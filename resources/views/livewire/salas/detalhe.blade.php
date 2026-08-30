@@ -66,12 +66,12 @@
 
             <div class="col-md-6">
                 <p class="text-muted small fw-bold mb-1"><i class="bi bi-clock text-warning me-1"></i>Data e Horário</p>
-                @if ($sala->data && $sala->hora_inicio)
+                @if ($sala->data && $sala->horario_inicio)
                     <p class="fw-bold mb-0">
-                        {{ $sala->data->format('d/m/Y') }}, {{ \Illuminate\Support\Carbon::parse($sala->hora_inicio)->format('H:i') }}
-                        - {{ \Illuminate\Support\Carbon::parse($sala->horaFim)->format('H:i') }}
+                        {{ $sala->data->format('d/m/Y') }}, {{ $sala->horario_inicio->format('H:i') }}
+                        - {{ $sala->horario_fim?->format('H:i') }}
                     </p>
-                    <p class="text-muted small mb-0">Duração: {{ intdiv($sala->duracao_minutos, 60) }}h{{ str_pad($sala->duracao_minutos % 60, 2, '0', STR_PAD_LEFT) }}min</p>
+                    <p class="text-muted small mb-0">Duração: {{ $sala->duracaoFormatada() }}</p>
                 @else
                     <p class="text-muted mb-0">A combinar</p>
                 @endif
@@ -114,25 +114,54 @@
         @endif
     </div>
 
+    @if (auth()->check() && auth()->id() === $sala->criador_id && $this->pedidosPendentes->isNotEmpty())
+        <div class="card border-0 shadow-sm card-arredondado p-4 mb-4">
+            <h5 class="fw-bold texto-escuro mb-3">Pedidos de entrada pendentes</h5>
+            <div class="d-flex flex-column gap-2">
+                @foreach ($this->pedidosPendentes as $pedido)
+                    <div class="d-flex align-items-center justify-content-between border rounded-3 p-2 px-3" wire:key="pedido-{{ $pedido->id }}">
+                        <span class="fw-bold">{{ $pedido->user->name }}</span>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-laranja rounded-pill px-3" wire:click="aprovarPedido({{ $pedido->id }})">Aprovar</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" wire:click="recusarPedido({{ $pedido->id }})">Recusar</button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     @guest
         <p class="small mb-3">Você precisa <a href="{{ route('login') }}">entrar</a> para participar.</p>
     @endguest
+
+    @if ($mensagemPendente)
+        <div class="alert alert-info">{{ $mensagemPendente }}</div>
+    @endif
+
+    @error('entrar')
+        <div class="alert alert-danger">{{ $message }}</div>
+    @enderror
 
     <div class="d-flex justify-content-end gap-2">
         <a href="{{ route('encontre_time') }}" class="btn btn-outline-secondary fw-bold px-4 rounded-pill">Voltar</a>
 
         @auth
-            @if ($sala->participantes->contains('id', auth()->id()))
-                <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill" disabled>Você já está nessa sala</button>
+            @if ($sala->status->value === 'fechada')
+                <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill" disabled>Sala fechada</button>
+            @elseif ($sala->participantes->contains('id', auth()->id()))
+                <a href="{{ route('salas.grupo', $sala) }}" class="btn btn-laranja fw-bold px-4 rounded-pill">Ver grupo</a>
+            @elseif ($this->meuPedido?->status->value === 'pendente')
+                <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill" disabled>Pedido aguardando aprovação</button>
             @elseif ($sala->participantes->count() >= $sala->max_participantes)
                 <button type="button" class="btn btn-outline-secondary fw-bold px-4 rounded-pill" disabled>Sala cheia</button>
             @else
-                <a href="{{ route('salas.pagamento', $sala) }}" class="btn btn-laranja fw-bold px-4 rounded-pill">
-                    Entrar e Pagar
-                    @if ($sala->quadra)
-                        - R$ {{ number_format($sala->valorPorPessoa(), 2, ',', '.') }}
+                <button type="button" class="btn btn-laranja fw-bold px-4 rounded-pill" wire:click="entrar">
+                    {{ $sala->aprovacao->value === 'manual' ? 'Solicitar entrada' : 'Entrar e Pagar' }}
+                    @if ($sala->quadra && $sala->aprovacao->value !== 'manual')
+                        - R$ {{ number_format($sala->precoPessoaCalculado() ?? 0, 2, ',', '.') }}
                     @endif
-                </a>
+                </button>
             @endif
         @endauth
     </div>

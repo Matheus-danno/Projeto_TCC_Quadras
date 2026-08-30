@@ -85,16 +85,20 @@
                     <div class="caixa-destaque caixa-branca text-center p-2">
                         <label class="subtitulo-campo font-size-sm">Total Jogadores</label>
                         <div class="qty-grupo">
-                            <button type="button" class="qty-btn" wire:click="decrementarVagas">-</button>
-                            <input type="text" class="qty-input" value="{{ $maxParticipantes }}" readonly>
-                            <button type="button" class="qty-btn" wire:click="incrementarVagas">+</button>
+                            <button type="button" class="qty-btn" wire:click="decrementarTotalJogadores">-</button>
+                            <input type="text" class="qty-input" value="{{ $totalJogadores }}" readonly>
+                            <button type="button" class="qty-btn" wire:click="incrementarTotalJogadores">+</button>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="caixa-destaque caixa-branca text-center p-2">
-                        <label class="subtitulo-campo font-size-sm">Total de Vagas</label>
-                        <div class="qty-input border-0 fs-4 text-center">{{ $maxParticipantes }}</div>
+                        <label class="subtitulo-campo font-size-sm">Vagas mínimas p/ abrir</label>
+                        <div class="qty-grupo">
+                            <button type="button" class="qty-btn" wire:click="decrementarVagas">-</button>
+                            <input type="text" class="qty-input" value="{{ $maxParticipantes }}" readonly>
+                            <button type="button" class="qty-btn" wire:click="incrementarVagas">+</button>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -149,6 +153,14 @@
             <div class="input-group mb-3">
                 <span class="input-group-text bg-white border-orange"><i class="bi bi-search"></i></span>
                 <input type="text" class="form-control border-orange" wire:model.live.debounce.300ms="buscaQuadra" placeholder="Pesquisar quadra">
+                <button
+                    type="button"
+                    class="btn btn-outline-laranja"
+                    x-data
+                    x-on:click="navigator.geolocation.getCurrentPosition((p) => $wire.usarLocalizacao(p.coords.latitude, p.coords.longitude))"
+                >
+                    <i class="bi bi-geo-alt"></i> Perto de mim
+                </button>
             </div>
             @error('quadraId') <div class="text-danger small mb-2">{{ $message }}</div> @enderror
 
@@ -186,12 +198,9 @@
 
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="small fw-medium">Qtd. de Horas:</span>
-                                            <div class="qty-grupo qty-grupo-sm">
-                                                <button type="button" class="qty-btn" wire:click="decrementarHoras({{ $quadra->id }})">-</button>
-                                                <input type="text" class="qty-input" value="{{ $this->horasPara($quadra->id) }}" readonly>
-                                                <button type="button" class="qty-btn" wire:click="incrementarHoras({{ $quadra->id }})">+</button>
-                                            </div>
+                                            @if (isset($quadra->distanciaKm) && $quadra->distanciaKm !== null)
+                                                <span class="small text-muted"><i class="bi bi-geo"></i> {{ $quadra->distanciaKm }} km</span>
+                                            @endif
                                         </div>
 
                                         @if ($quadra->indisponivel)
@@ -235,46 +244,32 @@
 
             <span class="subtitulo-campo">Privacidade da Sala</span>
             <div class="row row-cols-1 row-cols-md-2 g-3 mb-3">
-                <div class="col">
-                    <div class="radio-card {{ ! $privada ? 'active' : '' }}" wire:click="$set('privada', false)">
-                        <span class="circulo-check"></span>
-                        <div>
-                            <div class="fw-bold text-secondary">Pública</div>
-                            <div class="small text-muted">Qualquer jogador compatível pode entrar</div>
+                @foreach ($privacidades as $opcao)
+                    <div class="col">
+                        <div class="radio-card {{ $privacidade === $opcao->value ? 'active' : '' }}" wire:click="$set('privacidade', '{{ $opcao->value }}')">
+                            <span class="circulo-check"></span>
+                            <div>
+                                <div class="fw-bold text-secondary">{{ $opcao->label() }}</div>
+                                <div class="small text-muted">{{ $opcao->descricao() }}</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col">
-                    <div class="radio-card {{ $privada ? 'active' : '' }}" wire:click="$set('privada', true)">
-                        <span class="circulo-check"></span>
-                        <div>
-                            <div class="fw-bold text-secondary">Privada</div>
-                            <div class="small text-muted">Só entra quem for convidado</div>
-                        </div>
-                    </div>
-                </div>
+                @endforeach
             </div>
 
             <span class="subtitulo-campo">Aprovação de membros</span>
             <div class="row row-cols-1 row-cols-md-2 g-3">
-                <div class="col">
-                    <div class="radio-card {{ $aprovacaoManual ? 'active' : '' }}" wire:click="$set('aprovacaoManual', true)">
-                        <span class="circulo-check"></span>
-                        <div>
-                            <div class="fw-bold text-secondary">Aprovar manualmente</div>
-                            <div class="small text-muted">Você decide quem entra na sala</div>
+                @foreach ($aprovacoes as $opcao)
+                    <div class="col">
+                        <div class="radio-card {{ $aprovacao === $opcao->value ? 'active' : '' }}" wire:click="$set('aprovacao', '{{ $opcao->value }}')">
+                            <span class="circulo-check"></span>
+                            <div>
+                                <div class="fw-bold text-secondary">{{ $opcao->label() }}</div>
+                                <div class="small text-muted">{{ $opcao->descricao() }}</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col">
-                    <div class="radio-card {{ ! $aprovacaoManual ? 'active' : '' }}" wire:click="$set('aprovacaoManual', false)">
-                        <span class="circulo-check"></span>
-                        <div>
-                            <div class="fw-bold text-secondary">Entrada automática</div>
-                            <div class="small text-muted">Configuração instantânea após confirmação</div>
-                        </div>
-                    </div>
-                </div>
+                @endforeach
             </div>
 
             <span class="subtitulo-campo mt-4 d-block">Regras adicionais</span>
@@ -311,9 +306,12 @@
                         'data' => 'Data',
                         'horaInicio' => 'Hora',
                         'duracaoMinutos' => 'Duração',
-                        'maxParticipantes' => 'Total Jogadores',
+                        'totalJogadores' => 'Total Jogadores',
+                        'maxParticipantes' => 'Vagas mínimas p/ abrir',
                         'nivelDesejado' => 'Nível desejado',
                         'aceitacaoNiveis' => 'Aceitar níveis adjacentes',
+                        'privacidade' => 'Privacidade da sala',
+                        'aprovacao' => 'Aprovação de membros',
                         'regrasAdicionais' => 'Regras adicionais',
                     ];
                 @endphp
