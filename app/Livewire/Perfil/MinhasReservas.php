@@ -10,7 +10,7 @@ use Livewire\Component;
 
 class MinhasReservas extends Component
 {
-    public ?string $erroCancelamento = null;
+    public array $erros = [];
 
 
     #[Computed]
@@ -44,19 +44,19 @@ class MinhasReservas extends Component
      */
     public function cancelar(int $reservaId, ?string $tipo = null): void
     {
-        $this->erroCancelamento = null;
+        unset($this->erros[$reservaId]);
 
         $reserva = Auth::user()->reservas()->with('quadra')->findOrFail($reservaId);
 
         if ($reserva->status === ReservaStatus::Confirmada) {
             if (! in_array($tipo, ['credito', 'extorno'], true)) {
-                $this->erroCancelamento = 'Selecione como deseja ser reembolsado.';
+                $this->erros[$reservaId] = 'Selecione como deseja ser reembolsado.';
 
                 return;
             }
 
             if (! $reserva->podeCancelar()) {
-                $this->erroCancelamento = 'Cancelamentos só podem ser feitos até 5h antes do início.';
+                $this->erros[$reservaId] = 'Cancelamentos só podem ser feitos até 5h antes do início.';
 
                 return;
             }
@@ -76,7 +76,7 @@ class MinhasReservas extends Component
         } elseif ($reserva->status === ReservaStatus::Pendente) {
             $reserva->update(['status' => ReservaStatus::Cancelada]);
         } else {
-            $this->erroCancelamento = 'Essa reserva não pode mais ser cancelada.';
+            $this->erros[$reservaId] = 'Essa reserva não pode mais ser cancelada.';
 
             return;
         }
