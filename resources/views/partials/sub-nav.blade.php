@@ -3,9 +3,6 @@
         <a href="{{ route('home') }}" class="sub-nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
             <i class="bi bi-house-door"></i> Home
         </a>
-        <a href="{{ route('quadras.proximas') }}" class="sub-nav-link {{ request()->routeIs('quadras.proximas') ? 'active' : '' }}">
-            <i class="bi bi-geo-alt"></i> Quadras Próximas
-        </a>
         <a href="{{ route('quadras.index') }}" class="sub-nav-link {{ request()->routeIs('quadras.index') ? 'active' : '' }}">
             <i class="bi bi-layers"></i> Todas as Quadras
         </a>
