@@ -1,28 +1,28 @@
-<x-layouts::auth :title="__('Confirm password')">
-    <div class="flex flex-col gap-6">
-        <x-auth-header
-            :title="__('Confirm password')"
-            :description="__('This is a secure area of the application. Please confirm your password before continuing.')"
-        />
+@extends('layouts.bootstrap')
 
-        <x-auth-session-status class="text-center" :status="session('status')" />
+@section('titulo', 'Confirme sua senha')
 
-        <form method="POST" action="{{ route('password.confirm.store') }}" class="flex flex-col gap-6">
+@section('conteudo')
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card p-4 shadow-sm border-0 rounded-4" style="width: 100%; max-width: 400px;">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold">Confirme sua senha</h3>
+            <p class="text-muted">Esta é uma área protegida. Confirme sua senha para continuar.</p>
+        </div>
+
+        <form method="POST" action="{{ route('password.confirm.store') }}">
             @csrf
 
-            <flux:input
-                name="password"
-                :label="__('Password')"
-                type="password"
-                required
-                autocomplete="current-password"
-                :placeholder="__('Password')"
-                viewable
-            />
+            <div class="mb-3">
+                <label class="form-label fw-bold">Senha</label>
+                <input type="password" name="password" class="form-control border-orange" placeholder="******" required autofocus autocomplete="current-password">
+                @error('password') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
 
-            <flux:button variant="primary" type="submit" class="w-full" data-test="confirm-password-button">
-                {{ __('Confirm') }}
-            </flux:button>
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-orange text-white fw-bold py-2 rounded-pill">Confirmar</button>
+            </div>
         </form>
     </div>
-</x-layouts::auth>
+</div>
+@endsection
