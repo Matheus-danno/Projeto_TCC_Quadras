@@ -34,7 +34,7 @@
                     <a href="#" class="admin-nav__link">Reservas</a>
                     <a href="#" class="admin-nav__link">Financeiro</a>
                     <a href="#" class="admin-nav__link">Agendamento Manual</a>
-                    <a href="#" class="admin-nav__link">Configurações</a>
+                    <a href="#" class="admin-nav__link {{ trim($__env->yieldContent('admin-active')) === 'configuracoes' ? 'is-active' : '' }}">Configurações</a>
                 </div>
             </nav>
         @endunless
