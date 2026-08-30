@@ -1,350 +1,328 @@
-@php
-    $esporteAtual = $esporte ? \App\Enums\Esporte::from($esporte) : null;
-    $visual = [
-        'futebol' => ['icone' => 'bi-dribbble', 'gradiente' => 'linear-gradient(135deg, #ff9a3c, #ff7d14)', 'cor' => '#ff7d14'],
-        'futsal' => ['icone' => 'bi-circle-fill', 'gradiente' => 'linear-gradient(135deg, #2d6a4f, #1b4332)', 'cor' => '#008a61'],
-        'volei' => ['icone' => 'bi-dribbble', 'gradiente' => 'linear-gradient(135deg, #4c9ce2, #2f7dc4)', 'cor' => '#34b6e8'],
-        'basquete' => ['icone' => 'bi-circle-fill', 'gradiente' => 'linear-gradient(135deg, #f77f00, #d62828)', 'cor' => '#f77f00'],
-        'tenis' => ['icone' => 'bi-record-circle', 'gradiente' => 'linear-gradient(135deg, #a7c957, #6a994e)', 'cor' => '#97aa00'],
-        'beach_tennis' => ['icone' => 'bi-record-circle', 'gradiente' => 'linear-gradient(135deg, #06d6a0, #00b4d8)', 'cor' => '#01bda5'],
-    ];
-@endphp
-
-<div class="container my-5 criar-sala-container">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h3 class="titulo-principal-laranja mb-0">Criar Nova Partida</h3>
-        <a href="{{ route('encontre_time') }}" class="text-orange fw-bold text-decoration-none">
-            <i class="bi bi-x-lg me-1"></i> Cancelar
-        </a>
-    </div>
-
-    @guest
-        <div class="alert alert-warning">
-            Você precisa <a href="{{ route('login') }}">entrar</a> para criar uma partida.
+<div>
+@guest
+    <div class="container my-5 criar-sala-container">
+        <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+            <div class="card-body">
+                <i class="bi bi-lock-fill text-orange" style="font-size: 2.5rem;"></i>
+                <p class="fw-semibold mt-3 mb-4">Você precisa entrar para criar uma sala.</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="{{ route('login') }}" class="btn btn-orange-action fw-bold px-4">Entrar</a>
+                    <a href="{{ route('registro') }}" class="btn btn-outline-secondary fw-bold px-4">Cadastrar-se</a>
+                </div>
+            </div>
         </div>
-    @else
-        <div>
-            {{-- informações básicas --}}
-            <h5 class="titulo-secao mt-0">informações básicas</h5>
+    </div>
+@else
+    <div class="container my-4 criar-sala-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="{{ route('encontre_time') }}" class="detalhes-link-topo text-decoration-none">
+                <i class="bi bi-x-lg me-1"></i> Cancelar
+            </a>
+            <h5 class="fw-normal text-orange mb-0">Criar Nova Partida</h5>
+            <span></span>
+        </div>
 
-            <span class="subtitulo-campo">Nome da sala</span>
-            <input type="text" class="form-control border-secondary-subtle fw-semibold text-secondary" wire:model="nome" placeholder="Ex: Racha de sexta-feira">
-            @error('nome') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+        <div class="card border-0 shadow-sm card-arredondado mb-3">
+            <div class="card-body p-4">
+                <h5 class="fw-semibold texto-jogo mb-3">Informações básicas</h5>
 
-            <span class="subtitulo-campo mt-4 d-block">Escolha o esporte</span>
-            <div class="row g-3 mb-2 text-center">
-                @foreach ($esportes as $opcao)
-                    <div class="col">
-                        <div
-                            class="esporte-card {{ $esporte === $opcao->value ? 'active' : '' }}"
-                            style="{{ $esporte === $opcao->value ? 'border-color: '.$visual[$opcao->value]['cor'] : '' }}"
-                            wire:click="$set('esporte', '{{ $opcao->value }}')"
-                        >
-                            <div class="esporte-img-box" style="background: {{ $visual[$opcao->value]['gradiente'] }};">
-                                <i class="bi {{ $visual[$opcao->value]['icone'] }}"></i>
+                <p class="detalhes-subtitulo mb-2">Escolha o esporte</p>
+                <div class="row g-3 mb-4">
+                    @foreach ($esportes as $opcao)
+                        <div class="col-6 col-md-2-4" style="flex: 0 0 20%; max-width: 20%;">
+                            <div
+                                class="esporte-card text-center {{ $esporte === $opcao->value ? 'active' : '' }}"
+                                wire:click="$set('esporte', '{{ $opcao->value }}')"
+                                style="cursor: pointer; border-color: {{ $esporte === $opcao->value ? $opcao->cor() : 'transparent' }};"
+                            >
+                                <div class="esporte-img-box" style="background: {{ $opcao->cor() }};">
+                                    @if ($opcao->imagemBola())
+                                        <img src="{{ asset($opcao->imagemBola()) }}" alt="{{ $opcao->label() }}">
+                                    @else
+                                        <i class="bi {{ $opcao->icone() }}"></i>
+                                    @endif
+                                </div>
+                                <span class="fw-bold text-secondary small">{{ $opcao === \App\Enums\Esporte::Futebol ? 'Futebol Society' : $opcao->label() }}</span>
                             </div>
-                            <span class="fw-bold text-secondary small">{{ $opcao->label() }}</span>
                         </div>
+                    @endforeach
+                </div>
+                @error('esporte') <div class="text-danger small mb-3">{{ $message }}</div> @enderror
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="detalhes-subtitulo d-block mb-1">Data</label>
+                        <input type="date" class="form-control detalhes-input" wire:model="data" value="{{ $data }}" min="{{ now()->toDateString() }}">
+                        @error('data') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                     </div>
-                @endforeach
-            </div>
-            @error('esporte') <div class="text-danger small mb-3">{{ $message }}</div> @enderror
-
-            <div class="row g-3 mt-2">
-                <div class="col-md-4">
-                    <span class="subtitulo-campo">Data</span>
-                    <input type="date" class="form-control border-secondary-subtle fw-semibold text-secondary" wire:model="data" min="{{ now()->toDateString() }}">
-                    @error('data') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                </div>
-                <div class="col-md-4">
-                    <span class="subtitulo-campo">Hora</span>
-                    <select class="form-select border-secondary-subtle fw-semibold text-secondary" wire:model="horaInicio">
-                        <option value="">Selecione</option>
-                        @foreach ($this->horariosDisponiveis() as $horario)
-                            <option value="{{ $horario }}">{{ $horario }}</option>
-                        @endforeach
-                    </select>
-                    @error('horaInicio') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                </div>
-                <div class="col-md-4">
-                    <span class="subtitulo-campo">Duração</span>
-                    <select class="form-select border-secondary-subtle fw-semibold text-secondary" wire:model="duracaoMinutos">
-                        @foreach ($this->duracoesDisponiveis() as $minutos => $rotulo)
-                            <option value="{{ $minutos }}">{{ $rotulo }}</option>
-                        @endforeach
-                    </select>
-                    @error('duracaoMinutos') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                </div>
-            </div>
-
-            {{-- Número de Jogadores --}}
-            <h5 class="titulo-secao">Número de Jogadores</h5>
-
-            <div class="row g-3 align-items-stretch">
-                <div class="col-md-3">
-                    <div class="caixa-destaque caixa-branca text-center p-2">
-                        <label class="subtitulo-campo font-size-sm">Total Jogadores</label>
-                        <div class="qty-grupo">
-                            <button type="button" class="qty-btn" wire:click="decrementarTotalJogadores">-</button>
-                            <input type="text" class="qty-input" value="{{ $totalJogadores }}" readonly>
-                            <button type="button" class="qty-btn" wire:click="incrementarTotalJogadores">+</button>
-                        </div>
+                    <div class="col-md-4">
+                        <label class="detalhes-subtitulo d-block mb-1">Hora</label>
+                        <select class="form-select detalhes-input" wire:model="horaInicio">
+                            @foreach ($this->horariosDisponiveis() as $hora)
+                                <option value="{{ $hora }}" @selected($hora === $horaInicio)>{{ $hora }}</option>
+                            @endforeach
+                        </select>
+                        @error('horaInicio') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="detalhes-subtitulo d-block mb-1">Duração</label>
+                        <select class="form-select detalhes-input" wire:model="duracaoMinutos">
+                            @foreach ($this->duracoesDisponiveis() as $minutos)
+                                <option value="{{ $minutos }}" @selected($minutos === $duracaoMinutos)>{{ $this->duracaoFormatada($minutos) }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="caixa-destaque caixa-branca text-center p-2">
-                        <label class="subtitulo-campo font-size-sm">Vagas mínimas p/ abrir</label>
-                        <div class="qty-grupo">
-                            <button type="button" class="qty-btn" wire:click="decrementarVagas">-</button>
-                            <input type="text" class="qty-input" value="{{ $maxParticipantes }}" readonly>
-                            <button type="button" class="qty-btn" wire:click="incrementarVagas">+</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="caixa-destaque caixa-verde text-center" wire:click="aplicarFormato('recomendado')" style="cursor: pointer;">
-                        <span class="caixa-verde-texto fw-bold small">Recomendado para o {{ $esporteAtual?->label() ?? 'esporte' }}</span>
-                        @if ($esporteAtual)
-                            <span class="caixa-verde-texto fw-bold fs-5">{{ $esporteAtual->formatoRecomendado()['jogadores'] }} jogadores ({{ $esporteAtual->formatoRecomendado()['descricao'] }})</span>
-                        @endif
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="caixa-destaque caixa-laranja text-center" wire:click="aplicarFormato('alternativo')" style="cursor: pointer;">
-                        <span class="caixa-laranja-texto fw-bold small">Formato alternativo</span>
-                        @if ($esporteAtual)
-                            <span class="caixa-laranja-texto fw-bold fs-5">{{ $esporteAtual->formatoAlternativo()['jogadores'] }} jogadores ({{ $esporteAtual->formatoAlternativo()['descricao'] }})</span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            @error('maxParticipantes') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
 
-            {{-- Nível de habilidade --}}
-            <h5 class="titulo-secao">Nível de habilidade</h5>
-
-            <div class="row g-3">
-                <div class="col-md-5">
-                    <span class="subtitulo-campo">Nível desejado</span>
-                    <select class="form-select border-secondary-subtle fw-semibold text-secondary" wire:model="nivelDesejado">
-                        <option value="">Selecione</option>
-                        @foreach ($niveis as $opcao)
-                            <option value="{{ $opcao->value }}">{{ $opcao->label() }}</option>
-                        @endforeach
-                    </select>
-                    @error('nivelDesejado') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                </div>
-                <div class="col-md-7">
-                    <span class="subtitulo-campo">Aceitar níveis adjacentes</span>
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach ($aceitacoes as $opcao)
-                            <div class="radio-card radio-pill {{ $aceitacaoNiveis === $opcao->value ? 'active' : '' }}" wire:click="$set('aceitacaoNiveis', '{{ $opcao->value }}')">
-                                <span class="circulo-check"></span>
-                                <span class="fw-semibold small text-secondary">{{ $opcao->label() }}</span>
+                <p class="detalhes-subtitulo mb-2">Número de Jogadores</p>
+                <div class="row g-3 align-items-stretch mb-4">
+                    <div class="col-6 col-md-2">
+                        <div class="caixa-destaque caixa-branca text-center h-100">
+                            <label class="subtitulo-campo">Total Jogadores</label>
+                            <div class="qty-grupo">
+                                <button type="button" class="qty-btn" wire:click="decrementarTotalJogadores">-</button>
+                                <input type="text" class="qty-input" value="{{ $totalJogadores }}" readonly>
+                                <button type="button" class="qty-btn" wire:click="incrementarTotalJogadores">+</button>
                             </div>
-                        @endforeach
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <div class="caixa-destaque caixa-branca text-center h-100">
+                            <label class="subtitulo-campo">Total de Vagas</label>
+                            <div class="qty-grupo">
+                                <button type="button" class="qty-btn" wire:click="decrementarVagas">-</button>
+                                <input type="text" class="qty-input" value="{{ $maxParticipantes }}" readonly>
+                                <button type="button" class="qty-btn" wire:click="incrementarVagas">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    @if ($esporte)
+                        @php $esporteAtual = \App\Enums\Esporte::from($esporte); @endphp
+                        <div class="col-12 col-md-4">
+                            <button type="button" wire:click="selecionarFormato('recomendado')" class="caixa-destaque caixa-verde text-start h-100 w-100 border-0">
+                                <span class="caixa-verde-texto texto-formato-label d-block">Recomendado para o {{ $esporteAtual->label() }}</span>
+                                <span class="caixa-verde-texto texto-formato-valor fw-bold">{{ $esporteAtual->formatoRecomendado()['descricao'] }}</span>
+                            </button>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <button type="button" wire:click="selecionarFormato('alternativo')" class="caixa-destaque caixa-laranja text-start h-100 w-100 border-0">
+                                <span class="caixa-laranja-texto texto-formato-label d-block">Formato alternativo</span>
+                                <span class="caixa-laranja-texto texto-formato-valor fw-bold">{{ $esporteAtual->formatoAlternativo()['descricao'] }}</span>
+                            </button>
+                        </div>
+                    @endif
+                </div>
+                @error('maxParticipantes') <div class="text-danger small mb-3">{{ $message }}</div> @enderror
+
+                <p class="detalhes-subtitulo mb-2">Nível de habilidade</p>
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label class="subtitulo-campo">Nível desejado</label>
+                        <select class="form-select detalhes-input select-nivel-desejado" wire:model="nivel">
+                            @foreach ($niveis as $opcao)
+                                <option value="{{ $opcao->value }}" @selected($opcao->value === $nivel)>{{ $opcao->label() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="subtitulo-campo">Aceitar níveis adjacentes</label>
+                        <div class="pill-radio-grupo">
+                            @foreach ($niveisFlexibilidade as $opcao)
+                                <label class="pill-radio-opcao">
+                                    <input type="radio" wire:model="nivelFlexibilidade" value="{{ $opcao->value }}" @checked($opcao->value === $nivelFlexibilidade)>
+                                    <span class="pill-radio-dot"></span>
+                                    <span class="pill-radio-label">{{ $opcao->label() }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            {{-- Escolha a quadra --}}
-            <h5 class="titulo-secao">Escolha a quadra</h5>
+        <h5 class="fw-semibold texto-jogo mb-3">Escolha a quadra</h5>
+        <div class="card border-0 shadow-sm card-arredondado mb-3" x-data x-init="navigator.geolocation && navigator.geolocation.getCurrentPosition((posicao) => $wire.usarLocalizacao(posicao.coords.latitude, posicao.coords.longitude), () => {})">
+            <div class="card-body p-4">
+                <div class="input-group mb-4">
+                    <span class="input-group-text bg-white border-orange"><i class="bi bi-search text-orange"></i></span>
+                    <input type="text" class="form-control border-orange" wire:model.live="buscaQuadra" placeholder="Pesquisar quadra">
+                </div>
 
-            <div class="input-group mb-3">
-                <span class="input-group-text bg-white border-orange"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control border-orange" wire:model.live.debounce.300ms="buscaQuadra" placeholder="Pesquisar quadra">
-                <button
-                    type="button"
-                    class="btn btn-outline-laranja"
-                    x-data
-                    x-on:click="navigator.geolocation.getCurrentPosition((p) => $wire.usarLocalizacao(p.coords.latitude, p.coords.longitude))"
-                >
-                    <i class="bi bi-geo-alt"></i> Perto de mim
-                </button>
-            </div>
-            @error('quadraId') <div class="text-danger small mb-2">{{ $message }}</div> @enderror
+                @if ($quadraId && $this->quadraSelecionada)
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="caixa-destaque caixa-branca caixa-resumo-financeiro">
+                                <label class="subtitulo-campo">Valor por pessoa</label>
+                                <p class="fw-bold text-orange caixa-resumo-valor mb-0">R$ {{ number_format($this->precoPessoa() ?? 0, 2, ',', '.') }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="caixa-destaque caixa-laranja caixa-resumo-financeiro">
+                                <label class="subtitulo-campo">Total a arrecadar</label>
+                                <p class="fw-bold text-orange caixa-resumo-valor mb-0">R$ {{ number_format($this->totalArrecadar() ?? 0, 2, ',', '.') }}</p>
+                                <span class="small text-muted">({{ $maxParticipantes }} jogadores x {{ number_format($this->precoPessoa() ?? 0, 2, ',', '.') }})</span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
-            <div class="row row-cols-1 row-cols-md-2 g-3" style="max-height: 700px; overflow-y: auto;">
-                @forelse ($this->quadras as $quadra)
-                    <div class="col" wire:key="quadra-{{ $quadra->id }}">
-                        <div class="quadra-card {{ $quadraId === $quadra->id ? 'active' : '' }} h-100">
-                            <div class="d-flex gap-3 p-3">
-                                <img
-                                    src="{{ $quadra->fotoCapa()?->url() ?? asset('imagens/tela_inicial/quadra_volei2.png') }}"
-                                    alt="{{ $quadra->nome }}"
-                                    class="rounded-3 flex-shrink-0"
-                                    style="width: 130px; height: 100px; object-fit: cover;"
-                                >
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <h6 class="fw-bold text-orange mb-0">{{ $quadra->nome }}</h6>
-                                        <div class="text-end">
-                                            <span class="fw-bold">R$ {{ number_format($quadra->valor_hora, 2, ',', '.') }}</span>
-                                            <span class="badge bg-light-green text-success d-block">Valor Hora</span>
+                @if (! $esporte)
+                    <p class="text-muted mb-0">Escolha um esporte acima para ver as quadras disponíveis.</p>
+                @elseif ($this->quadras->isEmpty())
+                    <p class="text-muted mb-0">Nenhuma quadra encontrada.</p>
+                @else
+                    <div class="quadras-scroll-area">
+                    <div class="row g-3">
+                        @foreach ($this->quadras as $quadra)
+                            <div class="col-12" wire:key="quadra-{{ $quadra->id }}">
+                                <div class="card card-quadra shadow-sm border-0 rounded-4 overflow-hidden {{ $quadraId === $quadra->id ? 'quadra-selecionada' : '' }} {{ ! $quadra->disponivel ? 'opacity-50' : '' }}">
+                                    <div class="d-flex quadra-card-row">
+                                        @php $imagensQuadra = collect($quadra->listaImagens())->map(fn ($img) => asset($img))->all(); @endphp
+                                        <div class="quadra-card-img-wrap flex-shrink-0 position-relative" x-data="{ imagens: @js($imagensQuadra), indice: 0 }">
+                                            <img :src="imagens[indice]" alt="{{ $quadra->nome }}">
+                                            <template x-if="imagens.length > 1">
+                                                <button type="button" class="quadra-carrossel-seta quadra-carrossel-seta-esquerda" @click.stop.prevent="indice = (indice - 1 + imagens.length) % imagens.length">
+                                                    <i class="bi bi-chevron-left"></i>
+                                                </button>
+                                            </template>
+                                            <template x-if="imagens.length > 1">
+                                                <button type="button" class="quadra-carrossel-seta quadra-carrossel-seta-direita" @click.stop.prevent="indice = (indice + 1) % imagens.length">
+                                                    <i class="bi bi-chevron-right"></i>
+                                                </button>
+                                            </template>
                                         </div>
-                                    </div>
+                                        <div class="p-3 flex-grow-1 min-w-0">
+                                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                                <h6 class="text-orange fw-bold mb-0 quadra-card-titulo">{{ $quadra->nome }}</h6>
+                                                <div class="text-end flex-shrink-0">
+                                                    <span class="fw-bold quadra-card-preco">R$ {{ number_format($quadra->valor_hora, 2, ',', '.') }}</span><br>
+                                                    <span class="badge bg-light-green text-success">Valor Hora</span>
+                                                </div>
+                                            </div>
 
-                                    <p class="text-muted small mb-1 mt-1">
-                                        <i class="bi bi-geo-alt"></i> {{ $quadra->endereco }} - {{ $quadra->bairro }}
-                                    </p>
+                                            <div class="quadra-card-descricao-box mt-2 mb-1">
+                                                <p class="mb-1 text-orange fw-bold small">Descrição</p>
+                                                <p class="text-muted small mb-0 quadra-card-descricao">
+                                                    {{ implode(' | ', $quadra->listaAmenidades()) }}
+                                                </p>
+                                            </div>
 
-                                    <p class="small mb-2">
-                                        <span class="fw-bold text-orange">Descrição</span>
-                                        {{ $quadra->esporte->label() }} | {{ $quadra->cobertura ? 'Coberta' : 'Descoberta' }}
-                                        @if ($quadra->descricao)
-                                            | {{ $quadra->descricao }}
-                                        @endif
-                                    </p>
-
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-2">
-                                            @if (isset($quadra->distanciaKm) && $quadra->distanciaKm !== null)
-                                                <span class="small text-muted"><i class="bi bi-geo"></i> {{ $quadra->distanciaKm }} km</span>
+                                            <p class="text-muted small mb-1 quadra-card-descricao">
+                                                <i class="bi bi-geo-alt quadra-card-icone"></i>{{ $quadra->endereco }} - {{ $quadra->bairro }}, {{ $quadra->cidade }}
+                                            </p>
+                                            @if ($quadra->distanciaKm ?? null)
+                                                <p class="text-muted small mb-2 quadra-card-descricao quadra-card-distancia">{{ $quadra->distanciaKm }} km de distância de você</p>
                                             @endif
-                                        </div>
 
-                                        @if ($quadra->indisponivel)
-                                            <span class="badge-indisponivel">Horário Indisponível</span>
-                                        @elseif ($quadraId === $quadra->id)
-                                            <button type="button" class="btn btn-laranja btn-sm rounded-pill px-3 fw-bold" wire:click="selecionarQuadra({{ $quadra->id }})">Selecionado</button>
-                                        @else
-                                            <button type="button" class="btn btn-outline-laranja btn-sm rounded-pill px-3 fw-bold" wire:click="selecionarQuadra({{ $quadra->id }})">Selecionar</button>
-                                        @endif
+                                            <div class="text-end">
+                                                @if (! $quadra->disponivel)
+                                                    <span class="badge bg-danger-subtle text-danger fw-bold">Horário Indisponível</span>
+                                                @elseif ($quadraId === $quadra->id)
+                                                    <button type="button" class="btn btn-laranja fw-bold btn-ver-detalhes" wire:click="selecionarQuadra({{ $quadra->id }})">Selecionado</button>
+                                                @else
+                                                    <button type="button" class="btn btn-outline-laranja fw-bold btn-ver-detalhes" wire:click="selecionarQuadra({{ $quadra->id }})">Selecionar</button>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="col-12">
-                        <p class="text-muted text-center py-4">Nenhuma quadra encontrada.</p>
-                    </div>
-                @endforelse
-            </div>
-
-            <div class="row g-3 mt-1">
-                <div class="col-md-4">
-                    <div class="caixa-destaque caixa-branca">
-                        <span class="subtitulo-campo mb-1">Valor por pessoa</span>
-                        <span class="text-orange fw-bold fs-3">{{ $this->resumoPartida['valorPorPessoa'] }}</span>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="caixa-destaque caixa-laranja">
-                        <span class="caixa-laranja-texto subtitulo-campo mb-1">Total a arrecadar</span>
-                        <span class="caixa-laranja-texto fw-bold fs-3">{{ $this->resumoPartida['valorTotal'] }}</span>
-                        <span class="text-muted small">({{ $maxParticipantes }} jogadores x {{ $this->resumoPartida['valorPorPessoa'] }})</span>
-                    </div>
-                </div>
-            </div>
-            <p class="text-muted small fst-italic mt-1">Valores são apenas uma prévia de preço, sem cobrança real.</p>
-
-            {{-- Configurações da sala --}}
-            <h5 class="titulo-secao">Configurações da sala</h5>
-
-            <span class="subtitulo-campo">Privacidade da Sala</span>
-            <div class="row row-cols-1 row-cols-md-2 g-3 mb-3">
-                @foreach ($privacidades as $opcao)
-                    <div class="col">
-                        <div class="radio-card {{ $privacidade === $opcao->value ? 'active' : '' }}" wire:click="$set('privacidade', '{{ $opcao->value }}')">
-                            <span class="circulo-check"></span>
-                            <div>
-                                <div class="fw-bold text-secondary">{{ $opcao->label() }}</div>
-                                <div class="small text-muted">{{ $opcao->descricao() }}</div>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-
-            <span class="subtitulo-campo">Aprovação de membros</span>
-            <div class="row row-cols-1 row-cols-md-2 g-3">
-                @foreach ($aprovacoes as $opcao)
-                    <div class="col">
-                        <div class="radio-card {{ $aprovacao === $opcao->value ? 'active' : '' }}" wire:click="$set('aprovacao', '{{ $opcao->value }}')">
-                            <span class="circulo-check"></span>
-                            <div>
-                                <div class="fw-bold text-secondary">{{ $opcao->label() }}</div>
-                                <div class="small text-muted">{{ $opcao->descricao() }}</div>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-
-            <span class="subtitulo-campo mt-4 d-block">Regras adicionais</span>
-            <textarea class="form-control border-secondary-subtle" wire:model="regrasAdicionais" rows="3" placeholder="Adicione informações extras: tipo de bola, uniforme sugerido, regras específicas."></textarea>
-            @error('regrasAdicionais') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-
-            {{-- Resumo da partida --}}
-            <h5 class="titulo-secao">Resumo da partida</h5>
-
-            <div class="caixa-resumo rounded-3">
-                <p class="fw-bold text-secondary mb-3">{{ $this->resumoPartida['esporteNivel'] }}</p>
-                <div class="d-flex flex-column gap-2 small text-secondary">
-                    <div>{{ $this->resumoPartida['quadraEndereco'] }}</div>
-                    <div>{{ $this->resumoPartida['dataHora'] }}</div>
-                    <div>{{ $this->resumoPartida['jogadores'] }}</div>
-                    <div>{{ $this->resumoPartida['nivelAceitacao'] }}</div>
-                    {{-- "Times balanceados" é apenas texto informativo, não há algoritmo de balanceamento implementado --}}
-                    <div>Times balanceados automaticamente</div>
-                    <div>{{ $this->resumoPartida['privacidadeAprovacao'] }}</div>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between fw-bold">
-                    <span class="text-secondary">{{ $this->resumoPartida['valorTotal'] }}</span>
-                    <span class="text-orange">{{ $this->resumoPartida['valorPorPessoa'] }}</span>
-                </div>
-            </div>
-
-            @if ($errors->any())
-                @php
-                    $rotulosCampos = [
-                        'nome' => 'Nome da sala',
-                        'esporte' => 'Esporte',
-                        'quadraId' => 'Quadra (seção "Escolha a quadra")',
-                        'data' => 'Data',
-                        'horaInicio' => 'Hora',
-                        'duracaoMinutos' => 'Duração',
-                        'totalJogadores' => 'Total Jogadores',
-                        'maxParticipantes' => 'Vagas mínimas p/ abrir',
-                        'nivelDesejado' => 'Nível desejado',
-                        'aceitacaoNiveis' => 'Aceitar níveis adjacentes',
-                        'privacidade' => 'Privacidade da sala',
-                        'aprovacao' => 'Aprovação de membros',
-                        'regrasAdicionais' => 'Regras adicionais',
-                    ];
-                @endphp
-                <div class="alert alert-danger mt-4">
-                    <strong>Corrija os campos abaixo antes de criar a partida:</strong>
-                    <ul class="mb-0 mt-2">
-                        @foreach ($errors->keys() as $campo)
-                            <li>{{ $rotulosCampos[$campo] ?? $campo }}</li>
                         @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <div class="row g-3 mt-4 mb-4">
-                <div class="col-md-6">
-                    <a href="{{ route('encontre_time') }}" class="btn btn-voltar-laranja w-100 py-3 fw-bold fs-5 shadow-sm">Voltar</a>
-                </div>
-                <div class="col-md-6">
-                    <button type="button" class="btn btn-criar-laranja w-100 py-3 fw-bold fs-5 shadow-sm" wire:click="criar" wire:loading.attr="disabled">
-                        Criar Partida
-                    </button>
-                </div>
-            </div>
-
-            {{-- Texto mantido igual ao design do Figma (copy estático); pagamento e expiração automática não são implementados de fato --}}
-            <div class="caixa-importante mb-5">
-                <h6 class="fw-bold mb-2">Importante</h6>
-                <ul class="mb-0 small">
-                    <li>Você será o administrador desta sala</li>
-                    <li>Sua vaga será confirmada após o pagamento de R$ 5,00</li>
-                    <li>A sala ficará aberta por 30 minutos. Caso não atinja 80% do número de jogadores solicitados, o agendamento da quadra não será realizado, e o valor pago será automaticamente estornado.</li>
-                </ul>
+                    </div>
+                    </div>
+                @endif
+                @error('quadraId') <div class="text-danger small mt-3 mb-0">{{ $message }}</div> @enderror
             </div>
         </div>
-    @endguest
+
+        <h5 class="fw-semibold texto-jogo mb-3">Configurações da sala</h5>
+        <div class="card border-0 shadow-sm card-arredondado mb-3">
+            <div class="card-body p-4">
+                <p class="detalhes-subtitulo mb-2">Privacidade da Sala</p>
+                <div class="row g-3 mb-4">
+                    @foreach (\App\Enums\Privacidade::cases() as $opcao)
+                        <div class="col-md-6">
+                            <div class="radio-card {{ $privacidade === $opcao->value ? 'active' : '' }}" wire:click="$set('privacidade', '{{ $opcao->value }}')" style="cursor: pointer;">
+                                <span class="circulo-check {{ $privacidade === $opcao->value ? 'checked' : '' }}"></span>
+                                <div>
+                                    <p class="fw-bold mb-0">{{ $opcao->label() }}</p>
+                                    <p class="text-muted small mb-0">{{ $opcao->descricao() }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <p class="detalhes-subtitulo mb-2">Aprovação de membros</p>
+                <div class="row g-3 mb-4">
+                    @foreach (\App\Enums\Aprovacao::cases() as $opcao)
+                        <div class="col-md-6">
+                            <div class="radio-card {{ $aprovacao === $opcao->value ? 'active' : '' }}" wire:click="$set('aprovacao', '{{ $opcao->value }}')" style="cursor: pointer;">
+                                <span class="circulo-check {{ $aprovacao === $opcao->value ? 'checked' : '' }}"></span>
+                                <div>
+                                    <p class="fw-bold mb-0">{{ $opcao->label() }}</p>
+                                    <p class="text-muted small mb-0">{{ $opcao->descricao() }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <label class="detalhes-subtitulo d-block mb-1">Regras adicionais</label>
+                <textarea class="form-control detalhes-input" rows="3" wire:model="regrasAdicionais" placeholder="Adicione informações extras: tipo de bola, uniforme sugerido, regras específicas."></textarea>
+            </div>
+        </div>
+
+        @if ($esporte && $quadraId)
+            <h5 class="fw-semibold texto-jogo mb-3">Resumo da partida</h5>
+            <div class="card border-0 shadow-sm card-arredondado mb-3">
+                <div class="card-body p-4">
+                    <p class="fw-semibold texto-jogo mb-1">{{ \App\Enums\Esporte::from($esporte)->label() }} - {{ \App\Enums\NivelHabilidade::from($nivel)->label() }}</p>
+                    <p class="text-muted mb-1">{{ $this->quadraSelecionada?->nome }} - {{ $this->quadraSelecionada?->endereco }}</p>
+                    <p class="text-muted mb-1">
+                        {{ \Illuminate\Support\Carbon::parse($data)->isToday() ? 'Hoje' : \Illuminate\Support\Carbon::parse($data)->format('d/m/Y') }},
+                        {{ $horaInicio }} - {{ date('H:i', strtotime($horaInicio.' +'.$duracaoMinutos.' minutes')) }}
+                        ({{ $this->duracaoFormatada($duracaoMinutos) }})
+                    </p>
+                    <p class="text-muted mb-3">
+                        {{ $totalJogadores }} jogadores no total
+                        @if ($maxParticipantes < $totalJogadores)
+                            · {{ $maxParticipantes }} vagas abertas pelo app
+                        @endif
+                        · Nível: {{ \App\Enums\NivelHabilidade::from($nivel)->label() }}
+                    </p>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <p class="fw-bold texto-jogo mb-0">Valor total: R$ {{ number_format($this->totalArrecadar() ?? 0, 2, ',', '.') }}</p>
+                        <p class="fw-bold text-orange mb-0">R$ {{ number_format($this->precoPessoa() ?? 0, 2, ',', '.') }} / pessoa</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @error('criar') <div class="alert alert-danger">{{ $message }}</div> @enderror
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <a href="{{ route('encontre_time') }}" class="btn btn-voltar-laranja w-100 py-3 fw-bold">Voltar</a>
+            </div>
+            <div class="col-md-8">
+                <button type="button" wire:click="criar" wire:loading.attr="disabled" class="btn btn-criar-laranja w-100 py-3 fw-bold">
+                    Criar e Pagar
+                </button>
+            </div>
+        </div>
+
+        <div class="caixa-importante">
+            <p class="fw-bold mb-2">Importante</p>
+            <ul class="mb-0 small">
+                <li>Você será o administrador desta sala</li>
+                <li>A sala ficará reservada para o horário escolhido assim que for criada</li>
+                <li>Cancelamentos podem ser feitos até 5h antes do jogo</li>
+            </ul>
+        </div>
+    </div>
+@endguest
 </div>

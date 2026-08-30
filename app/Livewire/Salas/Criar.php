@@ -12,33 +12,30 @@ use App\Models\AtividadeSala;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\Sala;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Criar extends Component
 {
-    public string $nome = '';
-
     public string $esporte = '';
 
-    public ?int $quadraId = null;
+    public string $data = '';
+
+    public string $horaInicio = '20:00';
+
+    public int $duracaoMinutos = 90;
 
     public int $totalJogadores = 10;
 
     public int $maxParticipantes = 10;
 
-    public string $data = '';
+    public string $nivel = 'intermediario';
 
-    public string $horaInicio = '';
+    public string $nivelFlexibilidade = 'todos';
 
-    public int $duracaoMinutos = 90;
-
-    public string $nivelDesejado = '';
-
-    public string $aceitacaoNiveis = 'nenhum';
+    public ?int $quadraId = null;
 
     public string $privacidade = 'publica';
 
@@ -55,8 +52,6 @@ class Criar extends Component
     public function mount(): void
     {
         $this->data = now()->toDateString();
-        $this->horaInicio = $this->proximoHorarioDisponivel();
-        $this->nivelDesejado = NivelHabilidade::Intermediario->value;
     }
 
     public function usarLocalizacao(float $lat, float $lng): void
@@ -66,50 +61,7 @@ class Criar extends Component
     }
 
     /**
-     * Primeiro horário disponível a partir de agora (quadras abrem 07h, fecham 22h),
-     * usado como valor inicial do campo "Hora" para reduzir a chance de o usuário
-     * esquecer de preenchê-lo.
-     */
-    private function proximoHorarioDisponivel(): string
-    {
-        $hora = max(7, min(21, (int) now()->addHour()->format('H')));
-
-        return sprintf('%02d:00', $hora);
-    }
-
-    protected function rules(): array
-    {
-        return [
-            'nome' => ['required', 'string', 'max:255'],
-            'esporte' => ['required', 'in:'.implode(',', array_column(Esporte::cases(), 'value'))],
-            'quadraId' => ['required', 'integer', 'exists:quadras,id'],
-            'data' => ['required', 'date', 'after_or_equal:today'],
-            'horaInicio' => ['required', 'in:'.implode(',', $this->horariosDisponiveis())],
-            'duracaoMinutos' => ['required', 'in:'.implode(',', $this->duracoesDisponiveis())],
-            'totalJogadores' => ['required', 'integer', 'min:2', 'max:50'],
-            'maxParticipantes' => ['required', 'integer', 'min:2', 'max:50', 'lte:totalJogadores'],
-            'nivelDesejado' => ['required', 'in:'.implode(',', array_column(NivelHabilidade::cases(), 'value'))],
-            'aceitacaoNiveis' => ['required', 'in:'.implode(',', array_column(AceitacaoNivel::cases(), 'value'))],
-            'privacidade' => ['required', 'in:'.implode(',', array_column(Privacidade::cases(), 'value'))],
-            'aprovacao' => ['required', 'in:'.implode(',', array_column(Aprovacao::cases(), 'value'))],
-            'regrasAdicionais' => ['nullable', 'string', 'max:1000'],
-        ];
-    }
-
-    /**
-     * Horários de início disponíveis (quadras abrem 07h, fecham 22h).
-     *
-     * @return list<string>
-     */
-    public function horariosDisponiveis(): array
-    {
-        return collect(range(7, 21))
-            ->map(fn (int $hora) => sprintf('%02d:00', $hora))
-            ->all();
-    }
-
-    /**
-     * Durações disponíveis para a partida, em minutos.
+     * Opções de duração da partida, em minutos.
      *
      * @return list<int>
      */
@@ -126,69 +78,16 @@ class Criar extends Component
         return $resto > 0 ? "{$horas}h {$resto}min" : "{$horas}h";
     }
 
-    #[Computed]
-    public function quadras(): Collection
+    /**
+     * Horários de início disponíveis para a partida.
+     *
+     * @return list<string>
+     */
+    public function horariosDisponiveis(): array
     {
-        $quadras = Quadra::query()
-            ->where('ativa', true)
-            ->when($this->esporte, fn ($query) => $query->where('esporte', $this->esporte))
-            ->when($this->buscaQuadra, fn ($query) => $query->where('nome', 'like', '%'.$this->buscaQuadra.'%'))
-            ->with('fotos')
-            ->orderBy('nome')
-            ->get();
-
-        if ($this->userLat !== null && $this->userLng !== null) {
-            $quadras->each(function (Quadra $quadra) {
-                $quadra->distanciaKm = $quadra->distanciaKmAte($this->userLat, $this->userLng);
-            });
-        }
-
-        $indisponiveis = [];
-
-        if ($this->data && $this->horaInicio) {
-            [$horaInicioSql, $horaFimSql] = $this->janelaHorario();
-
-            $indisponiveis = Reserva::query()
-                ->whereIn('quadra_id', $quadras->pluck('id'))
-                ->whereDate('data', $this->data)
-                ->where('status', '!=', ReservaStatus::Cancelada->value)
-                ->where('hora_inicio', '<', $horaFimSql)
-                ->where('hora_fim', '>', $horaInicioSql)
-                ->pluck('quadra_id')
-                ->all();
-        }
-
-        $quadras->each(fn (Quadra $quadra) => $quadra->indisponivel = in_array($quadra->id, $indisponiveis, true));
-
-        return $quadras;
-    }
-
-    #[Computed]
-    public function resumoPartida(): array
-    {
-        $esporte = $this->esporte ? Esporte::from($this->esporte) : null;
-        $nivel = $this->nivelDesejado ? NivelHabilidade::from($this->nivelDesejado) : null;
-        $aceitacao = AceitacaoNivel::from($this->aceitacaoNiveis);
-        $quadra = $this->quadraId ? $this->quadras->firstWhere('id', $this->quadraId) : null;
-
-        $dataFormatada = $this->data ? Carbon::parse($this->data)->translatedFormat('d \d\e F \d\e Y') : '—';
-        $horaFim = $this->horaInicio ? Carbon::parse($this->horaInicio.':00')->addMinutes($this->duracaoMinutos)->format('H:i') : '—';
-
-        $valorHora = (float) ($quadra->valor_hora ?? 0);
-        $horas = $this->duracaoMinutos / 60;
-        $valorTotal = $valorHora * $horas;
-        $valorPorPessoa = $this->maxParticipantes > 0 ? $valorTotal / $this->maxParticipantes : 0;
-
-        return [
-            'esporteNivel' => trim(($esporte?->label() ?? '—').($nivel ? ' - '.$nivel->label() : '')),
-            'quadraEndereco' => $quadra ? "{$quadra->nome} - {$quadra->endereco}, {$quadra->bairro} - {$quadra->cidade}" : 'Quadra não selecionada',
-            'dataHora' => $this->horaInicio ? "{$dataFormatada}, {$this->horaInicio} - {$horaFim} ({$this->duracaoMinutos} min)" : $dataFormatada,
-            'jogadores' => "{$this->maxParticipantes} de {$this->totalJogadores} jogadores",
-            'nivelAceitacao' => 'Nível: '.($nivel?->label() ?? '—')." ({$aceitacao->label()})",
-            'privacidadeAprovacao' => Privacidade::from($this->privacidade)->label().' com '.Aprovacao::from($this->aprovacao)->label(),
-            'valorTotal' => 'Valor total: R$ '.number_format($valorTotal, 2, ',', '.'),
-            'valorPorPessoa' => 'R$ '.number_format($valorPorPessoa, 2, ',', '.').' / pessoa',
-        ];
+        return collect(range(7, 21))
+            ->map(fn (int $hora) => sprintf('%02d:00', $hora))
+            ->all();
     }
 
     public function updatedEsporte(): void
@@ -203,18 +102,20 @@ class Criar extends Component
         $this->quadraId = null;
     }
 
-    public function aplicarFormato(string $tipo): void
+    public function selecionarFormato(string $tipo): void
     {
-        if (! $this->esporte) {
+        if ($this->esporte === '') {
             return;
         }
 
-        $formato = $tipo === 'alternativo'
-            ? Esporte::from($this->esporte)->formatoAlternativo()
-            : Esporte::from($this->esporte)->formatoRecomendado();
+        $esporte = Esporte::from($this->esporte);
 
-        $this->totalJogadores = min(50, max(2, $formato['jogadores']));
-        $this->maxParticipantes = $this->totalJogadores;
+        $formato = $tipo === 'alternativo'
+            ? $esporte->formatoAlternativo()
+            : $esporte->formatoRecomendado();
+
+        $this->totalJogadores = $formato['jogadores'];
+        $this->maxParticipantes = $formato['jogadores'];
     }
 
     public function incrementarTotalJogadores(): void
@@ -240,69 +141,130 @@ class Criar extends Component
 
     public function selecionarQuadra(int $quadraId): void
     {
-        $quadra = $this->quadras->firstWhere('id', $quadraId);
+        $this->quadraId = $this->quadraId === $quadraId ? null : $quadraId;
+    }
 
-        if (! $quadra || $quadra->indisponivel) {
-            return;
+    /**
+     * Fim do intervalo (partida e reserva da quadra), a partir do horário de início e da duração.
+     */
+    private function calcularHoraFim(): string
+    {
+        return date('H:i:s', strtotime($this->horaInicio.' +'.$this->duracaoMinutos.' minutes'));
+    }
+
+    #[Computed]
+    public function quadras(): Collection
+    {
+        $quadras = Quadra::query()
+            ->where('ativa', true)
+            ->when($this->esporte, fn ($query) => $query->where('esporte', $this->esporte))
+            ->when($this->buscaQuadra, fn ($query) => $query->where('nome', 'like', '%'.$this->buscaQuadra.'%'))
+            ->orderBy('nome')
+            ->get();
+
+        if ($this->userLat !== null && $this->userLng !== null) {
+            $quadras->each(function (Quadra $quadra) {
+                $quadra->distanciaKm = $quadra->distanciaKmAte($this->userLat, $this->userLng);
+            });
         }
 
-        $this->quadraId = $this->quadraId === $quadraId ? null : $quadraId;
+        if ($this->data === '' || $this->horaInicio === '') {
+            return $quadras;
+        }
+
+        $horaFim = $this->calcularHoraFim();
+
+        return $quadras->map(function (Quadra $quadra) use ($horaFim) {
+            $quadra->disponivel = $quadra->horarioDisponivel($this->data, $this->horaInicio.':00', $horaFim);
+
+            return $quadra;
+        });
+    }
+
+    #[Computed]
+    public function quadraSelecionada(): ?Quadra
+    {
+        return $this->quadraId ? $this->quadras->firstWhere('id', $this->quadraId) : null;
+    }
+
+    public function precoPessoa(): ?float
+    {
+        if (! $this->quadraSelecionada || $this->maxParticipantes <= 0) {
+            return null;
+        }
+
+        $horas = $this->duracaoMinutos / 60;
+
+        return round(((float) $this->quadraSelecionada->valor_hora * $horas) / $this->maxParticipantes, 2);
+    }
+
+    public function totalArrecadar(): ?float
+    {
+        $precoPessoa = $this->precoPessoa();
+
+        return $precoPessoa !== null ? round($precoPessoa * $this->maxParticipantes, 2) : null;
     }
 
     public function criar()
     {
         abort_unless(auth()->check(), 403);
 
-        $validated = $this->validate();
+        $validated = $this->validate([
+            'esporte' => ['required', 'in:'.implode(',', array_column(Esporte::cases(), 'value'))],
+            'data' => ['required', 'date', 'after_or_equal:today'],
+            'horaInicio' => ['required', 'in:'.implode(',', $this->horariosDisponiveis())],
+            'duracaoMinutos' => ['required', 'in:'.implode(',', $this->duracoesDisponiveis())],
+            'totalJogadores' => ['required', 'integer', 'min:2', 'max:50'],
+            'maxParticipantes' => ['required', 'integer', 'min:2', 'max:50', 'lte:totalJogadores'],
+            'nivel' => ['required', 'in:'.implode(',', array_column(NivelHabilidade::cases(), 'value'))],
+            'nivelFlexibilidade' => ['required', 'in:'.implode(',', array_column(AceitacaoNivel::cases(), 'value'))],
+            'quadraId' => ['required', 'exists:quadras,id'],
+            'privacidade' => ['required', 'in:'.implode(',', array_column(Privacidade::cases(), 'value'))],
+            'aprovacao' => ['required', 'in:'.implode(',', array_column(Aprovacao::cases(), 'value'))],
+            'regrasAdicionais' => ['nullable', 'string', 'max:1000'],
+        ]);
 
         $quadra = Quadra::findOrFail($validated['quadraId']);
 
-        [$horaInicioSql, $horaFimSql] = $this->janelaHorario();
+        $horaInicio = $validated['horaInicio'].':00';
+        $horaFim = $this->calcularHoraFim();
 
-        $conflito = Reserva::query()
-            ->where('quadra_id', $quadra->id)
-            ->whereDate('data', $validated['data'])
-            ->where('status', '!=', ReservaStatus::Cancelada->value)
-            ->where('hora_inicio', '<', $horaFimSql)
-            ->where('hora_fim', '>', $horaInicioSql)
-            ->exists();
+        if (! $quadra->horarioDisponivel($validated['data'], $horaInicio, $horaFim)) {
+            $this->addError('quadraId', 'Essa quadra não está mais disponível nesse horário.');
 
-        if ($conflito) {
-            $this->addError('quadraId', 'Essa quadra já está reservada nesse horário.');
-
-            return;
+            return null;
         }
 
-        $horas = $validated['duracaoMinutos'] / 60;
-        $valorTotal = (float) $quadra->valor_hora * $horas;
-        $precoPessoa = $validated['maxParticipantes'] > 0 ? round($valorTotal / $validated['maxParticipantes'], 2) : null;
+        $esporte = Esporte::from($validated['esporte']);
+        $nivel = NivelHabilidade::from($validated['nivel']);
+        $precoPessoa = $this->precoPessoa();
 
-        $sala = DB::transaction(function () use ($validated, $quadra, $horaInicioSql, $horaFimSql, $precoPessoa) {
+        $sala = DB::transaction(function () use ($validated, $quadra, $horaInicio, $horaFim, $esporte, $nivel, $precoPessoa) {
             $reserva = Reserva::create([
                 'quadra_id' => $quadra->id,
                 'user_id' => auth()->id(),
                 'data' => $validated['data'],
-                'hora_inicio' => $horaInicioSql,
-                'hora_fim' => $horaFimSql,
+                'hora_inicio' => $horaInicio,
+                'hora_fim' => $horaFim,
                 'status' => ReservaStatus::Confirmada,
             ]);
 
             $sala = Sala::create([
+                'nome' => "{$esporte->label()} - {$nivel->label()}",
+                'esporte' => $validated['esporte'],
+                'nivel_desejado' => $validated['nivel'],
+                'aceitacao_niveis_adjacentes' => $validated['nivelFlexibilidade'],
                 'quadra_id' => $quadra->id,
                 'criador_id' => auth()->id(),
-                'nome' => $validated['nome'],
-                'esporte' => $validated['esporte'],
                 'max_participantes' => $validated['maxParticipantes'],
                 'total_jogadores' => $validated['totalJogadores'],
                 'data' => $validated['data'],
-                'horario_inicio' => $horaInicioSql,
-                'horario_fim' => $horaFimSql,
-                'nivel_desejado' => $validated['nivelDesejado'],
-                'aceitacao_niveis_adjacentes' => $validated['aceitacaoNiveis'],
+                'horario_inicio' => $horaInicio,
+                'horario_fim' => $horaFim,
                 'privacidade' => $validated['privacidade'],
                 'aprovacao' => $validated['aprovacao'],
-                'preco_pessoa' => $precoPessoa,
                 'regras_adicionais' => $validated['regrasAdicionais'] ?: null,
+                'preco_pessoa' => $precoPessoa,
                 'reserva_id' => $reserva->id,
             ]);
 
@@ -318,25 +280,12 @@ class Criar extends Component
         return $this->redirect(route('salas.pagamento', $sala), navigate: false);
     }
 
-    /**
-     * @return array{0: string, 1: string} [horaInicioSql, horaFimSql]
-     */
-    private function janelaHorario(): array
-    {
-        $horaInicioSql = $this->horaInicio.':00';
-        $horaFimSql = Carbon::parse($horaInicioSql)->addMinutes($this->duracaoMinutos)->format('H:i:s');
-
-        return [$horaInicioSql, $horaFimSql];
-    }
-
     public function render()
     {
         return view('livewire.salas.criar', [
-            'esportes' => Esporte::cases(),
+            'esportes' => array_values(array_filter(Esporte::cases(), fn (Esporte $e) => $e !== Esporte::Tenis)),
             'niveis' => NivelHabilidade::cases(),
-            'aceitacoes' => AceitacaoNivel::cases(),
-            'privacidades' => Privacidade::cases(),
-            'aprovacoes' => Aprovacao::cases(),
+            'niveisFlexibilidade' => AceitacaoNivel::cases(),
         ]);
     }
 }
