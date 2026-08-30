@@ -44,31 +44,33 @@
                 <div class="progress-bar" style="width: {{ $sala->percentualOcupacao() }}%; background-color: #FF8C00;"></div>
             </div>
 
-            @foreach ($sala->participantes as $index => $participante)
-                <div class="d-flex align-items-center gap-3 py-2 {{ ! $loop->last ? 'border-bottom' : '' }}">
-                    <div class="grupo-avatar" style="background-color: {{ ['#ffe0b2', '#c8e6c9', '#bbdefb', '#f8bbd0', '#d1c4e9', '#b2ebf2'][$index % 6] }};">
-                        {{ $participante->initials() }}
+            <div style="max-height: 280px; overflow-y: auto;">
+                @foreach ($sala->participantes as $index => $participante)
+                    <div class="d-flex align-items-center gap-3 py-2 {{ ! $loop->last ? 'border-bottom' : '' }}">
+                        <div class="grupo-avatar" style="background-color: {{ ['#ffe0b2', '#c8e6c9', '#bbdefb', '#f8bbd0', '#d1c4e9', '#b2ebf2'][$index % 6] }};">
+                            {{ $participante->initials() }}
+                        </div>
+                        <p class="fw-semibold texto-jogo mb-0 flex-grow-1">{{ $participante->name }}</p>
+                        @if ($participante->id === $sala->criador_id)
+                            <span class="badge grupo-badge-organizador">Organizador</span>
+                        @endif
+                        @if ($participante->id === auth()->id())
+                            <span class="badge grupo-badge-voce">Você</span>
+                        @endif
                     </div>
-                    <p class="fw-semibold texto-jogo mb-0 flex-grow-1">{{ $participante->name }}</p>
-                    @if ($participante->id === $sala->criador_id)
-                        <span class="badge grupo-badge-organizador">Organizador</span>
-                    @endif
-                    @if ($participante->id === auth()->id())
-                        <span class="badge grupo-badge-voce">Você</span>
-                    @endif
-                </div>
-            @endforeach
+                @endforeach
 
-            @if ($sala->status->value === 'fechada')
-                <div class="text-muted small mt-2"><i class="bi bi-lock-fill me-1"></i> Sala fechada, sem mais vagas oferecidas.</div>
-            @else
-                @for ($i = 0; $i < $sala->vagasRestantes(); $i++)
-                    <div class="d-flex align-items-center gap-3 py-2 {{ ($sala->participantes->count() + $i) < $sala->max_participantes - 1 ? 'border-bottom' : '' }}">
-                        <div class="grupo-avatar grupo-avatar-vazio"></div>
-                        <p class="text-muted mb-0">Vaga livre</p>
-                    </div>
-                @endfor
-            @endif
+                @if ($sala->status->value === 'fechada')
+                    <div class="text-muted small mt-2"><i class="bi bi-lock-fill me-1"></i> Sala fechada, sem mais vagas oferecidas.</div>
+                @else
+                    @for ($i = 0; $i < $sala->vagasRestantes(); $i++)
+                        <div class="d-flex align-items-center gap-3 py-2 {{ ($sala->participantes->count() + $i) < $sala->max_participantes - 1 ? 'border-bottom' : '' }}">
+                            <div class="grupo-avatar grupo-avatar-vazio"></div>
+                            <p class="text-muted mb-0">Vaga livre</p>
+                        </div>
+                    @endfor
+                @endif
+            </div>
         </div>
     </div>
 
