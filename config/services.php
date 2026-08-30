@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'overpass' => [
+        'url' => env('OVERPASS_API_URL', 'https://overpass-api.de/api/interpreter'),
+        'user_agent' => env('OVERPASS_USER_AGENT', 'projetoTCC/1.0'),
+    ],
+
 ];

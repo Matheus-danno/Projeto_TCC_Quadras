@@ -18,6 +18,10 @@ class Listagem extends Component
 
     public string $esporte = '';
 
+    public string $quadraNome = '';
+
+    public string $cobertura = '';
+
     public ?int $quadraSelecionada = null;
 
     public string $data = '';
@@ -42,9 +46,12 @@ class Listagem extends Component
     public function quadras(): Collection
     {
         return Quadra::query()
+            ->with('fotos')
             ->when($this->cidade, fn ($query) => $query->where('cidade', $this->cidade))
             ->when($this->bairro, fn ($query) => $query->where('bairro', $this->bairro))
             ->when($this->esporte, fn ($query) => $query->where('esporte', $this->esporte))
+            ->when($this->quadraNome, fn ($query) => $query->where('nome', $this->quadraNome))
+            ->when($this->cobertura !== '', fn ($query) => $query->where('cobertura', $this->cobertura === '1'))
             ->orderBy('nome')
             ->get();
     }
@@ -59,6 +66,12 @@ class Listagem extends Component
     public function bairros(): Collection
     {
         return Quadra::query()->distinct()->orderBy('bairro')->pluck('bairro');
+    }
+
+    #[Computed]
+    public function nomesQuadras(): Collection
+    {
+        return Quadra::query()->distinct()->orderBy('nome')->pluck('nome');
     }
 
     public function selecionarQuadra(int $quadraId): void
