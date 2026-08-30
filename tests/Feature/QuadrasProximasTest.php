@@ -15,7 +15,7 @@ function fakeOverpass(array $elementos): void
 test('busca por localização exibe as quadras ordenadas da mais próxima para a mais distante', function () {
     fakeOverpass([
         ['type' => 'node', 'tags' => ['name' => 'Quadra Mais Distante', 'sport' => 'soccer'], 'lat' => -8.0676, 'lon' => -34.8770],
-        ['type' => 'node', 'tags' => ['name' => 'Quadra Mais Perto', 'sport' => 'basketball'], 'lat' => -8.0486, 'lon' => -34.8770],
+        ['type' => 'node', 'tags' => ['name' => 'Quadra Mais Perto', 'sport' => 'beachvolleyball'], 'lat' => -8.0486, 'lon' => -34.8770],
         ['type' => 'node', 'tags' => ['name' => 'Quadra no Meio', 'sport' => 'tennis'], 'lat' => -8.0576, 'lon' => -34.8770],
     ]);
 

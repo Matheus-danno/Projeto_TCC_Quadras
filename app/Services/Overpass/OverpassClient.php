@@ -40,7 +40,6 @@ class OverpassClient
     private const SPORTS_SUPORTADOS = [
         'soccer',
         'futsal',
-        'basketball',
         'tennis',
         'volleyball',
         'beachvolleyball',

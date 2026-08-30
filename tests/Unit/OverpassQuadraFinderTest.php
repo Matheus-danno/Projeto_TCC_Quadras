@@ -63,14 +63,14 @@ test('descarta elementos sem a tag name', function () {
 
 test('traduz a tag sport do OpenStreetMap para português, com fallback para tags desconhecidas ou ausentes', function () {
     $finder = finderComElementos([
-        ['tags' => ['name' => 'Quadra de Basquete', 'sport' => 'basketball'], 'lat' => -8.05, 'lon' => -34.88],
+        ['tags' => ['name' => 'Quadra de Vôlei', 'sport' => 'volleyball'], 'lat' => -8.05, 'lon' => -34.88],
         ['tags' => ['name' => 'Quadra Sem Esporte Definido'], 'lat' => -8.05, 'lon' => -34.88],
         ['tags' => ['name' => 'Quadra com Esporte Raro', 'sport' => 'skateboard'], 'lat' => -8.05, 'lon' => -34.88],
     ]);
 
     $quadras = $finder->buscar(-8.0476, -34.8770, 5000)->keyBy('nome');
 
-    expect($quadras['Quadra de Basquete']->esporte)->toBe('Basquete')
+    expect($quadras['Quadra de Vôlei']->esporte)->toBe('Vôlei')
         ->and($quadras['Quadra Sem Esporte Definido']->esporte)->toBe('Esportiva')
         ->and($quadras['Quadra com Esporte Raro']->esporte)->toBe('Esportiva');
 });

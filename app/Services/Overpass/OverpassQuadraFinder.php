@@ -17,7 +17,6 @@ class OverpassQuadraFinder
         'soccer' => 'Futebol',
         'futsal' => 'Futsal',
         'tennis' => 'Tênis',
-        'basketball' => 'Basquete',
         'volleyball' => 'Vôlei',
         'beachvolleyball' => 'Vôlei de Praia',
         'multi' => 'Poliesportiva',

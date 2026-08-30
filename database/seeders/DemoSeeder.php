@@ -59,7 +59,7 @@ class DemoSeeder extends Seeder
             ['nome' => 'Arena Vila Nova', 'endereco' => 'Rua das Palmeiras, 120', 'cidade' => 'Recife', 'bairro' => 'Boa Viagem', 'esporte' => Esporte::Futebol, 'valor_hora' => 90, 'cobertura' => false, 'descricao' => 'Gramado sintético, vestiário e estacionamento.'],
             ['nome' => 'Quadra Central Futsal', 'endereco' => 'Av. Norte, 450', 'cidade' => 'Recife', 'bairro' => 'Casa Forte', 'esporte' => Esporte::Futsal, 'valor_hora' => 70, 'cobertura' => true, 'descricao' => 'Piso emborrachado, coberta, boa para jogos à noite.'],
             ['nome' => 'Espaço Bela Vista Vôlei', 'endereco' => 'Rua da Praia, 88', 'cidade' => 'Olinda', 'bairro' => 'Bairro Novo', 'esporte' => Esporte::Volei, 'valor_hora' => 60, 'cobertura' => false, 'descricao' => 'Quadra de areia a poucos metros da praia.'],
-            ['nome' => 'Clube Recreativo Basquete', 'endereco' => 'Rua dos Girassóis, 200', 'cidade' => 'Recife', 'bairro' => 'Madalena', 'esporte' => Esporte::Basquete, 'valor_hora' => 65, 'cobertura' => true, 'descricao' => 'Tabelas oficiais e arquibancada pequena.'],
+            ['nome' => 'Clube Recreativo Vôlei de Areia', 'endereco' => 'Rua dos Girassóis, 200', 'cidade' => 'Recife', 'bairro' => 'Madalena', 'esporte' => Esporte::VoleiPraia, 'valor_hora' => 65, 'cobertura' => false, 'descricao' => 'Caixa de areia oficial e chuveiro externo.'],
             ['nome' => 'Tênis Clube Jardins', 'endereco' => 'Av. dos Ipês, 900', 'cidade' => 'Jaboatão dos Guararapes', 'bairro' => 'Piedade', 'esporte' => Esporte::Tenis, 'valor_hora' => 110, 'cobertura' => false, 'descricao' => 'Piso rápido, iluminação para jogos à noite.'],
             ['nome' => 'Beach Arena Paiva', 'endereco' => 'Av. Beira Mar, 15', 'cidade' => 'Jaboatão dos Guararapes', 'bairro' => 'Candeias', 'esporte' => Esporte::BeachTennis, 'valor_hora' => 80, 'cobertura' => false, 'descricao' => 'Duas quadras de areia, bar no local.'],
         ])->map(fn (array $dados) => Quadra::create([
@@ -76,7 +76,7 @@ class DemoSeeder extends Seeder
 
         $quadrasDono2 = collect([
             ['nome' => 'Quadra Boa Vista Society', 'endereco' => 'Rua Treze de Maio, 340', 'cidade' => 'Caruaru', 'bairro' => 'Boa Vista', 'esporte' => Esporte::Futebol, 'valor_hora' => 75, 'cobertura' => false, 'descricao' => 'Gramado sintético novo, próximo ao centro.'],
-            ['nome' => 'Ginásio Estrela Basquete', 'endereco' => 'Av. Agamenon Magalhães, 510', 'cidade' => 'Caruaru', 'bairro' => 'Indianópolis', 'esporte' => Esporte::Basquete, 'valor_hora' => 60, 'cobertura' => true, 'descricao' => 'Ginásio coberto com marcação oficial.'],
+            ['nome' => 'Arena Estrela Tênis', 'endereco' => 'Av. Agamenon Magalhães, 510', 'cidade' => 'Caruaru', 'bairro' => 'Indianópolis', 'esporte' => Esporte::Tenis, 'valor_hora' => 60, 'cobertura' => true, 'descricao' => 'Quadra coberta com marcação oficial.'],
         ])->map(fn (array $dados) => Quadra::create([
             'dono_id' => $outroDono->id,
             'nome' => $dados['nome'],
@@ -93,7 +93,7 @@ class DemoSeeder extends Seeder
             ['nome' => 'Racha de quinta', 'esporte' => Esporte::Futebol, 'quadra' => 0, 'max' => 14],
             ['nome' => 'Futsal do trabalho', 'esporte' => Esporte::Futsal, 'quadra' => 1, 'max' => 10],
             ['nome' => 'Vôlei de praia iniciantes', 'esporte' => Esporte::Volei, 'quadra' => 2, 'max' => 8],
-            ['nome' => 'Basquete 3x3', 'esporte' => Esporte::Basquete, 'quadra' => 3, 'max' => 6],
+            ['nome' => 'Vôlei de areia 3x3', 'esporte' => Esporte::VoleiPraia, 'quadra' => 3, 'max' => 6],
         ] as $dados) {
             $sala = Sala::create([
                 'nome' => $dados['nome'],
