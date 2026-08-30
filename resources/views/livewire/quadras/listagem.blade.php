@@ -41,13 +41,22 @@
                 <option value="0">Descoberta</option>
             </select>
         </div>
-    </div>
-
-    @if ($mensagemSucesso)
-        <div class="alert alert-success" role="alert">
-            {{ $mensagemSucesso }}
+        <div class="col-auto">
+            <button
+                type="button"
+                class="btn btn-outline-laranja"
+                x-data
+                x-on:click="navigator.geolocation.getCurrentPosition((p) => $wire.usarLocalizacao(p.coords.latitude, p.coords.longitude))"
+            >
+                <i class="bi bi-geo-alt"></i> Perto de mim
+            </button>
         </div>
-    @endif
+        @if ($this->temFiltrosAtivos())
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-secondary" wire:click="limparFiltros">Limpar filtros</button>
+            </div>
+        @endif
+    </div>
 
     {{-- Grid de Quadras --}}
     <div class="row g-4 gy-5">
@@ -110,7 +119,12 @@
                             </p>
                         </div>
 
-                        <p class="text-muted small mb-3"><i class="bi bi-geo-alt"></i> {{ $quadra->endereco }} - {{ $quadra->bairro }}, {{ $quadra->cidade }}</p>
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-geo-alt"></i> {{ $quadra->endereco }} - {{ $quadra->bairro }}, {{ $quadra->cidade }}
+                            @if (isset($quadra->distanciaKm) && $quadra->distanciaKm !== null)
+                                <span class="badge bg-light text-secondary ms-1">{{ $quadra->distanciaKm }} km</span>
+                            @endif
+                        </p>
 
                         @if ($quadraSelecionada === $quadra->id)
                             <div class="border-top pt-3">

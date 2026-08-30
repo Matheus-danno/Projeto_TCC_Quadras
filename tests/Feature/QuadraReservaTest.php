@@ -59,7 +59,7 @@ test('usuário autenticado consegue reservar um horário disponível', function 
 
     expect($reserva->quadra_id)->toBe($quadra->id)
         ->and($reserva->user_id)->toBe($user->id)
-        ->and($reserva->status)->toBe(ReservaStatus::Confirmada)
+        ->and($reserva->status)->toBe(ReservaStatus::Pendente)
         ->and($reserva->hora_inicio)->toBe('10:00:00')
         ->and($reserva->hora_fim)->toBe('11:00:00');
 });

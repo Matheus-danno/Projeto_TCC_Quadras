@@ -61,6 +61,14 @@ Route::get('/salas/{sala}/grupo', function (Sala $sala) {
 Route::get('/salas/{sala}/pagar-diferenca', function (Sala $sala) {
     return view('sala-pagar-diferenca', ['sala' => $sala]);
 })->middleware('auth')->name('salas.pagar-diferenca');
+Route::get('/reservas/{reserva}/pagamento', function (\App\Models\Reserva $reserva) {
+    return view('reserva-pagamento', ['reserva' => $reserva]);
+})->middleware('auth')->name('reservas.pagamento');
+Route::get('/reservas/{reserva}/confirmacao', function (\App\Models\Reserva $reserva) {
+    abort_unless(auth()->id() === $reserva->user_id, 403);
+
+    return view('reserva-confirmacao', ['reserva' => $reserva]);
+})->middleware('auth')->name('reservas.confirmacao');
 Route::get('/loja', function () {
     return view('loja');
 })->name('loja');
