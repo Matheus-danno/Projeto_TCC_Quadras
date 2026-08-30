@@ -16,7 +16,7 @@ class MinhasReservas extends Component
     public function futuras()
     {
         return Auth::user()->reservas()
-            ->with(['quadra', 'sala'])
+            ->with('quadra')
             ->whereDate('data', '>=', now()->toDateString())
             ->orderBy('data')
             ->orderBy('hora_inicio')
@@ -27,7 +27,7 @@ class MinhasReservas extends Component
     public function passadas()
     {
         return Auth::user()->reservas()
-            ->with(['quadra', 'sala'])
+            ->with('quadra')
             ->whereDate('data', '<', now()->toDateString())
             ->orderByDesc('data')
             ->orderByDesc('hora_inicio')
