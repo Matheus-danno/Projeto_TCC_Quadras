@@ -211,7 +211,7 @@
                                                 <i class="bi bi-geo-alt quadra-card-icone"></i>{{ $quadra->endereco }} - {{ $quadra->bairro }}, {{ $quadra->cidade }}
                                             </p>
                                             @if ($quadra->distanciaKm ?? null)
-                                                <p class="text-muted small mb-2 quadra-card-descricao quadra-card-distancia">{{ $quadra->distanciaKm }} km de distância de você</p>
+                                                <p class="text-danger small mb-2 quadra-card-descricao quadra-card-distancia">{{ $quadra->distanciaKm }} km de distância de você</p>
                                             @endif
 
                                             <div class="text-end">

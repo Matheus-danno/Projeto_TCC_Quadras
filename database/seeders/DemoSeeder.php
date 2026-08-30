@@ -93,6 +93,35 @@ class DemoSeeder extends Seeder
             'descricao' => $dados['descricao'],
         ]));
 
+        // Quadras em Bauru/SP, para testar a busca por geolocalização a partir daí.
+        $quadrasBauru = collect([
+            ['nome' => 'Arena Bauru Centro', 'endereco' => 'Rua Batista de Carvalho, 500', 'cidade' => 'Bauru', 'bairro' => 'Centro', 'latitude' => -22.3155, 'longitude' => -49.0619, 'esporte' => Esporte::Futebol, 'valor_hora' => 85, 'cobertura' => false, 'descricao' => 'Gramado sintético no coração da cidade.'],
+            ['nome' => 'Ginásio Vila Falcão', 'endereco' => 'Av. Nações Unidas, 1200', 'cidade' => 'Bauru', 'bairro' => 'Vila Falcão', 'latitude' => -22.3389, 'longitude' => -49.0562, 'esporte' => Esporte::Futsal, 'valor_hora' => 68, 'cobertura' => true, 'descricao' => 'Quadra coberta com arquibancada.'],
+            ['nome' => 'Quadra Jardim Redentor', 'endereco' => 'Rua Aristides Marson, 300', 'cidade' => 'Bauru', 'bairro' => 'Jardim Redentor', 'latitude' => -22.2963, 'longitude' => -49.0329, 'esporte' => Esporte::Volei, 'valor_hora' => 55, 'cobertura' => false, 'descricao' => 'Piso emborrachado, bebedouro no local.'],
+            ['nome' => 'Clube Vila Universitária', 'endereco' => 'Av. Eng. Luiz Edmundo C. Coube, 890', 'cidade' => 'Bauru', 'bairro' => 'Vila Universitária', 'latitude' => -22.3548, 'longitude' => -49.0288, 'esporte' => Esporte::Tenis, 'valor_hora' => 95, 'cobertura' => false, 'descricao' => 'Perto da Unesp, iluminação noturna.'],
+            ['nome' => 'Espaço Altos da Cidade', 'endereco' => 'Rua Rio Branco, 1450', 'cidade' => 'Bauru', 'bairro' => 'Altos da Cidade', 'latitude' => -22.3097, 'longitude' => -49.0669, 'esporte' => Esporte::BeachTennis, 'valor_hora' => 72, 'cobertura' => false, 'descricao' => 'Caixa de areia nova, estacionamento próprio.'],
+        ])->map(fn (array $dados) => Quadra::create([
+            'dono_id' => $dono->id,
+            'nome' => $dados['nome'],
+            'endereco' => $dados['endereco'],
+            'cidade' => $dados['cidade'],
+            'bairro' => $dados['bairro'],
+            'latitude' => $dados['latitude'],
+            'longitude' => $dados['longitude'],
+            'esporte' => $dados['esporte']->value,
+            'valor_hora' => $dados['valor_hora'],
+            'cobertura' => $dados['cobertura'],
+            'descricao' => $dados['descricao'],
+        ]));
+
+        Sala::create([
+            'nome' => 'Racha do Centro',
+            'esporte' => Esporte::Futebol->value,
+            'quadra_id' => $quadrasBauru[0]->id,
+            'criador_id' => $outrosJogadores->random()->id,
+            'max_participantes' => 14,
+        ])->participantes()->attach($jogador->id);
+
         foreach ([
             ['nome' => 'Racha de quinta', 'esporte' => Esporte::Futebol, 'quadra' => 0, 'max' => 14],
             ['nome' => 'Futsal do trabalho', 'esporte' => Esporte::Futsal, 'quadra' => 1, 'max' => 10],
