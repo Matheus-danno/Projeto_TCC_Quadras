@@ -265,7 +265,7 @@
                 @if ($sala->status->value === 'fechada')
                     <button class="btn btn-outline-secondary fw-bold w-100 py-3" disabled>Sala fechada</button>
                 @elseif ($sala->participantes->contains('id', auth()->id()))
-                    <a href="{{ route('salas.grupo', $sala) }}" class="btn btn-laranja fw-bold w-100 py-3">Ver minha sala</a>
+                    <a href="{{ route('salas.grupo', $sala) }}" class="btn btn-laranja fw-bold w-100 py-3">Ver sala</a>
                 @elseif ($this->meuPedido?->status?->value === 'pendente')
                     <button class="btn btn-outline-laranja fw-bold w-100 py-3" style="color: #515151;" disabled>Pedido aguardando aprovação</button>
                 @elseif ($sala->participantes->count() >= $sala->max_participantes)

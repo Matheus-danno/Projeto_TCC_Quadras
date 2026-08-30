@@ -29,7 +29,7 @@
                     <div class="text-md-end d-flex flex-column align-items-md-end align-items-start">
                         <span class="fw-bold text-orange mb-2">{{ $sala->participantes->count() }} de {{ $sala->max_participantes }} jogadores</span>
                         <a href="{{ route('salas.grupo', $sala) }}" class="btn btn-outline-orange btn-sm rounded-2">
-                            Ver minha sala
+                            Ver sala
                         </a>
                     </div>
                 </div>
