@@ -61,6 +61,18 @@
                 <i class="bi bi-door-open me-1"></i> Minhas Salas
             </button>
         </li>
+        @if (auth()->user()->salasCriadas()->exists())
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="mensagens-tab" data-bs-toggle="tab" data-bs-target="#mensagens" type="button" role="tab">
+                    <i class="bi bi-chat-dots me-1"></i> Mensagens
+                </button>
+            </li>
+        @endif
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="notificacoes-tab" data-bs-toggle="tab" data-bs-target="#notificacoes" type="button" role="tab">
+                <i class="bi bi-bell me-1"></i> Notificações
+            </button>
+        </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="pedidos-tab" data-bs-toggle="tab" data-bs-target="#pedidos" type="button" role="tab">
                 <i class="bi bi-bag-check me-1"></i> Meus Pedidos
@@ -99,6 +111,26 @@
             <div class="card border-0 shadow-sm" style="border-radius: 20px;">
                 <div class="card-body p-4">
                     <livewire:perfil.minhas-salas />
+                </div>
+            </div>
+        </div>
+
+        @if (auth()->user()->salasCriadas()->exists())
+            <div class="tab-pane fade" id="mensagens" role="tabpanel">
+                <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <livewire:perfil.mensagens />
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <div class="tab-pane fade" id="notificacoes" role="tabpanel">
+            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                <div class="card-body p-4 text-center py-5">
+                    <i class="bi bi-bell text-warning" style="font-size: 2rem;"></i>
+                    <h5 class="fw-bold text-secondary mt-3 mb-1">Notificações</h5>
+                    <p class="text-muted small mb-0">Essa funcionalidade ainda não existe — fica planejada para uma próxima versão.</p>
                 </div>
             </div>
         </div>

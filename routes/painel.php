@@ -36,6 +36,10 @@ Route::middleware(['auth', 'role:'.UserRole::DonoQuadra->value])
             return view('painel-financeiro');
         })->name('financeiro');
 
+        Route::get('/mensagens', function () {
+            return view('painel-mensagens');
+        })->name('mensagens');
+
         Route::get('/agendamento-manual', function () {
             return view('painel-agendamento-manual');
         })->name('agendamento-manual');

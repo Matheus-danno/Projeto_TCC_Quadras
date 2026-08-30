@@ -127,6 +127,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Conversas iniciadas por este usuário, como jogador, com donos de quadra.
+     */
+    public function conversas(): HasMany
+    {
+        return $this->hasMany(Conversa::class, 'jogador_id');
+    }
+
+    /**
      * Avaliações recebidas por este usuário como administrador de salas.
      */
     public function avaliacoesRecebidas(): HasMany

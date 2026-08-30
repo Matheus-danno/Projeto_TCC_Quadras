@@ -62,6 +62,9 @@
                         <x-painel-nav-item :href="route('painel.financeiro')" :current="request()->routeIs('painel.financeiro')">
                             {{ __('Financeiro') }}
                         </x-painel-nav-item>
+                        <x-painel-nav-item :href="route('painel.mensagens')" :current="request()->routeIs('painel.mensagens')">
+                            {{ __('Mensagens') }}
+                        </x-painel-nav-item>
                         <x-painel-nav-item :href="route('painel.agendamento-manual')" :current="request()->routeIs('painel.agendamento-manual')">
                             {{ __('Agendamento Manual') }}
                         </x-painel-nav-item>
