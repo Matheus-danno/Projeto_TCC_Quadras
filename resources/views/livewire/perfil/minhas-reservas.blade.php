@@ -23,6 +23,12 @@
                         } }} text-white">{{ $reserva->status->label() }}</span>
                         <span class="fw-bold fs-5 mb-2" style="color: #FF8C00;">R$ {{ number_format($reserva->quadra->valor_hora, 2, ',', '.') }}</span>
 
+                        @if ($reserva->sala)
+                            <a href="{{ route('salas.detalhes', $reserva->sala) }}" class="btn btn-outline-orange btn-sm rounded-2 mb-2">
+                                Ver detalhes da Sala
+                            </a>
+                        @endif
+
                         @if ($reserva->podeCancelar())
                             @if ($reserva->status->value === 'confirmada')
                                 <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelarReserva{{ $reserva->id }}">
@@ -82,11 +88,19 @@
                             <span>• {{ $reserva->quadra->esporte->label() }}</span>
                         </div>
                     </div>
-                    <span class="badge rounded-pill px-3 {{ match ($reserva->status->value) {
-                        'confirmada' => 'bg-success',
-                        'pendente' => 'bg-warning text-dark',
-                        'cancelada' => 'bg-secondary',
-                    } }} text-white">{{ $reserva->status->label() }}</span>
+                    <div class="text-md-end d-flex flex-column align-items-md-end align-items-start">
+                        <span class="badge rounded-pill px-3 mb-2 {{ match ($reserva->status->value) {
+                            'confirmada' => 'bg-success',
+                            'pendente' => 'bg-warning text-dark',
+                            'cancelada' => 'bg-secondary',
+                        } }} text-white">{{ $reserva->status->label() }}</span>
+
+                        @if ($reserva->sala)
+                            <a href="{{ route('salas.detalhes', $reserva->sala) }}" class="btn btn-outline-orange btn-sm rounded-2">
+                                Ver detalhes da Sala
+                            </a>
+                        @endif
+                    </div>
                 </div>
             </div>
         @empty

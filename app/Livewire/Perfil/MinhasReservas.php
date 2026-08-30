@@ -12,12 +12,11 @@ class MinhasReservas extends Component
 {
     public array $erros = [];
 
-
     #[Computed]
     public function futuras()
     {
         return Auth::user()->reservas()
-            ->with('quadra')
+            ->with(['quadra', 'sala'])
             ->whereDate('data', '>=', now()->toDateString())
             ->orderBy('data')
             ->orderBy('hora_inicio')
@@ -28,7 +27,7 @@ class MinhasReservas extends Component
     public function passadas()
     {
         return Auth::user()->reservas()
-            ->with('quadra')
+            ->with(['quadra', 'sala'])
             ->whereDate('data', '<', now()->toDateString())
             ->orderByDesc('data')
             ->orderByDesc('hora_inicio')
