@@ -10,8 +10,10 @@
         background-color: #f8f9fa;
         border: 1px solid #dee2e6;
         border-radius: 50rem; /* Formato de pílula */
-        padding: 0.5rem 1.5rem;
+        padding: 0.5rem 1.25rem;
+        font-size: 0.85rem;
         font-weight: bold;
+        white-space: nowrap;
         transition: all 0.3s ease;
     }
     .custom-tabs .nav-link:hover {
