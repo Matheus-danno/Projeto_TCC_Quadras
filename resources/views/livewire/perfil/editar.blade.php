@@ -56,6 +56,76 @@
                     @error('email') <span class="text-danger small">{{ $message }}</span> @enderror
                 </div>
 
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">CPF</label>
+                        <input type="text" value="{{ $this->cpfFormatado() }}" class="form-control" disabled>
+                        <small class="text-muted">O CPF não pode ser alterado após o cadastro.</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Data de nascimento</label>
+                        <input type="date" wire:model="dataNascimento" class="form-control border-orange" required>
+                        @error('dataNascimento') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label fw-bold small">Sexo</label>
+                    <select wire:model="sexo" class="form-select border-orange" required>
+                        <option value="">Selecione</option>
+                        @foreach ($sexos as $opcao)
+                            <option value="{{ $opcao->value }}">{{ $opcao->label() }}</option>
+                        @endforeach
+                    </select>
+                    @error('sexo') <span class="text-danger small">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label class="form-label fw-bold small">Endereço</label>
+                    <input type="text" wire:model="endereco" class="form-control border-orange" required>
+                    @error('endereco') <span class="text-danger small">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">CEP</label>
+                        <input
+                            type="text"
+                            wire:model="cep"
+                            class="form-control border-orange"
+                            placeholder="00000-000"
+                            maxlength="9"
+                            oninput="this.value = this.value.replace(/\D/g,'').replace(/(\d{5})(\d)/,'$1-$2').slice(0,9)"
+                            required
+                        >
+                        @error('cep') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold small">Cidade</label>
+                        <input type="text" wire:model="cidade" class="form-control border-orange" required>
+                        @error('cidade') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Estado (UF)</label>
+                        <input type="text" wire:model="estado" class="form-control border-orange" maxlength="2" required>
+                        @error('estado') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label fw-bold small">Telefone</label>
+                    <input
+                        type="text"
+                        wire:model="telefone"
+                        class="form-control border-orange"
+                        placeholder="(00) 00000-0000"
+                        maxlength="15"
+                        oninput="this.value = this.value.replace(/\D/g,'').replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2').slice(0,15)"
+                        required
+                    >
+                    @error('telefone') <span class="text-danger small">{{ $message }}</span> @enderror
+                </div>
+
                 <div>
                     <button type="submit" class="btn text-white px-4 shadow-sm" style="background-color: #FF8C00; border-radius: 10px; font-weight: bold;">
                         Salvar Alterações

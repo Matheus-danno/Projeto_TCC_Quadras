@@ -15,6 +15,8 @@ test('rota painel.configuracoes renderiza o componente', function () {
 
 test('formulário é preenchido com os dados atuais do dono', function () {
     $dono = User::factory()->donoQuadra()->create([
+        'name' => 'Carlos Andrade',
+        'email' => 'carlos@demo.com',
         'nome_estabelecimento' => 'Arena Sports Bauru',
         'telefone' => '14997112233',
         'endereco' => 'Rua Correia Júnior, 357',
@@ -25,11 +27,49 @@ test('formulário é preenchido com os dados atuais do dono', function () {
 
     Livewire::actingAs($dono)
         ->test(Configuracoes::class)
+        ->assertSet('name', 'Carlos Andrade')
+        ->assertSet('email', 'carlos@demo.com')
         ->assertSet('nomeEstabelecimento', 'Arena Sports Bauru')
         ->assertSet('telefone', '14997112233')
         ->assertSet('endereco', 'Rua Correia Júnior, 357')
         ->assertSet('cidade', 'Bauru')
         ->assertSet('estado', 'SP');
+});
+
+test('dono consegue atualizar seu nome e e-mail', function () {
+    $dono = User::factory()->donoQuadra()->create([
+        'name' => 'Nome Antigo',
+        'email' => 'antigo@demo.com',
+        'nome_estabelecimento' => 'Estabelecimento Teste',
+        'telefone' => '11999998888',
+        'endereco' => 'Rua Teste, 1',
+        'cidade' => 'Bauru',
+        'estado' => 'SP',
+    ]);
+
+    Livewire::actingAs($dono)
+        ->test(Configuracoes::class)
+        ->set('name', 'Nome Novo')
+        ->set('email', 'novo@demo.com')
+        ->call('salvar')
+        ->assertHasNoErrors();
+
+    $dono->refresh();
+
+    expect($dono->name)->toBe('Nome Novo')
+        ->and($dono->email)->toBe('novo@demo.com')
+        ->and($dono->email_verified_at)->toBeNull();
+});
+
+test('e-mail já usado por outro usuário é rejeitado ao salvar configurações', function () {
+    User::factory()->create(['email' => 'ocupado@demo.com']);
+    $dono = User::factory()->donoQuadra()->create();
+
+    Livewire::actingAs($dono)
+        ->test(Configuracoes::class)
+        ->set('email', 'ocupado@demo.com')
+        ->call('salvar')
+        ->assertHasErrors('email');
 });
 
 test('cnpj é exibido formatado e desabilitado no formulário', function () {

@@ -21,6 +21,65 @@ test('usuário consegue atualizar nome e e-mail', function () {
         ->and($user->fresh()->email_verified_at)->toBeNull();
 });
 
+test('formulário vem preenchido com todos os dados cadastrados no registro', function () {
+    $user = User::factory()->create([
+        'cpf' => '12345678901',
+        'data_nascimento' => '1990-05-20',
+        'sexo' => 'masculino',
+        'endereco' => 'Rua das Flores, 100',
+        'cep' => '17010000',
+        'cidade' => 'Bauru',
+        'estado' => 'SP',
+        'telefone' => '14991234567',
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(Editar::class)
+        ->assertSet('dataNascimento', '1990-05-20')
+        ->assertSet('sexo', 'masculino')
+        ->assertSet('endereco', 'Rua das Flores, 100')
+        ->assertSet('cep', '17010-000')
+        ->assertSet('cidade', 'Bauru')
+        ->assertSet('estado', 'SP')
+        ->assertSet('telefone', '(14) 99123-4567')
+        ->assertSee('123.456.789-01');
+});
+
+test('usuário consegue atualizar endereço, contato e dados pessoais', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Editar::class)
+        ->set('dataNascimento', '1995-03-10')
+        ->set('sexo', 'feminino')
+        ->set('endereco', 'Av. Nova, 200')
+        ->set('cep', '17012-345')
+        ->set('cidade', 'Bauru')
+        ->set('estado', 'sp')
+        ->set('telefone', '(14) 98888-7777')
+        ->call('salvar')
+        ->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->data_nascimento->toDateString())->toBe('1995-03-10')
+        ->and($user->sexo->value)->toBe('feminino')
+        ->and($user->endereco)->toBe('Av. Nova, 200')
+        ->and($user->cep)->toBe('17012345')
+        ->and($user->cidade)->toBe('Bauru')
+        ->and($user->estado)->toBe('SP')
+        ->and($user->telefone)->toBe('14988887777');
+});
+
+test('cpf não pode ser alterado pelo formulário de editar perfil', function () {
+    $user = User::factory()->create(['cpf' => '12345678901']);
+
+    expect(fn () => Livewire::actingAs($user)->test(Editar::class)->set('cpf', '99999999999'))
+        ->toThrow(\Livewire\Exceptions\PublicPropertyNotFoundException::class);
+
+    expect($user->fresh()->cpf)->toBe('12345678901');
+});
+
 test('e-mail já usado por outro usuário é rejeitado', function () {
     User::factory()->create(['email' => 'ocupado@demo.com']);
     $user = User::factory()->create(['email' => 'meu@demo.com']);

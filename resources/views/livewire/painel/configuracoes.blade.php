@@ -8,6 +8,11 @@
         <flux:heading size="lg" class="mb-2">{{ __('Dados do Estabelecimento') }}</flux:heading>
 
         <form wire:submit="salvar" class="flex flex-col gap-6">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <flux:input wire:model="name" :label="__('Seu nome')" class="rounded-full" />
+                <flux:input wire:model="email" type="email" :label="__('Seu e-mail')" class="rounded-full" />
+            </div>
+
             <div>
                 <flux:input :value="$this->cnpjFormatado()" :label="__('CNPJ')" class="rounded-full" disabled />
                 <flux:text class="mt-1 text-xs text-zinc-500">{{ __('O CNPJ não pode ser alterado após o cadastro.') }}</flux:text>
