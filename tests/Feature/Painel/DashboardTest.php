@@ -99,3 +99,13 @@ test('rota painel.dashboard renderiza o dashboard com link para a listagem compl
         ->assertSee('Quadra Principal')
         ->assertSee(route('painel.quadras'));
 });
+
+test('dono vê o link de configurações da conta apontando para a página de configurações do painel', function () {
+    $dono = User::factory()->donoQuadra()->create();
+
+    $this->actingAs($dono)
+        ->get(route('painel.dashboard'))
+        ->assertOk()
+        ->assertSee(route('painel.configuracoes'), false)
+        ->assertDontSee(route('profile.edit'), false);
+});

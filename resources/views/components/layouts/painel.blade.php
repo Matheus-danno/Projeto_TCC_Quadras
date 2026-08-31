@@ -33,7 +33,11 @@
                         </div>
                         <flux:menu.separator />
                         <flux:menu.radio.group>
-                            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
+                            <flux:menu.item
+                                :href="auth()->user()->role === \App\Enums\UserRole::DonoQuadra ? route('painel.configuracoes') : route('profile.edit')"
+                                icon="cog"
+                                wire:navigate
+                            >
                                 {{ __('Configurações da conta') }}
                             </flux:menu.item>
                             <form method="POST" action="{{ route('logout') }}" class="w-full">
@@ -51,7 +55,7 @@
                 <div class="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2 [&>*]:shrink-0 sm:px-6 lg:px-8 {{ auth()->user()->role === \App\Enums\UserRole::DonoQuadra ? 'justify-center' : '' }}">
                     @if (auth()->user()->role === \App\Enums\UserRole::DonoQuadra)
                         <x-painel-nav-item :href="route('painel.dashboard')" :current="request()->routeIs('painel.dashboard')">
-                            {{ __('Dashboard') }}
+                            {{ __('Visão Geral') }}
                         </x-painel-nav-item>
                         <x-painel-nav-item :href="route('painel.quadras')" :current="request()->routeIs('painel.quadras')">
                             {{ __('Minhas Quadras') }}
@@ -73,7 +77,7 @@
                         </x-painel-nav-item>
                     @elseif (auth()->user()->role === \App\Enums\UserRole::Admin)
                         <x-painel-nav-item :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')">
-                            {{ __('Dashboard') }}
+                            {{ __('Visão Geral') }}
                         </x-painel-nav-item>
                         <x-painel-nav-item :href="route('admin.quadras')" :current="request()->routeIs('admin.quadras')">
                             {{ __('Quadras') }}

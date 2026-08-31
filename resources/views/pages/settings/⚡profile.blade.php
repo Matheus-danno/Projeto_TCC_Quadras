@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new #[Title('Profile settings')] class extends Component {
+new #[Title('Configurações de perfil')] class extends Component {
     use ProfileValidationRules, WithFileUploads;
 
     public string $name = '';

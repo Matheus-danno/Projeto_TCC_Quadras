@@ -15,7 +15,7 @@
                 <div class="container-fluid">
                     <h6>Buscar Quadras</h6>
                     <form class="d-flex" role="search" action="{{ route('quadras.index') }}" method="GET">
-                        <input class="form-control me-2" type="search" name="busca" placeholder="Digite sua localização ou bairro" aria-label="Search" />
+                        <input class="form-control me-2" type="search" name="busca" placeholder="Digite sua localização ou bairro" aria-label="Buscar" />
                         <button class="btn btn-outline-success" type="submit">Pesquisar</button>
                     </form>
                     <button
