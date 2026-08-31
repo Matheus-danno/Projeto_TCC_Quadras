@@ -37,7 +37,15 @@
                 </div>
 
                 <div class="flex-grow-1">
-                    <h2 class="fw-bold mb-1" style="color: #2D3748;">{{ auth()->user()->name }}</h2>
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                        <h2 class="fw-bold mb-0" style="color: #2D3748;">{{ auth()->user()->name }}</h2>
+                        @if (auth()->user()->notaMedia())
+                            <span class="badge rounded-pill" style="background-color: #fff3e0; color: #FF8C00; font-size: 0.9rem;">
+                                <i class="bi bi-star-fill"></i> {{ number_format(auth()->user()->notaMedia(), 1, ',', '.') }}
+                                <span class="fw-normal">({{ auth()->user()->avaliacoesRecebidas->count() }})</span>
+                            </span>
+                        @endif
+                    </div>
                     <div class="d-flex flex-wrap gap-3 text-secondary mt-2">
                         <span><i class="bi bi-envelope me-1" style="color: #FF8C00;"></i> {{ auth()->user()->email }}</span>
                         <span><i class="bi bi-person-badge me-1" style="color: #FF8C00;"></i> {{ auth()->user()->role->label() }}</span>
