@@ -2,6 +2,34 @@
     <h5 class="fw-bold text-secondary mb-1">Notificações</h5>
     <p class="text-muted small mb-4">Avisos sobre suas salas e oportunidades de quadras</p>
 
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px;">
+        <div class="card-body p-4">
+            <h6 class="fw-bold text-secondary mb-1">Preferências de notificação</h6>
+            <p class="text-muted small mb-3">Escolha quais avisos você quer receber</p>
+
+            <div class="d-flex flex-column">
+                @foreach ($this->preferencias as $preferencia)
+                    <div class="d-flex justify-content-between align-items-center py-2 {{ ! $loop->last ? 'border-bottom' : '' }}">
+                        <span class="fw-semibold" style="color: #2D3748;">{{ $preferencia['rotulo'] }}</span>
+                        <div class="form-check form-switch mb-0">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                role="switch"
+                                style="width: 2.75em; height: 1.5em; cursor: pointer;"
+                                wire:click="alternarPreferencia('{{ $preferencia['campo'] }}')"
+                                wire:key="preferencia-{{ $preferencia['campo'] }}"
+                                @checked($preferencia['ativo'])
+                                aria-label="{{ $preferencia['ativo'] ? 'Desabilitar' : 'Habilitar' }} {{ $preferencia['rotulo'] }}"
+                            >
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <h6 class="fw-bold text-secondary mb-3">Avisos</h6>
     <div class="d-flex flex-column gap-3">
         @forelse ($this->notificacoes as $notificacao)
             <div class="card border border-light-subtle shadow-none" style="border-radius: 15px;" wire:key="notificacao-{{ $loop->index }}">

@@ -15,8 +15,8 @@ test('aba de mensagens só aparece no perfil para quem já organizou uma sala', 
 
     $semSala = User::factory()->create();
 
-    $this->actingAs($organizador)->get(route('perfil'))->assertSee('Mensagens');
-    $this->actingAs($semSala)->get(route('perfil'))->assertDontSee('Mensagens');
+    $this->actingAs($organizador)->get(route('perfil'))->assertSee('id="mensagens-tab"', false);
+    $this->actingAs($semSala)->get(route('perfil'))->assertDontSee('id="mensagens-tab"', false);
 });
 
 test('jogador que organizou uma sala vê a quadra alugada e consegue enviar a primeira mensagem', function () {

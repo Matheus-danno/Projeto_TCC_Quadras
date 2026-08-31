@@ -42,6 +42,11 @@ class User extends Authenticatable
         'estado',
         'telefone',
         'nivel',
+        'notif_confirmacao_reserva',
+        'notif_lembrete_horario',
+        'notif_novo_jogador_sala',
+        'notif_mensagens_grupo',
+        'notif_ofertas_novidades',
     ];
 
     /**
@@ -71,6 +76,11 @@ class User extends Authenticatable
             'nivel' => NivelHabilidade::class,
             'data_nascimento' => 'date',
             'saldo_creditos' => 'decimal:2',
+            'notif_confirmacao_reserva' => 'boolean',
+            'notif_lembrete_horario' => 'boolean',
+            'notif_novo_jogador_sala' => 'boolean',
+            'notif_mensagens_grupo' => 'boolean',
+            'notif_ofertas_novidades' => 'boolean',
         ];
     }
 

@@ -24,10 +24,48 @@ class Notificacoes extends Component
      */
     private const MINUTOS_SALA_FECHANDO = 300;
 
+    /**
+     * Tipos de notificação que o usuário pode habilitar ou desabilitar,
+     * mapeados para a coluna correspondente em `users` e o rótulo exibido.
+     */
+    private const PREFERENCIAS = [
+        'notif_confirmacao_reserva' => 'Confirmação de Reserva',
+        'notif_lembrete_horario' => 'Lembrete antes do horário',
+        'notif_novo_jogador_sala' => 'Novo jogador confirmado na sala',
+        'notif_mensagens_grupo' => 'Mensagens de grupo',
+        'notif_ofertas_novidades' => 'Ofertas e novidades',
+    ];
+
     #[Computed]
     public function notificacoes(): Collection
     {
         return $this->salasFechando()->concat($this->quadrasAbaixoDaMedia());
+    }
+
+    #[Computed]
+    public function preferencias(): Collection
+    {
+        $user = Auth::user();
+
+        return collect(self::PREFERENCIAS)->map(fn (string $rotulo, string $campo) => [
+            'campo' => $campo,
+            'rotulo' => $rotulo,
+            'ativo' => (bool) $user->{$campo},
+        ])->values();
+    }
+
+    /**
+     * Liga ou desliga uma preferência de notificação do usuário autenticado.
+     */
+    public function alternarPreferencia(string $campo): void
+    {
+        abort_unless(array_key_exists($campo, self::PREFERENCIAS), 403);
+
+        $user = Auth::user();
+
+        $user->update([$campo => ! $user->{$campo}]);
+
+        unset($this->preferencias);
     }
 
     /**
