@@ -93,6 +93,11 @@
                 <i class="bi bi-key me-1"></i> Segurança
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="ajuda-tab" data-bs-toggle="tab" data-bs-target="#ajuda" type="button" role="tab">
+                <i class="bi bi-question-circle me-1"></i> Ajuda
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content" id="perfilTabsContent">
@@ -161,6 +166,10 @@
 
         <div class="tab-pane fade" id="seguranca" role="tabpanel">
             <livewire:perfil.seguranca />
+        </div>
+
+        <div class="tab-pane fade" id="ajuda" role="tabpanel">
+            <livewire:perfil.ajuda />
         </div>
 
     </div>
