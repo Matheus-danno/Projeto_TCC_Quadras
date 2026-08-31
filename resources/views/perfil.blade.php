@@ -160,34 +160,7 @@
         </div>
 
         <div class="tab-pane fade" id="seguranca" role="tabpanel">
-            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold text-secondary mb-1">Segurança da Conta</h5>
-                    <p class="text-muted small mb-4">Gerencie sua senha e a autenticação de dois fatores</p>
-
-                    <div class="d-flex flex-column gap-3">
-                        <a href="{{ route('user-password.edit') }}" class="card border border-light-subtle shadow-none text-decoration-none" style="border-radius: 15px;">
-                            <div class="card-body d-flex justify-content-between align-items-center py-3">
-                                <div>
-                                    <h6 class="mb-1 fw-bold" style="color: #2D3748;">Alterar Senha</h6>
-                                    <small class="text-muted">Atualize a senha da sua conta</small>
-                                </div>
-                                <i class="bi bi-chevron-right text-warning"></i>
-                            </div>
-                        </a>
-
-                        <a href="{{ route('two-factor.show') }}" class="card border border-light-subtle shadow-none text-decoration-none" style="border-radius: 15px;">
-                            <div class="card-body d-flex justify-content-between align-items-center py-3">
-                                <div>
-                                    <h6 class="mb-1 fw-bold" style="color: #2D3748;">Autenticação de Dois Fatores</h6>
-                                    <small class="text-muted">Adicione uma camada extra de segurança à sua conta</small>
-                                </div>
-                                <i class="bi bi-chevron-right text-warning"></i>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <livewire:perfil.seguranca />
         </div>
 
     </div>
