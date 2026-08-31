@@ -22,13 +22,6 @@ test('dono não pode atualizar reserva de quadra que não é dele', function () 
     expect((new ReservaPolicy)->update($dono, $reserva))->toBeFalse();
 });
 
-test('admin pode atualizar qualquer reserva', function () {
-    $admin = User::factory()->admin()->create();
-    $reserva = Reserva::factory()->create();
-
-    expect((new ReservaPolicy)->update($admin, $reserva))->toBeTrue();
-});
-
 test('jogador não pode atualizar reserva de nenhuma quadra', function () {
     $jogador = User::factory()->create();
     $reserva = Reserva::factory()->create();

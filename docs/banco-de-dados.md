@@ -48,7 +48,6 @@ php artisan migrate:status
 | Jogador            | jogador@demo.com   | `password` |
 | Dono de quadra     | dono@demo.com      | `password` |
 | Dono de quadra (2) | dono2@demo.com     | `password` |
-| Admin              | admin@demo.com     | `password` |
 
 ## Testes
 

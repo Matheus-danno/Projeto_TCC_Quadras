@@ -104,20 +104,6 @@ test('dono não consegue editar quadra de outro dono', function () {
         ->assertForbidden();
 });
 
-test('admin consegue editar quadra de qualquer dono', function () {
-    $admin = User::factory()->admin()->create();
-    $dono = User::factory()->donoQuadra()->create();
-    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
-
-    Livewire::actingAs($admin)
-        ->test(Formulario::class, ['quadra' => $quadra])
-        ->set('nome', 'Editada pelo Admin')
-        ->call('salvar')
-        ->assertHasNoErrors();
-
-    expect($quadra->fresh()->nome)->toBe('Editada pelo Admin');
-});
-
 test('remover foto existente exclui o arquivo e reordena a capa', function () {
     Storage::fake('public');
 

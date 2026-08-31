@@ -22,11 +22,3 @@ test('dono de quadra é redirecionado da rota genérica dashboard para o painel'
         ->get(route('dashboard'))
         ->assertRedirect(route('painel.dashboard'));
 });
-
-test('admin é redirecionado da rota genérica dashboard para a área administrativa', function () {
-    $admin = User::factory()->admin()->create();
-
-    $this->actingAs($admin)
-        ->get(route('dashboard'))
-        ->assertRedirect(route('admin.dashboard'));
-});

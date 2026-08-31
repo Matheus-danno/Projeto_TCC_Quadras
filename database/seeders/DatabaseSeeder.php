@@ -21,11 +21,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        User::factory()->admin()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-        ]);
-
         $donos = User::factory()->donoQuadra()->count(3)->create();
 
         $jogadores = collect([$testUser])

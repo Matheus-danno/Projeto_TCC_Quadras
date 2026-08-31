@@ -51,19 +51,6 @@ test('dono não consegue excluir quadra de outro dono', function () {
     expect(Quadra::count())->toBe(1);
 });
 
-test('admin consegue excluir quadra de qualquer dono', function () {
-    $admin = User::factory()->admin()->create();
-    $dono = User::factory()->donoQuadra()->create();
-    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
-
-    Livewire::actingAs($admin)
-        ->test(Listagem::class)
-        ->call('pedirExclusao', $quadra->id)
-        ->call('excluir');
-
-    expect(Quadra::query()->find($quadra->id))->toBeNull();
-});
-
 test('exclusão é bloqueada quando a quadra tem reservas futuras não canceladas', function () {
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);

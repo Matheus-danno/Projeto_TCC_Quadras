@@ -25,24 +25,6 @@
                             {{ __('Reservas') }}
                         </flux:sidebar.item>
                     @endif
-
-                    @if (auth()->user()->role === \App\Enums\UserRole::Admin)
-                        <flux:sidebar.item icon="shield-check" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>
-                            {{ __('Dashboard') }}
-                        </flux:sidebar.item>
-
-                        <flux:sidebar.item icon="map-pin" :href="route('admin.quadras')" :current="request()->routeIs('admin.quadras')" wire:navigate>
-                            {{ __('Quadras') }}
-                        </flux:sidebar.item>
-
-                        <flux:sidebar.item icon="users" :href="route('admin.usuarios')" :current="request()->routeIs('admin.usuarios')" wire:navigate>
-                            {{ __('Usuários') }}
-                        </flux:sidebar.item>
-
-                        <flux:sidebar.item icon="calendar-days" :href="route('admin.reservas')" :current="request()->routeIs('admin.reservas')" wire:navigate>
-                            {{ __('Reservas') }}
-                        </flux:sidebar.item>
-                    @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

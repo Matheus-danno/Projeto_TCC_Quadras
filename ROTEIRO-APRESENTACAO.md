@@ -26,7 +26,6 @@ Roteiro curto para seguir durante a defesa. Cobre: cadastro → busca → reserv
 |-----------------|---------------------|
 | Jogador         | jogador@demo.com    |
 | Dono de quadra  | dono@demo.com       |
-| Admin           | admin@demo.com      |
 
 ## 1. Cadastro
 

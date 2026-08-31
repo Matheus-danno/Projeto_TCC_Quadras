@@ -25,16 +25,6 @@ test('dono não pode atualizar nem excluir quadra de outro dono', function () {
         ->and($policy->delete($dono, $quadra))->toBeFalse();
 });
 
-test('admin pode atualizar e excluir qualquer quadra', function () {
-    $admin = User::factory()->admin()->create();
-    $quadra = Quadra::factory()->create();
-
-    $policy = new QuadraPolicy;
-
-    expect($policy->update($admin, $quadra))->toBeTrue()
-        ->and($policy->delete($admin, $quadra))->toBeTrue();
-});
-
 test('jogador não pode atualizar nem excluir nenhuma quadra', function () {
     $jogador = User::factory()->create();
     $quadra = Quadra::factory()->create();

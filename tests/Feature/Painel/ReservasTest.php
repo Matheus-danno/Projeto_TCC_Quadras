@@ -78,25 +78,6 @@ test('dono não consegue confirmar ou cancelar reserva de quadra que não é del
     expect($reserva->fresh()->status)->toBe(ReservaStatus::Pendente);
 });
 
-test('admin consegue confirmar e cancelar reserva de qualquer quadra', function () {
-    $admin = User::factory()->admin()->create();
-    $dono = User::factory()->donoQuadra()->create();
-    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
-    $reserva = Reserva::factory()->create(['quadra_id' => $quadra->id, 'status' => ReservaStatus::Pendente]);
-
-    Livewire::actingAs($admin)
-        ->test(Listagem::class)
-        ->call('confirmar', $reserva->id);
-
-    expect($reserva->fresh()->status)->toBe(ReservaStatus::Confirmada);
-
-    Livewire::actingAs($admin)
-        ->test(Listagem::class)
-        ->call('cancelar', $reserva->id);
-
-    expect($reserva->fresh()->status)->toBe(ReservaStatus::Cancelada);
-});
-
 test('filtro por status mostra apenas reservas correspondentes', function () {
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);

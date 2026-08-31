@@ -19,7 +19,7 @@
                     <button type="button" class="flex items-center gap-2 rounded-full py-1 ps-1 pe-3 hover:bg-zinc-100">
                         <flux:avatar size="xs" :name="auth()->user()->name" :initials="auth()->user()->initials()" color="orange" />
                         <span class="hidden text-sm font-semibold text-orange-600 sm:inline">
-                            {{ auth()->user()->role === \App\Enums\UserRole::Admin ? __('Painel Administrador') : __('Painel do Dono') }}
+                            {{ __('Painel do Dono') }}
                         </span>
                     </button>
 
@@ -34,7 +34,7 @@
                         <flux:menu.separator />
                         <flux:menu.radio.group>
                             <flux:menu.item
-                                :href="auth()->user()->role === \App\Enums\UserRole::DonoQuadra ? route('painel.configuracoes') : route('profile.edit')"
+                                :href="route('painel.configuracoes')"
                                 icon="cog"
                                 wire:navigate
                             >
@@ -52,46 +52,28 @@
             </div>
 
             <nav class="bg-orange-500">
-                <div class="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2 [&>*]:shrink-0 sm:px-6 lg:px-8 {{ auth()->user()->role === \App\Enums\UserRole::DonoQuadra ? 'justify-center' : '' }}">
-                    @if (auth()->user()->role === \App\Enums\UserRole::DonoQuadra)
-                        <x-painel-nav-item :href="route('painel.dashboard')" :current="request()->routeIs('painel.dashboard')">
-                            {{ __('Visão Geral') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('painel.quadras')" :current="request()->routeIs('painel.quadras')">
-                            {{ __('Minhas Quadras') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('painel.reservas')" :current="request()->routeIs('painel.reservas')">
-                            {{ __('Reservas') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('painel.financeiro')" :current="request()->routeIs('painel.financeiro')">
-                            {{ __('Financeiro') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('painel.mensagens')" :current="request()->routeIs('painel.mensagens')">
-                            {{ __('Mensagens') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('painel.agendamento-manual')" :current="request()->routeIs('painel.agendamento-manual')">
-                            {{ __('Agendamento Manual') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('painel.configuracoes')" :current="request()->routeIs('painel.configuracoes')">
-                            {{ __('Configurações') }}
-                        </x-painel-nav-item>
-                    @elseif (auth()->user()->role === \App\Enums\UserRole::Admin)
-                        <x-painel-nav-item :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')">
-                            {{ __('Visão Geral') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('admin.quadras')" :current="request()->routeIs('admin.quadras')">
-                            {{ __('Quadras') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('admin.usuarios')" :current="request()->routeIs('admin.usuarios')">
-                            {{ __('Usuários') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('admin.reservas')" :current="request()->routeIs('admin.reservas')">
-                            {{ __('Reservas') }}
-                        </x-painel-nav-item>
-                        <x-painel-nav-item :href="route('admin.mensagens')" :current="request()->routeIs('admin.mensagens')">
-                            {{ __('Mensagens') }}
-                        </x-painel-nav-item>
-                    @endif
+                <div class="mx-auto flex max-w-7xl items-center justify-center gap-1 overflow-x-auto px-4 py-2 [&>*]:shrink-0 sm:px-6 lg:px-8">
+                    <x-painel-nav-item :href="route('painel.dashboard')" :current="request()->routeIs('painel.dashboard')">
+                        {{ __('Visão Geral') }}
+                    </x-painel-nav-item>
+                    <x-painel-nav-item :href="route('painel.quadras')" :current="request()->routeIs('painel.quadras')">
+                        {{ __('Minhas Quadras') }}
+                    </x-painel-nav-item>
+                    <x-painel-nav-item :href="route('painel.reservas')" :current="request()->routeIs('painel.reservas')">
+                        {{ __('Reservas') }}
+                    </x-painel-nav-item>
+                    <x-painel-nav-item :href="route('painel.financeiro')" :current="request()->routeIs('painel.financeiro')">
+                        {{ __('Financeiro') }}
+                    </x-painel-nav-item>
+                    <x-painel-nav-item :href="route('painel.mensagens')" :current="request()->routeIs('painel.mensagens')">
+                        {{ __('Mensagens') }}
+                    </x-painel-nav-item>
+                    <x-painel-nav-item :href="route('painel.agendamento-manual')" :current="request()->routeIs('painel.agendamento-manual')">
+                        {{ __('Agendamento Manual') }}
+                    </x-painel-nav-item>
+                    <x-painel-nav-item :href="route('painel.configuracoes')" :current="request()->routeIs('painel.configuracoes')">
+                        {{ __('Configurações') }}
+                    </x-painel-nav-item>
                 </div>
             </nav>
         </div>

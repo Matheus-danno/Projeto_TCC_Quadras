@@ -11,7 +11,6 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             Route::middleware('web')->group(base_path('routes/settings.php'));
             Route::middleware('web')->group(base_path('routes/painel.php'));
-            Route::middleware('web')->group(base_path('routes/admin.php'));
         },
         commands: __DIR__.'/../routes/console.php',
         health: '/up',

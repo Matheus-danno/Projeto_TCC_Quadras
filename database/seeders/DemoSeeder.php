@@ -41,12 +41,6 @@ class DemoSeeder extends Seeder
             'role' => UserRole::DonoQuadra,
         ]);
 
-        User::factory()->create([
-            'name' => 'Admin Demo',
-            'email' => 'admin@demo.com',
-            'role' => UserRole::Admin,
-        ]);
-
         $jogador = User::factory()->create([
             'name' => 'Ana Beatriz Souza',
             'email' => 'jogador@demo.com',
@@ -210,7 +204,6 @@ class DemoSeeder extends Seeder
             ['Jogador', 'jogador@demo.com', 'password'],
             ['Dono de quadra', 'dono@demo.com', 'password'],
             ['Dono de quadra (2)', 'dono2@demo.com', 'password'],
-            ['Admin', 'admin@demo.com', 'password'],
         ]);
     }
 }
