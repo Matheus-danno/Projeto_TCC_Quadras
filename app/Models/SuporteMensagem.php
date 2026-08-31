@@ -17,7 +17,15 @@ class SuporteMensagem extends Model
         'user_id',
         'assunto',
         'mensagem',
+        'respondida_em',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'respondida_em' => 'datetime',
+        ];
+    }
 
     public function user(): BelongsTo
     {

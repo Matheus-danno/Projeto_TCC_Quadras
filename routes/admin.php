@@ -22,4 +22,8 @@ Route::middleware(['auth', 'role:'.UserRole::Admin->value])
         Route::get('/reservas', function () {
             return view('admin-reservas');
         })->name('reservas');
+
+        Route::get('/mensagens', function () {
+            return view('admin-mensagens');
+        })->name('mensagens');
     });

@@ -54,5 +54,10 @@
             <flux:text>{{ __('Avaliações') }}</flux:text>
             <div class="mt-1 text-2xl font-bold text-zinc-900 tabular-nums">{{ $this->indicadores['avaliacoes'] }}</div>
         </div>
+
+        <div class="rounded-lg border border-zinc-200 border-s-4 border-s-amber-500 bg-white p-4">
+            <flux:text>{{ __('Mensagens Pendentes') }}</flux:text>
+            <div class="mt-1 text-2xl font-bold text-zinc-900 tabular-nums">{{ $this->indicadores['mensagensPendentes'] }}</div>
+        </div>
     </div>
 </div>

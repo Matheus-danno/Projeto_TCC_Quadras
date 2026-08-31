@@ -11,6 +11,7 @@ use App\Models\PedidoParticipacao;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\Sala;
+use App\Models\SuporteMensagem;
 use App\Models\User;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -35,6 +36,7 @@ class Dashboard extends Component
             'salasFechadas' => Sala::query()->where('status', SalaStatus::Fechada->value)->count(),
             'pedidosParticipacaoPendentes' => PedidoParticipacao::query()->where('status', PedidoParticipacaoStatus::Pendente->value)->count(),
             'avaliacoes' => Avaliacao::query()->count(),
+            'mensagensPendentes' => SuporteMensagem::query()->whereNull('respondida_em')->count(),
         ];
     }
 

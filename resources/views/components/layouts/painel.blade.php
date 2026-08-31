@@ -88,6 +88,9 @@
                         <x-painel-nav-item :href="route('admin.reservas')" :current="request()->routeIs('admin.reservas')">
                             {{ __('Reservas') }}
                         </x-painel-nav-item>
+                        <x-painel-nav-item :href="route('admin.mensagens')" :current="request()->routeIs('admin.mensagens')">
+                            {{ __('Mensagens') }}
+                        </x-painel-nav-item>
                     @endif
                 </div>
             </nav>
