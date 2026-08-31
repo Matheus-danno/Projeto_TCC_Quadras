@@ -27,10 +27,10 @@ Route::get('/quadras-proximas', function () {
 
 Route::get('/login', function () {
     return view('auth.login');
-})->name('login');
+})->middleware('guest')->name('login');
 Route::get('/entrar-dono', function () {
     return view('auth.login-dono');
-})->name('login.dono');
+})->middleware('guest')->name('login.dono');
 Route::get('/cadastro-dono', function () {
     return view('auth.cadastro-dono');
 })->middleware('guest')->name('cadastro.dono');

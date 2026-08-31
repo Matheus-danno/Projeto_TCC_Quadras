@@ -70,6 +70,18 @@ test('users with two factor enabled are redirected to two factor challenge', fun
     $this->assertGuest();
 });
 
+test('usuário autenticado é redirecionado ao acessar a tela de login', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('login'))
+        ->assertRedirect(route('dashboard'));
+
+    $this->actingAs($user)
+        ->get(route('login.dono'))
+        ->assertRedirect(route('dashboard'));
+});
+
 test('users can logout', function () {
     $user = User::factory()->create();
 
