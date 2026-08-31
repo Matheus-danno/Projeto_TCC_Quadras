@@ -1,4 +1,15 @@
 <div>
+    <style>
+        .pref-switch:checked {
+            background-color: #FF8C00;
+            border-color: #FF8C00;
+        }
+        .pref-switch:focus {
+            border-color: #FF8C00;
+            box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25);
+        }
+    </style>
+
     <h5 class="fw-bold text-secondary mb-1">Notificações</h5>
     <p class="text-muted small mb-4">Avisos sobre suas salas e oportunidades de quadras</p>
 
@@ -13,7 +24,7 @@
                         <span class="fw-semibold" style="color: #2D3748;">{{ $preferencia['rotulo'] }}</span>
                         <div class="form-check form-switch mb-0">
                             <input
-                                class="form-check-input"
+                                class="form-check-input pref-switch"
                                 type="checkbox"
                                 role="switch"
                                 style="width: 2.75em; height: 1.5em; cursor: pointer;"
