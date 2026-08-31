@@ -140,6 +140,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Cartões de pagamento salvos por este usuário.
+     */
+    public function cartoes(): HasMany
+    {
+        return $this->hasMany(Cartao::class);
+    }
+
+    /**
      * Conversas iniciadas por este usuário, como jogador, com donos de quadra.
      */
     public function conversas(): HasMany

@@ -153,10 +153,8 @@
 
         <div class="tab-pane fade" id="pagamentos" role="tabpanel">
             <div class="card border-0 shadow-sm" style="border-radius: 20px;">
-                <div class="card-body p-4 text-center py-5">
-                    <i class="bi bi-credit-card text-warning" style="font-size: 2rem;"></i>
-                    <h5 class="fw-bold text-secondary mt-3 mb-1">Pagamentos</h5>
-                    <p class="text-muted small mb-0">Cobrança e cartões salvos ainda não existem no sistema — trabalho futuro.</p>
+                <div class="card-body p-4">
+                    <livewire:perfil.pagamentos />
                 </div>
             </div>
         </div>
