@@ -1,81 +1,66 @@
 <div class="flex w-full flex-col gap-6">
     <div>
         <flux:heading size="xl">{{ __('Mensagens') }}</flux:heading>
-        <flux:text class="mt-1">{{ __('Pedidos de suporte enviados pelos usuários na Central de Ajuda.') }}</flux:text>
+        <flux:text class="mt-1">{{ __('Conversas entre jogadores organizadores e donos de quadra sobre reservas.') }}</flux:text>
     </div>
 
-    <flux:select wire:model.live="filtroStatus" :label="__('Status')" class="max-w-xs rounded-full">
-        <flux:select.option value="pendentes">{{ __('Pendentes') }}</flux:select.option>
-        <flux:select.option value="respondidas">{{ __('Respondidas') }}</flux:select.option>
-        <flux:select.option value="">{{ __('Todas') }}</flux:select.option>
-    </flux:select>
-
-    @if ($this->mensagens->isEmpty())
-        <flux:card class="flex flex-col items-center gap-2 py-16 text-center">
-            <flux:icon.chat-bubble-left-right class="size-8 text-zinc-300" />
-            <flux:heading size="lg">{{ __('Nenhuma mensagem encontrada') }}</flux:heading>
-            <flux:text>{{ __('Ajuste o filtro para ver outras mensagens.') }}</flux:text>
-        </flux:card>
-    @else
-        <div class="flex flex-col gap-4">
-            @foreach ($this->mensagens as $mensagem)
-                <flux:card wire:key="mensagem-{{ $mensagem->id }}" class="flex flex-col gap-3">
-                    <div class="flex items-start justify-between gap-4">
+    @if ($conversaSelecionada === null)
+        @if ($this->conversas->isEmpty())
+            <flux:card class="flex flex-col items-center gap-2 py-16 text-center">
+                <flux:icon.chat-bubble-left-right class="size-8 text-zinc-300" />
+                <flux:heading size="lg">{{ __('Nenhuma conversa ainda') }}</flux:heading>
+                <flux:text>{{ __('Quando um jogador enviar uma mensagem para o dono de uma quadra, a conversa aparece aqui.') }}</flux:text>
+            </flux:card>
+        @else
+            <flux:card class="divide-y divide-zinc-100 rounded-2xl p-0">
+                @foreach ($this->conversas as $conversa)
+                    <button
+                        type="button"
+                        wire:click="selecionarConversa({{ $conversa->id }})"
+                        wire:key="conversa-{{ $conversa->id }}"
+                        class="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-zinc-50"
+                    >
                         <div>
-                            <flux:heading size="lg">{{ $mensagem->assunto }}</flux:heading>
-                            <flux:text class="mt-1">
-                                {{ $mensagem->user?->name ?? 'Usuário removido' }}
-                                @if ($mensagem->user)
-                                    &middot; {{ $mensagem->user->email }}
-                                @endif
-                                &middot; {{ $mensagem->created_at->translatedFormat('d/m/Y \à\s H:i') }}
-                            </flux:text>
+                            <p class="font-semibold text-zinc-900">
+                                {{ $conversa->jogador->name }} &rarr; {{ $conversa->quadra->dono?->name ?? '—' }}
+                            </p>
+                            <p class="text-sm text-zinc-500">{{ $conversa->quadra->nome }}</p>
+                            @if ($ultima = $conversa->ultimaMensagem())
+                                <p class="mt-1 text-sm text-zinc-400">{{ Str::limit($ultima->texto, 60) }} · {{ $ultima->tempoDecorrido() }} atrás</p>
+                            @endif
                         </div>
+                        <flux:icon.chevron-right class="size-4 text-zinc-300" />
+                    </button>
+                @endforeach
+            </flux:card>
+        @endif
+    @else
+        @php $conversa = $this->conversaAtual; @endphp
+        <div>
+            <button type="button" wire:click="voltar" class="mb-3 flex items-center gap-1 text-sm font-semibold text-zinc-500 hover:text-zinc-700">
+                <flux:icon.chevron-left class="size-4" /> {{ __('Voltar') }}
+            </button>
 
-                        @if ($mensagem->respondida_em)
-                            <flux:badge color="green" size="sm">{{ __('Respondida') }}</flux:badge>
-                        @else
-                            <flux:badge color="amber" size="sm">{{ __('Pendente') }}</flux:badge>
-                        @endif
-                    </div>
+            <flux:card class="rounded-2xl">
+                <flux:heading size="lg">
+                    {{ $conversa->jogador->name }} &rarr; {{ $conversa->quadra->dono?->name ?? '—' }}
+                </flux:heading>
+                <flux:text class="mb-4 text-zinc-400">{{ $conversa->quadra->nome }}</flux:text>
 
-                    <flux:text class="whitespace-pre-line text-zinc-700">{{ $mensagem->mensagem }}</flux:text>
-
-                    <div class="flex flex-wrap gap-3">
-                        @if ($mensagem->user)
-                            <flux:button
-                                href="mailto:{{ $mensagem->user->email }}?subject=Re: {{ $mensagem->assunto }}"
-                                variant="outline"
-                                size="sm"
-                                class="rounded-full !border-orange-300 !text-orange-600 hover:!bg-orange-50"
-                            >
-                                {{ __('Responder por e-mail') }}
-                            </flux:button>
-                        @endif
-
-                        @if ($mensagem->respondida_em)
-                            <flux:button
-                                wire:click="marcarComoPendente({{ $mensagem->id }})"
-                                variant="ghost"
-                                size="sm"
-                                class="rounded-full"
-                            >
-                                {{ __('Marcar como pendente') }}
-                            </flux:button>
-                        @else
-                            <flux:button
-                                wire:click="marcarComoRespondida({{ $mensagem->id }})"
-                                variant="primary"
-                                color="orange"
-                                size="sm"
-                                class="rounded-full"
-                            >
-                                {{ __('Marcar como respondida') }}
-                            </flux:button>
-                        @endif
-                    </div>
-                </flux:card>
-            @endforeach
+                <div class="flex max-h-[28rem] flex-col gap-3 overflow-y-auto">
+                    @forelse ($conversa->mensagens as $mensagem)
+                        <div class="flex flex-col {{ $mensagem->user_id === $conversa->jogador_id ? 'items-start' : 'items-end' }}" wire:key="mensagem-{{ $mensagem->id }}">
+                            <span class="text-xs font-semibold text-zinc-400">{{ $mensagem->user?->name ?? '—' }}</span>
+                            <div class="max-w-[75%] rounded-2xl px-4 py-2 {{ $mensagem->user_id === $conversa->jogador_id ? 'bg-zinc-100 text-zinc-900' : 'bg-orange-500 text-white' }}">
+                                <p class="text-sm">{{ $mensagem->texto }}</p>
+                            </div>
+                            <span class="mt-1 text-xs text-zinc-400">{{ $mensagem->tempoDecorrido() }} atrás</span>
+                        </div>
+                    @empty
+                        <flux:text class="text-center">{{ __('Nenhuma mensagem ainda.') }}</flux:text>
+                    @endforelse
+                </div>
+            </flux:card>
         </div>
     @endif
 </div>

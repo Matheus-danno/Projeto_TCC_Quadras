@@ -1,7 +1,9 @@
 <?php
 
 use App\Livewire\Admin\Mensagens;
-use App\Models\SuporteMensagem;
+use App\Models\Conversa;
+use App\Models\MensagemConversa;
+use App\Models\Quadra;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -13,62 +15,47 @@ test('rota /admin/mensagens exige role admin', function () {
     $this->actingAs($jogador)->get(route('admin.mensagens'))->assertForbidden();
 });
 
-test('admin vê as mensagens de suporte pendentes por padrão', function () {
+test('admin vê todas as conversas entre jogadores e donos de quadra', function () {
     $admin = User::factory()->admin()->create();
     $jogador = User::factory()->create(['name' => 'Ana Beatriz']);
+    $dono = User::factory()->donoQuadra()->create(['name' => 'Carlos Andrade']);
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'nome' => 'Arena Central']);
 
-    $pendente = SuporteMensagem::factory()->create([
+    $conversa = Conversa::factory()->create(['quadra_id' => $quadra->id, 'jogador_id' => $jogador->id]);
+    MensagemConversa::factory()->create([
+        'conversa_id' => $conversa->id,
         'user_id' => $jogador->id,
-        'assunto' => 'Dúvida sobre pagamento',
-    ]);
-    $respondida = SuporteMensagem::factory()->create([
-        'user_id' => $jogador->id,
-        'assunto' => 'Já resolvido',
-        'respondida_em' => now(),
+        'texto' => 'O estacionamento é gratuito?',
     ]);
 
-    $component = Livewire::actingAs($admin)
+    Livewire::actingAs($admin)
         ->test(Mensagens::class)
-        ->assertSee('Dúvida sobre pagamento')
         ->assertSee('Ana Beatriz')
-        ->assertDontSee('Já resolvido');
-
-    expect($component->instance()->mensagens())->toHaveCount(1)
-        ->and($component->instance()->mensagens()->first()->id)->toBe($pendente->id);
+        ->assertSee('Carlos Andrade')
+        ->assertSee('Arena Central')
+        ->assertSee('O estacionamento é gratuito?');
 });
 
-test('admin consegue marcar uma mensagem como respondida', function () {
+test('admin consegue abrir uma conversa e ver todas as mensagens trocadas', function () {
     $admin = User::factory()->admin()->create();
-    $mensagem = SuporteMensagem::factory()->create();
+    $jogador = User::factory()->create();
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+    $conversa = Conversa::factory()->create(['quadra_id' => $quadra->id, 'jogador_id' => $jogador->id]);
+
+    MensagemConversa::factory()->create(['conversa_id' => $conversa->id, 'user_id' => $jogador->id, 'texto' => 'Pergunta do jogador']);
+    MensagemConversa::factory()->create(['conversa_id' => $conversa->id, 'user_id' => $dono->id, 'texto' => 'Resposta do dono']);
 
     Livewire::actingAs($admin)
         ->test(Mensagens::class)
-        ->call('marcarComoRespondida', $mensagem->id)
-        ->assertHasNoErrors();
-
-    expect($mensagem->fresh()->respondida_em)->not->toBeNull();
+        ->call('selecionarConversa', $conversa->id)
+        ->assertSee('Pergunta do jogador')
+        ->assertSee('Resposta do dono');
 });
 
-test('admin consegue reabrir uma mensagem já respondida', function () {
-    $admin = User::factory()->admin()->create();
-    $mensagem = SuporteMensagem::factory()->create(['respondida_em' => now()]);
-
-    Livewire::actingAs($admin)
-        ->test(Mensagens::class)
-        ->call('marcarComoPendente', $mensagem->id);
-
-    expect($mensagem->fresh()->respondida_em)->toBeNull();
-});
-
-test('filtro de status mostra apenas as mensagens respondidas', function () {
+test('admin não pode ver conversa inexistente', function () {
     $admin = User::factory()->admin()->create();
 
-    SuporteMensagem::factory()->create(['assunto' => 'Pendente aqui']);
-    SuporteMensagem::factory()->create(['assunto' => 'Respondida aqui', 'respondida_em' => now()]);
-
-    Livewire::actingAs($admin)
-        ->test(Mensagens::class)
-        ->set('filtroStatus', 'respondidas')
-        ->assertSee('Respondida aqui')
-        ->assertDontSee('Pendente aqui');
+    expect(fn () => Livewire::actingAs($admin)->test(Mensagens::class)->call('selecionarConversa', 999))
+        ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 });

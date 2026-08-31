@@ -2,45 +2,50 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\SuporteMensagem;
-use Flux\Concerns\InteractsWithComponents;
-use Illuminate\Database\Eloquent\Collection;
+use App\Models\Conversa;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Mensagens extends Component
 {
-    use InteractsWithComponents;
+    public ?int $conversaSelecionada = null;
 
-    public string $filtroStatus = 'pendentes';
+    /**
+     * Todas as conversas entre jogadores organizadores e donos de quadra,
+     * da mais recente para a mais antiga.
+     */
+    #[Computed]
+    public function conversas()
+    {
+        return Conversa::query()
+            ->with(['quadra.dono', 'jogador', 'mensagens'])
+            ->get()
+            ->sortByDesc(fn (Conversa $conversa) => $conversa->ultimaMensagem()?->created_at)
+            ->values();
+    }
 
     #[Computed]
-    public function mensagens(): Collection
+    public function conversaAtual(): ?Conversa
     {
-        return SuporteMensagem::query()
-            ->with('user')
-            ->when($this->filtroStatus === 'pendentes', fn ($query) => $query->whereNull('respondida_em'))
-            ->when($this->filtroStatus === 'respondidas', fn ($query) => $query->whereNotNull('respondida_em'))
-            ->latest()
-            ->get();
+        if ($this->conversaSelecionada === null) {
+            return null;
+        }
+
+        return Conversa::query()
+            ->with(['quadra.dono', 'jogador', 'mensagens.user'])
+            ->find($this->conversaSelecionada);
     }
 
-    public function marcarComoRespondida(int $mensagemId): void
+    public function selecionarConversa(int $conversaId): void
     {
-        $mensagem = SuporteMensagem::findOrFail($mensagemId);
-        $mensagem->update(['respondida_em' => now()]);
+        Conversa::findOrFail($conversaId);
 
-        $this->toast('Mensagem marcada como respondida.', variant: 'success');
-
-        unset($this->mensagens);
+        $this->conversaSelecionada = $conversaId;
     }
 
-    public function marcarComoPendente(int $mensagemId): void
+    public function voltar(): void
     {
-        $mensagem = SuporteMensagem::findOrFail($mensagemId);
-        $mensagem->update(['respondida_em' => null]);
-
-        unset($this->mensagens);
+        $this->conversaSelecionada = null;
     }
 
     public function render()
