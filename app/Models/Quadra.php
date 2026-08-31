@@ -66,6 +66,21 @@ class Quadra extends Model
         return $this->hasMany(QuadraFoto::class)->orderBy('ordem');
     }
 
+    public function avaliacoes(): HasMany
+    {
+        return $this->hasMany(AvaliacaoQuadra::class);
+    }
+
+    /**
+     * Nota média das avaliações recebidas pela quadra, arredondada a 1 casa decimal.
+     */
+    public function notaMedia(): ?float
+    {
+        $media = $this->avaliacoes()->avg('nota');
+
+        return $media !== null ? round($media, 1) : null;
+    }
+
     public function fotoCapa(): ?QuadraFoto
     {
         return $this->fotos->firstWhere('capa', true) ?? $this->fotos->first();

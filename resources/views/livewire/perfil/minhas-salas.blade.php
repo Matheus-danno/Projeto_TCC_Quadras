@@ -63,7 +63,14 @@
                             @endif
                         </div>
                     </div>
-                    <span class="fw-bold text-orange">{{ $sala->participantes->count() }} de {{ $sala->max_participantes }} jogadores</span>
+                    <div class="text-md-end d-flex flex-column align-items-md-end align-items-start">
+                        <span class="fw-bold text-orange mb-2">{{ $sala->participantes->count() }} de {{ $sala->max_participantes }} jogadores</span>
+                        @if ($sala->participantes->contains('id', auth()->id()))
+                            <a href="{{ route('salas.avaliar', $sala) }}" class="btn btn-outline-orange btn-sm rounded-2">
+                                <i class="bi bi-star me-1"></i> Avaliar
+                            </a>
+                        @endif
+                    </div>
                 </div>
             </div>
         @empty

@@ -6,16 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Avaliacao extends Model
+class AvaliacaoQuadra extends Model
 {
-    /** @use HasFactory<\Database\Factories\AvaliacaoFactory> */
+    /** @use HasFactory<\Database\Factories\AvaliacaoQuadraFactory> */
     use HasFactory;
 
-    protected $table = 'avaliacoes';
+    protected $table = 'avaliacoes_quadras';
 
     protected $fillable = [
+        'quadra_id',
         'sala_id',
-        'avaliado_id',
         'autor_id',
         'nota',
         'comentario',
@@ -28,14 +28,14 @@ class Avaliacao extends Model
         ];
     }
 
+    public function quadra(): BelongsTo
+    {
+        return $this->belongsTo(Quadra::class);
+    }
+
     public function sala(): BelongsTo
     {
         return $this->belongsTo(Sala::class);
-    }
-
-    public function avaliado(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'avaliado_id');
     }
 
     public function autor(): BelongsTo

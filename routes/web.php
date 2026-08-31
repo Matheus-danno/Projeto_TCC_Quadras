@@ -64,6 +64,9 @@ Route::get('/salas/{sala}/grupo', function (Sala $sala) {
 Route::get('/salas/{sala}/pagar-diferenca', function (Sala $sala) {
     return view('sala-pagar-diferenca', ['sala' => $sala]);
 })->middleware('auth')->name('salas.pagar-diferenca');
+Route::get('/salas/{sala}/avaliar', function (Sala $sala) {
+    return view('sala-avaliar', ['sala' => $sala]);
+})->middleware('auth')->name('salas.avaliar');
 Route::get('/reservas/{reserva}/pagamento', function (\App\Models\Reserva $reserva) {
     return view('reserva-pagamento', ['reserva' => $reserva]);
 })->middleware('auth')->name('reservas.pagamento');
