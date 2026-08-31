@@ -175,4 +175,18 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (! window.location.hash) {
+            return;
+        }
+
+        var gatilho = document.querySelector('#perfilTabs button[data-bs-target="' + window.location.hash + '"]');
+
+        if (gatilho) {
+            bootstrap.Tab.getOrCreateInstance(gatilho).show();
+        }
+    });
+</script>
+
 @endsection

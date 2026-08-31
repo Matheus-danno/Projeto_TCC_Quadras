@@ -24,9 +24,9 @@
             @endif
 
             <div class="navbar_icones">
-                <span class="navbar_icone-btn" title="Dúvidas">
+                <a href="{{ route('perfil') }}#ajuda" class="navbar_icone-btn" title="Ajuda">
                     <i class="bi bi-question-circle"></i>
-                </span>
+                </a>
                 <a href="{{ route('carrinho.index') }}" class="navbar_icone-btn" title="Carrinho">
                     <i class="bi bi-cart3"></i>
                 </a>
