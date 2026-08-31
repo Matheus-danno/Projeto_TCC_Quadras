@@ -3,6 +3,7 @@
 @section('titulo', 'Meu Perfil')
 
 @section('conteudo')
+    @include('partials.sub-nav')
 
 <style>
     .custom-tabs .nav-link {
