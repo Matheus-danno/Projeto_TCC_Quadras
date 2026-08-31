@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Perfil;
 
+use App\Enums\ReservaStatus;
 use App\Models\Cartao;
+use App\Models\Reserva;
+use App\Models\Sala;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -28,6 +31,58 @@ class Pagamentos extends Component
             ->orderByDesc('principal')
             ->orderByDesc('created_at')
             ->get();
+    }
+
+    /**
+     * Histórico de comprovantes de pagamento: reservas diretas de quadra pagas
+     * e participações pagas em salas, unificadas e ordenadas da mais recente.
+     */
+    #[Computed]
+    public function comprovantes()
+    {
+        $user = Auth::user();
+
+        $reservas = $user->reservas()
+            ->with('quadra')
+            ->where('status', ReservaStatus::Confirmada)
+            ->whereNotNull('metodo_pagamento')
+            ->get()
+            ->map(fn (Reserva $reserva) => [
+                'chave' => 'reserva-'.$reserva->id,
+                'data' => $reserva->updated_at,
+                'quadra' => $reserva->quadra?->nome ?? '—',
+                'referencia' => $reserva->codigoReserva(),
+                'forma_pagamento' => $this->rotuloFormaPagamento($reserva->metodo_pagamento),
+                'valor' => (float) ($reserva->quadra->valor_hora ?? 0),
+            ]);
+
+        $participacoes = $user->salas()
+            ->with('quadra')
+            ->withPivot(['forma_pagamento', 'valor_pago', 'updated_at'])
+            ->wherePivotNotNull('forma_pagamento')
+            ->get()
+            ->map(fn (Sala $sala) => [
+                'chave' => 'sala-'.$sala->id,
+                'data' => $sala->pivot->updated_at,
+                'quadra' => $sala->quadra?->nome ?? '—',
+                'referencia' => 'Sala: '.$sala->nome,
+                'forma_pagamento' => $this->rotuloFormaPagamento($sala->pivot->forma_pagamento),
+                'valor' => (float) ($sala->pivot->valor_pago ?? 0),
+            ]);
+
+        return $reservas->concat($participacoes)
+            ->sortByDesc('data')
+            ->values();
+    }
+
+    private function rotuloFormaPagamento(?string $forma): string
+    {
+        return match ($forma) {
+            'pix' => 'Pix',
+            'cartao' => 'Cartão de Crédito',
+            'credito' => 'Créditos AlugaQuadra',
+            default => 'Não informado',
+        };
     }
 
     public function abrirFormulario(): void

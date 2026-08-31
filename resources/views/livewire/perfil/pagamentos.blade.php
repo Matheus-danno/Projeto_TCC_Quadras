@@ -109,4 +109,29 @@
             <i class="bi bi-plus-circle me-1"></i> Adicionar cartão
         </button>
     @endif
+
+    <h6 class="fw-bold text-secondary mb-1 mt-5">Comprovantes de Pagamento</h6>
+    <p class="text-muted small mb-3">Histórico de pagamentos de quadras e salas</p>
+
+    <div class="d-flex flex-column gap-3">
+        @forelse ($this->comprovantes as $comprovante)
+            <div class="card border border-light-subtle shadow-none" style="border-radius: 15px;" wire:key="comprovante-{{ $comprovante['chave'] }}">
+                <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="grupo-avatar flex-shrink-0" style="background-color: #fff3e0;">
+                            <i class="bi bi-receipt text-orange fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color: #2D3748;">{{ $comprovante['quadra'] }}</h6>
+                            <p class="text-muted small mb-0">{{ $comprovante['referencia'] }} · {{ $comprovante['data']->format('d/m/Y \à\s H:i') }}</p>
+                            <p class="text-muted small mb-0">{{ $comprovante['forma_pagamento'] }}</p>
+                        </div>
+                    </div>
+                    <span class="fw-bold text-orange fs-5">R$ {{ number_format($comprovante['valor'], 2, ',', '.') }}</span>
+                </div>
+            </div>
+        @empty
+            <p class="text-muted small">Você ainda não tem comprovantes de pagamento.</p>
+        @endforelse
+    </div>
 </div>

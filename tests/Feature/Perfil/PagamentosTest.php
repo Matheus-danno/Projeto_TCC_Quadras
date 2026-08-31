@@ -2,6 +2,9 @@
 
 use App\Livewire\Perfil\Pagamentos;
 use App\Models\Cartao;
+use App\Models\Quadra;
+use App\Models\Reserva;
+use App\Models\Sala;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -130,4 +133,70 @@ test('usuário não consegue gerenciar cartão de outro usuário', function () {
         ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 
     expect($cartaoAlheio->fresh())->not->toBeNull();
+});
+
+test('reserva de quadra confirmada e paga aparece nos comprovantes', function () {
+    $user = User::factory()->create();
+    $quadra = Quadra::factory()->create(['nome' => 'Arena Central', 'valor_hora' => 120]);
+    $reserva = Reserva::factory()->create([
+        'user_id' => $user->id,
+        'quadra_id' => $quadra->id,
+        'status' => 'confirmada',
+        'metodo_pagamento' => 'pix',
+    ]);
+
+    $component = Livewire::actingAs($user)
+        ->test(Pagamentos::class)
+        ->assertSee('Arena Central')
+        ->assertSee($reserva->codigoReserva())
+        ->assertSee('Pix')
+        ->assertSee('120,00');
+
+    expect($component->instance()->comprovantes())->toHaveCount(1);
+});
+
+test('reserva pendente ou sem pagamento não aparece nos comprovantes', function () {
+    $user = User::factory()->create();
+    Reserva::factory()->create(['user_id' => $user->id, 'status' => 'pendente', 'metodo_pagamento' => null]);
+    Reserva::factory()->create(['user_id' => $user->id, 'status' => 'confirmada', 'metodo_pagamento' => null]);
+
+    $component = Livewire::actingAs($user)->test(Pagamentos::class);
+
+    expect($component->instance()->comprovantes())->toHaveCount(0);
+});
+
+test('participação paga em sala aparece nos comprovantes', function () {
+    $user = User::factory()->create();
+    $quadra = Quadra::factory()->create(['nome' => 'Quadra do Parque']);
+    $sala = Sala::factory()->create(['quadra_id' => $quadra->id, 'nome' => 'Racha de Sexta']);
+    $sala->participantes()->attach($user->id, ['forma_pagamento' => 'cartao', 'valor_pago' => 25.5]);
+
+    $component = Livewire::actingAs($user)
+        ->test(Pagamentos::class)
+        ->assertSee('Quadra do Parque')
+        ->assertSee('Racha de Sexta')
+        ->assertSee('Cartão de Crédito')
+        ->assertSee('25,50');
+
+    expect($component->instance()->comprovantes())->toHaveCount(1);
+});
+
+test('participação em sala sem pagamento registrado não aparece nos comprovantes', function () {
+    $user = User::factory()->create();
+    $sala = Sala::factory()->create();
+    $sala->participantes()->attach($user->id);
+
+    $component = Livewire::actingAs($user)->test(Pagamentos::class);
+
+    expect($component->instance()->comprovantes())->toHaveCount(0);
+});
+
+test('comprovantes de pagamento de outro usuário não aparecem', function () {
+    $user = User::factory()->create();
+    $outroUsuario = User::factory()->create();
+    Reserva::factory()->create(['user_id' => $outroUsuario->id, 'status' => 'confirmada', 'metodo_pagamento' => 'pix']);
+
+    $component = Livewire::actingAs($user)->test(Pagamentos::class);
+
+    expect($component->instance()->comprovantes())->toHaveCount(0);
 });
