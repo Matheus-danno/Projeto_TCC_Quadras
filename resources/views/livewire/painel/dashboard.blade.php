@@ -5,7 +5,7 @@
             <flux:text class="mt-1 text-base text-zinc-400">{{ __('Gerêncie suas quadras, reservas e faturamento em um só lugar.') }}</flux:text>
         </div>
 
-        <flux:button :href="route('painel.quadras')" variant="primary" color="orange" icon="plus" class="rounded-2xl" wire:navigate>
+        <flux:button :href="route('painel.quadras.criar')" variant="primary" color="orange" icon="plus" class="rounded-2xl" wire:navigate>
             {{ __('Cadastrar Quadra') }}
         </flux:button>
     </div>
