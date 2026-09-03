@@ -48,6 +48,8 @@ class Formulario extends Component
     /** @var array<int, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
     public array $novasFotos = [];
 
+    public ?string $bloqueioExclusao = null;
+
     public function mount(?Quadra $quadra = null): void
     {
         if ($quadra?->exists) {
@@ -174,6 +176,35 @@ class Formulario extends Component
         $this->reordenarFotos($this->quadra);
 
         $this->redirect(route('painel.quadras.show', $this->quadra), navigate: true);
+    }
+
+    public function pedirExclusao(): void
+    {
+        $this->authorize('delete', $this->quadra);
+
+        $this->bloqueioExclusao = $this->quadra->temReservaFutura()
+            ? __('Esta quadra tem reservas futuras (pendentes ou confirmadas) e não pode ser excluída. Cancele ou aguarde essas reservas antes de excluir.')
+            : null;
+
+        $this->modal('excluir-quadra')->show();
+    }
+
+    public function excluir(): void
+    {
+        $this->authorize('delete', $this->quadra);
+
+        if ($this->quadra->temReservaFutura()) {
+            $this->bloqueioExclusao = __('Esta quadra tem reservas futuras (pendentes ou confirmadas) e não pode ser excluída. Cancele ou aguarde essas reservas antes de excluir.');
+
+            return;
+        }
+
+        $this->quadra->delete();
+
+        $this->modal('excluir-quadra')->close();
+        $this->toast(__('Quadra excluída com sucesso.'), variant: 'success');
+
+        $this->redirect(route('painel.quadras'), navigate: true);
     }
 
     protected function reordenarFotos(Quadra $quadra): void

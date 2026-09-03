@@ -1,9 +1,11 @@
 <?php
 
 use App\Enums\Esporte;
+use App\Enums\ReservaStatus;
 use App\Livewire\Painel\Quadras\Formulario;
 use App\Models\Quadra;
 use App\Models\QuadraFoto;
+use App\Models\Reserva;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -187,4 +189,46 @@ test('dono não pode ultrapassar o limite de 8 fotos', function () {
         ->assertHasErrors(['novasFotos']);
 
     expect($quadra->fresh()->fotos)->toHaveCount(8);
+});
+
+test('dono exclui a quadra a partir do formulário de edição', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+
+    Livewire::actingAs($dono)
+        ->test(Formulario::class, ['quadra' => $quadra])
+        ->call('pedirExclusao')
+        ->call('excluir')
+        ->assertRedirect(route('painel.quadras'));
+
+    expect(Quadra::query()->find($quadra->id))->toBeNull();
+});
+
+test('exclusão pelo formulário é bloqueada quando a quadra tem reservas futuras', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->addDay()->toDateString(),
+        'status' => ReservaStatus::Confirmada,
+    ]);
+
+    $component = Livewire::actingAs($dono)
+        ->test(Formulario::class, ['quadra' => $quadra])
+        ->call('pedirExclusao')
+        ->call('excluir');
+
+    expect($component->get('bloqueioExclusao'))->not->toBeNull();
+    expect(Quadra::query()->find($quadra->id))->not->toBeNull();
+});
+
+test('dono não consegue excluir quadra de outro dono pelo formulário', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $outroDono = User::factory()->donoQuadra()->create();
+    $quadraAlheia = Quadra::factory()->create(['dono_id' => $outroDono->id]);
+
+    Livewire::actingAs($dono)
+        ->test(Formulario::class, ['quadra' => $quadraAlheia])
+        ->assertForbidden();
 });

@@ -4,14 +4,16 @@
             {{ $quadra ? __('Editar Quadra') : __('Cadastrar Nova Quadra') }}
         </flux:heading>
         <flux:text class="mt-1 text-base text-zinc-400">
-            {{ __('Preencha as informações abaixo para cadastrar sua quadra na plataforma.') }}
+            {{ $quadra ? $quadra->nome : __('Preencha as informações abaixo para cadastrar sua quadra na plataforma.') }}
         </flux:text>
     </div>
 
     <form wire:submit="salvar" class="flex flex-col gap-6">
         <flux:card class="rounded-2xl">
             <flux:heading size="lg">{{ __('Fotos da Quadra') }}</flux:heading>
-            <flux:text class="mb-4 text-zinc-400">{{ __('Adicione até 8 fotos. A primeira será a foto de capa.') }}</flux:text>
+            <flux:text class="mb-4 text-zinc-400">
+                {{ $quadra ? __('A primeira foto é a capa. Passe o mouse para remover.') : __('Adicione até 8 fotos. A primeira será a foto de capa.') }}
+            </flux:text>
 
             <div class="flex flex-wrap gap-4">
                 @if ($this->totalFotos() < 8)
@@ -107,19 +109,62 @@
             </div>
         </flux:card>
 
-        <div class="flex flex-col gap-3 sm:flex-row">
-            <flux:button
-                :href="$quadra ? route('painel.quadras.show', $quadra) : route('painel.quadras')"
-                variant="outline"
-                class="flex-1 rounded-xl !border-orange-300 !text-orange-600 hover:!bg-orange-50"
-                wire:navigate
-            >
-                {{ __('Cancelar') }}
-            </flux:button>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            @if ($quadra)
+                <flux:button
+                    type="button"
+                    variant="outline"
+                    class="rounded-xl !border-red-300 !text-red-600 hover:!bg-red-50"
+                    wire:click="pedirExclusao"
+                >
+                    {{ __('Excluir Quadra') }}
+                </flux:button>
+            @endif
 
-            <flux:button type="submit" variant="primary" color="orange" class="flex-[2] rounded-xl">
-                {{ $quadra ? __('Salvar Alterações') : __('Cadastrar Quadra') }}
-            </flux:button>
+            <div class="flex flex-col gap-3 sm:flex-row">
+                <flux:button
+                    :href="$quadra ? route('painel.quadras.show', $quadra) : route('painel.quadras')"
+                    variant="outline"
+                    class="rounded-xl !border-orange-300 !text-orange-600 hover:!bg-orange-50"
+                    wire:navigate
+                >
+                    {{ __('Cancelar') }}
+                </flux:button>
+
+                <flux:button type="submit" variant="primary" color="orange" class="rounded-xl">
+                    {{ $quadra ? __('Salvar Alterações') : __('Cadastrar Quadra') }}
+                </flux:button>
+            </div>
         </div>
     </form>
+
+    @if ($quadra)
+        <flux:modal name="excluir-quadra" class="w-full md:w-96">
+            <div class="flex flex-col gap-4">
+                <flux:heading size="lg">{{ __('Excluir quadra') }}</flux:heading>
+
+                @if ($bloqueioExclusao)
+                    <flux:text>{{ $bloqueioExclusao }}</flux:text>
+
+                    <div class="flex justify-end">
+                        <flux:modal.close>
+                            <flux:button variant="primary" color="orange" class="rounded-full">{{ __('Entendi') }}</flux:button>
+                        </flux:modal.close>
+                    </div>
+                @else
+                    <flux:text>{{ __('Tem certeza que deseja excluir esta quadra? Essa ação não pode ser desfeita.') }}</flux:text>
+
+                    <div class="flex justify-end gap-3">
+                        <flux:modal.close>
+                            <flux:button variant="outline" class="rounded-full !border-orange-300 !text-orange-600 hover:!bg-orange-50">
+                                {{ __('Cancelar') }}
+                            </flux:button>
+                        </flux:modal.close>
+
+                        <flux:button variant="danger" class="rounded-full" wire:click="excluir">{{ __('Excluir') }}</flux:button>
+                    </div>
+                @endif
+            </div>
+        </flux:modal>
+    @endif
 </div>
