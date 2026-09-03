@@ -5,12 +5,15 @@ namespace App\Livewire\Painel;
 use App\Enums\ReservaStatus;
 use App\Models\Quadra;
 use App\Models\Reserva;
+use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
+    use InteractsWithComponents;
+
     #[Computed]
     public function indicadores(): array
     {
@@ -47,6 +50,19 @@ class Dashboard extends Component
             ->orderBy('nome')
             ->limit(5)
             ->get();
+    }
+
+    public function cancelar(int $quadraId): void
+    {
+        $quadra = Quadra::findOrFail($quadraId);
+
+        $this->authorize('update', $quadra);
+
+        $quadra->update(['ativa' => false]);
+
+        $this->toast('Quadra cancelada.', variant: 'success');
+
+        unset($this->quadras);
     }
 
     public function render()
