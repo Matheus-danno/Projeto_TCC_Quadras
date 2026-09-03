@@ -8,11 +8,8 @@
     <body class="min-h-screen bg-zinc-50">
         <div class="border-b border-zinc-200 bg-white">
             <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-                <a href="{{ route('home') }}" class="flex items-center gap-2" wire:navigate>
-                    <span class="flex size-8 items-center justify-center rounded-md bg-orange-500 text-white">
-                        <x-app-logo-icon class="size-5 fill-current" />
-                    </span>
-                    <span class="text-lg font-bold text-zinc-900">{{ config('app.name') }}</span>
+                <a href="{{ route('home') }}" class="flex items-center" wire:navigate>
+                    <img src="{{ asset('imagens/tela_inicial/logo_login.png') }}" alt="{{ config('app.name') }}" class="h-8 w-auto">
                 </a>
 
                 <flux:dropdown position="bottom" align="end">
