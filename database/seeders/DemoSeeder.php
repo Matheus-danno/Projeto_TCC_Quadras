@@ -50,18 +50,20 @@ class DemoSeeder extends Seeder
         $outrosJogadores = User::factory()->count(4)->create();
 
         $quadras = collect([
-            ['nome' => 'Arena Vila Nova', 'endereco' => 'Rua das Palmeiras, 120', 'cidade' => 'Recife', 'bairro' => 'Boa Viagem', 'latitude' => -8.1225, 'longitude' => -34.9020, 'esporte' => Esporte::Futebol, 'valor_hora' => 90, 'cobertura' => false, 'descricao' => 'Gramado sintético, vestiário e estacionamento.'],
-            ['nome' => 'Quadra Central Futsal', 'endereco' => 'Av. Norte, 450', 'cidade' => 'Recife', 'bairro' => 'Casa Forte', 'latitude' => -8.0304, 'longitude' => -34.9137, 'esporte' => Esporte::Futsal, 'valor_hora' => 70, 'cobertura' => true, 'descricao' => 'Piso emborrachado, coberta, boa para jogos à noite.'],
-            ['nome' => 'Espaço Bela Vista Vôlei', 'endereco' => 'Rua da Praia, 88', 'cidade' => 'Olinda', 'bairro' => 'Bairro Novo', 'latitude' => -7.9964, 'longitude' => -34.8388, 'esporte' => Esporte::Volei, 'valor_hora' => 60, 'cobertura' => false, 'descricao' => 'Quadra de areia a poucos metros da praia.'],
-            ['nome' => 'Clube Recreativo Vôlei de Areia', 'endereco' => 'Rua dos Girassóis, 200', 'cidade' => 'Recife', 'bairro' => 'Madalena', 'latitude' => -8.0578, 'longitude' => -34.9134, 'esporte' => Esporte::VoleiPraia, 'valor_hora' => 65, 'cobertura' => false, 'descricao' => 'Caixa de areia oficial e chuveiro externo.'],
-            ['nome' => 'Tênis Clube Jardins', 'endereco' => 'Av. dos Ipês, 900', 'cidade' => 'Jaboatão dos Guararapes', 'bairro' => 'Piedade', 'latitude' => -8.1780, 'longitude' => -34.9280, 'esporte' => Esporte::Tenis, 'valor_hora' => 110, 'cobertura' => false, 'descricao' => 'Piso rápido, iluminação para jogos à noite.'],
-            ['nome' => 'Beach Arena Paiva', 'endereco' => 'Av. Beira Mar, 15', 'cidade' => 'Jaboatão dos Guararapes', 'bairro' => 'Candeias', 'latitude' => -8.1740, 'longitude' => -34.9060, 'esporte' => Esporte::BeachTennis, 'valor_hora' => 80, 'cobertura' => false, 'descricao' => 'Duas quadras de areia, bar no local.'],
+            ['nome' => 'Arena Vila Nova', 'endereco' => 'Rua das Palmeiras, 120', 'cidade' => 'Recife', 'bairro' => 'Boa Viagem', 'cep' => '51020-010', 'capacidade_maxima' => 22, 'latitude' => -8.1225, 'longitude' => -34.9020, 'esporte' => Esporte::Futebol, 'valor_hora' => 90, 'cobertura' => false, 'descricao' => 'Gramado sintético, vestiário e estacionamento.'],
+            ['nome' => 'Quadra Central Futsal', 'endereco' => 'Av. Norte, 450', 'cidade' => 'Recife', 'bairro' => 'Casa Forte', 'cep' => '52061-000', 'capacidade_maxima' => 10, 'latitude' => -8.0304, 'longitude' => -34.9137, 'esporte' => Esporte::Futsal, 'valor_hora' => 70, 'cobertura' => true, 'descricao' => 'Piso emborrachado, coberta, boa para jogos à noite.'],
+            ['nome' => 'Espaço Bela Vista Vôlei', 'endereco' => 'Rua da Praia, 88', 'cidade' => 'Olinda', 'bairro' => 'Bairro Novo', 'cep' => '53030-260', 'capacidade_maxima' => 12, 'latitude' => -7.9964, 'longitude' => -34.8388, 'esporte' => Esporte::Volei, 'valor_hora' => 60, 'cobertura' => false, 'descricao' => 'Quadra de areia a poucos metros da praia.'],
+            ['nome' => 'Clube Recreativo Vôlei de Areia', 'endereco' => 'Rua dos Girassóis, 200', 'cidade' => 'Recife', 'bairro' => 'Madalena', 'cep' => '50710-060', 'capacidade_maxima' => 8, 'latitude' => -8.0578, 'longitude' => -34.9134, 'esporte' => Esporte::VoleiPraia, 'valor_hora' => 65, 'cobertura' => false, 'descricao' => 'Caixa de areia oficial e chuveiro externo.'],
+            ['nome' => 'Tênis Clube Jardins', 'endereco' => 'Av. dos Ipês, 900', 'cidade' => 'Jaboatão dos Guararapes', 'bairro' => 'Piedade', 'cep' => '54410-010', 'capacidade_maxima' => 4, 'latitude' => -8.1780, 'longitude' => -34.9280, 'esporte' => Esporte::Tenis, 'valor_hora' => 110, 'cobertura' => false, 'descricao' => 'Piso rápido, iluminação para jogos à noite.'],
+            ['nome' => 'Beach Arena Paiva', 'endereco' => 'Av. Beira Mar, 15', 'cidade' => 'Jaboatão dos Guararapes', 'bairro' => 'Candeias', 'cep' => '54470-060', 'capacidade_maxima' => 4, 'latitude' => -8.1740, 'longitude' => -34.9060, 'esporte' => Esporte::BeachTennis, 'valor_hora' => 80, 'cobertura' => false, 'descricao' => 'Duas quadras de areia, bar no local.'],
         ])->map(fn (array $dados) => Quadra::create([
             'dono_id' => $dono->id,
             'nome' => $dados['nome'],
             'endereco' => $dados['endereco'],
             'cidade' => $dados['cidade'],
             'bairro' => $dados['bairro'],
+            'cep' => $dados['cep'],
+            'capacidade_maxima' => $dados['capacidade_maxima'],
             'latitude' => $dados['latitude'],
             'longitude' => $dados['longitude'],
             'esporte' => $dados['esporte']->value,
@@ -71,14 +73,16 @@ class DemoSeeder extends Seeder
         ]));
 
         $quadrasDono2 = collect([
-            ['nome' => 'Quadra Boa Vista Society', 'endereco' => 'Rua Treze de Maio, 340', 'cidade' => 'Caruaru', 'bairro' => 'Boa Vista', 'latitude' => -8.2850, 'longitude' => -35.9700, 'esporte' => Esporte::Futebol, 'valor_hora' => 75, 'cobertura' => false, 'descricao' => 'Gramado sintético novo, próximo ao centro.'],
-            ['nome' => 'Arena Estrela Tênis', 'endereco' => 'Av. Agamenon Magalhães, 510', 'cidade' => 'Caruaru', 'bairro' => 'Indianópolis', 'latitude' => -8.2700, 'longitude' => -35.9600, 'esporte' => Esporte::Tenis, 'valor_hora' => 60, 'cobertura' => true, 'descricao' => 'Quadra coberta com marcação oficial.'],
+            ['nome' => 'Quadra Boa Vista Society', 'endereco' => 'Rua Treze de Maio, 340', 'cidade' => 'Caruaru', 'bairro' => 'Boa Vista', 'cep' => '55010-140', 'capacidade_maxima' => 14, 'latitude' => -8.2850, 'longitude' => -35.9700, 'esporte' => Esporte::Futebol, 'valor_hora' => 75, 'cobertura' => false, 'descricao' => 'Gramado sintético novo, próximo ao centro.'],
+            ['nome' => 'Arena Estrela Tênis', 'endereco' => 'Av. Agamenon Magalhães, 510', 'cidade' => 'Caruaru', 'bairro' => 'Indianópolis', 'cep' => '55030-580', 'capacidade_maxima' => 4, 'latitude' => -8.2700, 'longitude' => -35.9600, 'esporte' => Esporte::Tenis, 'valor_hora' => 60, 'cobertura' => true, 'descricao' => 'Quadra coberta com marcação oficial.'],
         ])->map(fn (array $dados) => Quadra::create([
             'dono_id' => $outroDono->id,
             'nome' => $dados['nome'],
             'endereco' => $dados['endereco'],
             'cidade' => $dados['cidade'],
             'bairro' => $dados['bairro'],
+            'cep' => $dados['cep'],
+            'capacidade_maxima' => $dados['capacidade_maxima'],
             'latitude' => $dados['latitude'],
             'longitude' => $dados['longitude'],
             'esporte' => $dados['esporte']->value,
@@ -89,17 +93,19 @@ class DemoSeeder extends Seeder
 
         // Quadras em Bauru/SP, para testar a busca por geolocalização a partir daí.
         $quadrasBauru = collect([
-            ['nome' => 'Arena Bauru Centro', 'endereco' => 'Rua Batista de Carvalho, 500', 'cidade' => 'Bauru', 'bairro' => 'Centro', 'latitude' => -22.3155, 'longitude' => -49.0619, 'esporte' => Esporte::Futebol, 'valor_hora' => 85, 'cobertura' => false, 'descricao' => 'Gramado sintético no coração da cidade.'],
-            ['nome' => 'Ginásio Vila Falcão', 'endereco' => 'Av. Nações Unidas, 1200', 'cidade' => 'Bauru', 'bairro' => 'Vila Falcão', 'latitude' => -22.3389, 'longitude' => -49.0562, 'esporte' => Esporte::Futsal, 'valor_hora' => 68, 'cobertura' => true, 'descricao' => 'Quadra coberta com arquibancada.'],
-            ['nome' => 'Quadra Jardim Redentor', 'endereco' => 'Rua Aristides Marson, 300', 'cidade' => 'Bauru', 'bairro' => 'Jardim Redentor', 'latitude' => -22.2963, 'longitude' => -49.0329, 'esporte' => Esporte::Volei, 'valor_hora' => 55, 'cobertura' => false, 'descricao' => 'Piso emborrachado, bebedouro no local.'],
-            ['nome' => 'Clube Vila Universitária', 'endereco' => 'Av. Eng. Luiz Edmundo C. Coube, 890', 'cidade' => 'Bauru', 'bairro' => 'Vila Universitária', 'latitude' => -22.3548, 'longitude' => -49.0288, 'esporte' => Esporte::Tenis, 'valor_hora' => 95, 'cobertura' => false, 'descricao' => 'Perto da Unesp, iluminação noturna.'],
-            ['nome' => 'Espaço Altos da Cidade', 'endereco' => 'Rua Rio Branco, 1450', 'cidade' => 'Bauru', 'bairro' => 'Altos da Cidade', 'latitude' => -22.3097, 'longitude' => -49.0669, 'esporte' => Esporte::BeachTennis, 'valor_hora' => 72, 'cobertura' => false, 'descricao' => 'Caixa de areia nova, estacionamento próprio.'],
+            ['nome' => 'Arena Bauru Centro', 'endereco' => 'Rua Batista de Carvalho, 500', 'cidade' => 'Bauru', 'bairro' => 'Centro', 'cep' => '17010-100', 'capacidade_maxima' => 22, 'latitude' => -22.3155, 'longitude' => -49.0619, 'esporte' => Esporte::Futebol, 'valor_hora' => 85, 'cobertura' => false, 'descricao' => 'Gramado sintético no coração da cidade.'],
+            ['nome' => 'Ginásio Vila Falcão', 'endereco' => 'Av. Nações Unidas, 1200', 'cidade' => 'Bauru', 'bairro' => 'Vila Falcão', 'cep' => '17012-500', 'capacidade_maxima' => 10, 'latitude' => -22.3389, 'longitude' => -49.0562, 'esporte' => Esporte::Futsal, 'valor_hora' => 68, 'cobertura' => true, 'descricao' => 'Quadra coberta com arquibancada.'],
+            ['nome' => 'Quadra Jardim Redentor', 'endereco' => 'Rua Aristides Marson, 300', 'cidade' => 'Bauru', 'bairro' => 'Jardim Redentor', 'cep' => '17033-360', 'capacidade_maxima' => 12, 'latitude' => -22.2963, 'longitude' => -49.0329, 'esporte' => Esporte::Volei, 'valor_hora' => 55, 'cobertura' => false, 'descricao' => 'Piso emborrachado, bebedouro no local.'],
+            ['nome' => 'Clube Vila Universitária', 'endereco' => 'Av. Eng. Luiz Edmundo C. Coube, 890', 'cidade' => 'Bauru', 'bairro' => 'Vila Universitária', 'cep' => '17033-360', 'capacidade_maxima' => 4, 'latitude' => -22.3548, 'longitude' => -49.0288, 'esporte' => Esporte::Tenis, 'valor_hora' => 95, 'cobertura' => false, 'descricao' => 'Perto da Unesp, iluminação noturna.'],
+            ['nome' => 'Espaço Altos da Cidade', 'endereco' => 'Rua Rio Branco, 1450', 'cidade' => 'Bauru', 'bairro' => 'Altos da Cidade', 'cep' => '17012-070', 'capacidade_maxima' => 4, 'latitude' => -22.3097, 'longitude' => -49.0669, 'esporte' => Esporte::BeachTennis, 'valor_hora' => 72, 'cobertura' => false, 'descricao' => 'Caixa de areia nova, estacionamento próprio.'],
         ])->map(fn (array $dados) => Quadra::create([
             'dono_id' => $dono->id,
             'nome' => $dados['nome'],
             'endereco' => $dados['endereco'],
             'cidade' => $dados['cidade'],
             'bairro' => $dados['bairro'],
+            'cep' => $dados['cep'],
+            'capacidade_maxima' => $dados['capacidade_maxima'],
             'latitude' => $dados['latitude'],
             'longitude' => $dados['longitude'],
             'esporte' => $dados['esporte']->value,

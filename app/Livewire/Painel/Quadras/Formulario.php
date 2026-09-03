@@ -76,12 +76,12 @@ class Formulario extends Component
             'endereco' => ['required', 'string', 'max:255'],
             'bairro' => ['required', 'string', 'max:255'],
             'cidade' => ['required', 'string', 'max:255'],
-            'cep' => ['nullable', 'string', 'max:9'],
+            'cep' => ['required', 'string', 'max:9'],
             'esporte' => ['required', 'in:'.implode(',', array_column(Esporte::cases(), 'value'))],
             'valor_hora' => ['required', 'numeric', 'min:0.01'],
-            'capacidade_maxima' => ['nullable', 'integer', 'min:1'],
+            'capacidade_maxima' => ['required', 'integer', 'min:1'],
             'cobertura' => ['boolean'],
-            'descricao' => ['nullable', 'string', 'max:1000'],
+            'descricao' => ['required', 'string', 'max:1000'],
             'novasFotos' => ['array', 'max:8'],
             'novasFotos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ];
@@ -130,12 +130,12 @@ class Formulario extends Component
             'endereco' => $validated['endereco'],
             'bairro' => $validated['bairro'],
             'cidade' => $validated['cidade'],
-            'cep' => $validated['cep'] ?: null,
+            'cep' => $validated['cep'],
             'esporte' => $validated['esporte'],
             'valor_hora' => $validated['valor_hora'],
-            'capacidade_maxima' => $validated['capacidade_maxima'] ?: null,
+            'capacidade_maxima' => $validated['capacidade_maxima'],
             'cobertura' => $this->cobertura,
-            'descricao' => $validated['descricao'] ?: null,
+            'descricao' => $validated['descricao'],
         ];
 
         $coordenadas = $this->geocoder->geocodificar(

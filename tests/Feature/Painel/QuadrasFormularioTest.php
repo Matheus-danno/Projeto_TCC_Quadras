@@ -90,8 +90,11 @@ test('quando o endereço não é geocodificável a quadra é salva mesmo assim, 
         ->set('endereco', 'Endereço Inexistente, 0')
         ->set('bairro', 'Bairro Inexistente')
         ->set('cidade', 'Cidade Inexistente')
+        ->set('cep', '00000-000')
         ->set('esporte', Esporte::Futsal->value)
         ->set('valor_hora', '80.00')
+        ->set('capacidade_maxima', '10')
+        ->set('descricao', 'Quadra de teste')
         ->call('salvar')
         ->assertHasNoErrors();
 
@@ -109,7 +112,7 @@ test('cadastro de quadra exige campos obrigatórios e valor_hora numérico', fun
         ->test(Formulario::class)
         ->set('valor_hora', '-10')
         ->call('salvar')
-        ->assertHasErrors(['nome', 'endereco', 'cidade', 'bairro', 'esporte', 'valor_hora']);
+        ->assertHasErrors(['nome', 'endereco', 'cidade', 'bairro', 'cep', 'esporte', 'valor_hora', 'capacidade_maxima', 'descricao']);
 
     expect(Quadra::count())->toBe(0);
 });

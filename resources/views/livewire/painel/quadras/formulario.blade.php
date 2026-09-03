@@ -75,37 +75,37 @@
             <flux:heading size="lg" class="mb-4">{{ __('Informações da Quadra') }}</flux:heading>
 
             <div class="flex flex-col gap-4">
-                <flux:input wire:model="nome" :label="__('Nome da Quadra')" class="rounded-xl" placeholder="Ex: Arena Sports - Quadra 1" />
+                <flux:input wire:model="nome" :label="__('Nome da Quadra')" class="rounded-xl" placeholder="Ex: Arena Sports - Quadra 1" required />
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <flux:select wire:model="esporte" :label="__('Tipo de Esporte')" class="rounded-xl">
+                    <flux:select wire:model="esporte" :label="__('Tipo de Esporte')" class="rounded-xl" required>
                         <flux:select.option value="">{{ __('Selecione') }}</flux:select.option>
                         @foreach ($esportes as $opcao)
                             <flux:select.option value="{{ $opcao->value }}">{{ $opcao->label() }}</flux:select.option>
                         @endforeach
                     </flux:select>
 
-                    <flux:select wire:model="cobertura" :label="__('Cobertura')" class="rounded-xl">
+                    <flux:select wire:model="cobertura" :label="__('Cobertura')" class="rounded-xl" required>
                         <flux:select.option value="0">{{ __('Descoberta') }}</flux:select.option>
                         <flux:select.option value="1">{{ __('Coberta') }}</flux:select.option>
                     </flux:select>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <flux:input wire:model="valor_hora" :label="__('Valor por Hora (R$)')" class="rounded-xl" type="number" step="0.01" min="0" placeholder="50,00" />
-                    <flux:input wire:model="capacidade_maxima" :label="__('Capacidade Máxima')" class="rounded-xl" type="number" min="1" placeholder="Nº de jogadores" />
+                    <flux:input wire:model="valor_hora" :label="__('Valor por Hora (R$)')" class="rounded-xl" type="number" step="0.01" min="0" placeholder="50,00" required />
+                    <flux:input wire:model="capacidade_maxima" :label="__('Capacidade Máxima')" class="rounded-xl" type="number" min="1" placeholder="Nº de jogadores" required />
                 </div>
 
-                <flux:input wire:model="endereco" :label="__('Endereço da Quadra')" class="rounded-xl" placeholder="Rua, número - Bairro" />
+                <flux:input wire:model="endereco" :label="__('Endereço da Quadra')" class="rounded-xl" placeholder="Rua, número - Bairro" required />
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <flux:input wire:model="cidade" :label="__('Cidade')" class="rounded-xl" placeholder="Bauru" />
-                    <flux:input wire:model="cep" :label="__('CEP')" class="rounded-xl" placeholder="00000-000" />
+                    <flux:input wire:model="cidade" :label="__('Cidade')" class="rounded-xl" placeholder="Bauru" required />
+                    <flux:input wire:model="cep" :label="__('CEP')" class="rounded-xl" placeholder="00000-000" required />
                 </div>
 
-                <flux:input wire:model="bairro" :label="__('Bairro')" class="rounded-xl" placeholder="Ex: Centro" />
+                <flux:input wire:model="bairro" :label="__('Bairro')" class="rounded-xl" placeholder="Ex: Centro" required />
 
-                <flux:textarea wire:model="descricao" :label="__('Descrição / Comodidades')" class="rounded-xl" rows="3" placeholder="Ex: Quadra de Areia | Descoberta | Bar | Banheiro | Vestiário" />
+                <flux:textarea wire:model="descricao" :label="__('Descrição / Comodidades')" class="rounded-xl" rows="3" placeholder="Ex: Quadra de Areia | Descoberta | Bar | Banheiro | Vestiário" required />
             </div>
         </flux:card>
 
