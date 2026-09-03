@@ -30,6 +30,7 @@ class Listagem extends Component
             ->when($this->filtroStatus === 'inativa', fn ($query) => $query->where('ativa', false))
             ->with('fotos')
             ->withCount('reservas')
+            ->withAvg('avaliacoes', 'nota')
             ->orderBy('nome')
             ->get();
     }
@@ -42,7 +43,7 @@ class Listagem extends Component
 
         $quadra->update(['ativa' => false]);
 
-        $this->toast('Quadra cancelada.', variant: 'success');
+        $this->toast('Quadra desativada.', variant: 'success');
 
         unset($this->quadras);
     }

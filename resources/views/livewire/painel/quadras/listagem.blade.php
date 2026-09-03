@@ -52,7 +52,11 @@
 
                         <div>
                             <p class="font-semibold text-orange-500">R$ {{ number_format($quadra->valor_hora, 2, ',', '.') }} / {{ __('hora') }}</p>
-                            <flux:text class="text-sm text-zinc-400">{{ trans_choice(':count reserva|:count reservas', $quadra->reservas_count, ['count' => $quadra->reservas_count]) }}</flux:text>
+                            <flux:text class="flex items-center gap-1 text-sm text-zinc-400">
+                                {{ trans_choice(':count reserva|:count reservas', $quadra->reservas_count, ['count' => $quadra->reservas_count]) }}
+                                <flux:icon.star variant="mini" class="text-amber-400" />
+                                {{ number_format($quadra->avaliacoes_avg_nota ?? 5, 1, ',', '.') }}
+                            </flux:text>
                         </div>
 
                         <div class="flex flex-wrap items-center gap-2">
@@ -85,7 +89,7 @@
                                     class="text-xs font-semibold text-amber-600 hover:underline"
                                     wire:click="cancelar({{ $quadra->id }})"
                                 >
-                                    {{ __('Cancelar') }}
+                                    {{ __('Desativar Quadra') }}
                                 </button>
                             @else
                                 <button

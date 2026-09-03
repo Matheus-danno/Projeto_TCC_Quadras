@@ -91,7 +91,16 @@
                                                 class="rounded-full !border-red-300 !text-red-600 hover:!bg-red-50"
                                                 wire:click="cancelar({{ $quadra->id }})"
                                             >
-                                                {{ __('Cancelar') }}
+                                                {{ __('Desativar Quadra') }}
+                                            </flux:button>
+                                        @else
+                                            <flux:button
+                                                size="sm"
+                                                variant="outline"
+                                                class="rounded-full !border-green-300 !text-green-600 hover:!bg-green-50"
+                                                wire:click="ativar({{ $quadra->id }})"
+                                            >
+                                                {{ __('Ativar Quadra') }}
                                             </flux:button>
                                         @endif
                                     </div>

@@ -60,7 +60,20 @@ class Dashboard extends Component
 
         $quadra->update(['ativa' => false]);
 
-        $this->toast('Quadra cancelada.', variant: 'success');
+        $this->toast('Quadra desativada.', variant: 'success');
+
+        unset($this->quadras);
+    }
+
+    public function ativar(int $quadraId): void
+    {
+        $quadra = Quadra::findOrFail($quadraId);
+
+        $this->authorize('update', $quadra);
+
+        $quadra->update(['ativa' => true]);
+
+        $this->toast('Quadra ativada novamente.', variant: 'success');
 
         unset($this->quadras);
     }
