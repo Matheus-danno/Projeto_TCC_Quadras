@@ -6,8 +6,16 @@ use App\Models\Quadra;
 use App\Models\QuadraFoto;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+
+function fakeNominatim(?array $resultado): void
+{
+    Http::fake([
+        config('services.nominatim.url').'*' => Http::response($resultado === null ? [] : [$resultado]),
+    ]);
+}
 
 test('rota painel.quadras.criar renderiza o formulário de cadastro', function () {
     $dono = User::factory()->donoQuadra()->create();
@@ -31,6 +39,7 @@ test('rota painel.quadras.editar renderiza o formulário preenchido', function (
 
 test('dono consegue cadastrar uma nova quadra com foto de capa', function () {
     Storage::fake('public');
+    fakeNominatim(['lat' => '-8.0476', 'lon' => '-34.8770']);
 
     $dono = User::factory()->donoQuadra()->create();
 
@@ -61,9 +70,34 @@ test('dono consegue cadastrar uma nova quadra com foto de capa', function () {
         ->and($quadra->capacidade_maxima)->toBe(10)
         ->and($quadra->cep)->toBe('50000-000')
         ->and($quadra->fotos)->toHaveCount(1)
-        ->and($quadra->fotoCapa()->capa)->toBeTrue();
+        ->and($quadra->fotoCapa()->capa)->toBeTrue()
+        ->and((float) $quadra->latitude)->toBe(-8.0476)
+        ->and((float) $quadra->longitude)->toBe(-34.8770);
 
     Storage::disk('public')->assertExists($quadra->fotos->first()->caminho);
+});
+
+test('quando o endereço não é geocodificável a quadra é salva mesmo assim, sem coordenadas', function () {
+    fakeNominatim(null);
+
+    $dono = User::factory()->donoQuadra()->create();
+
+    Livewire::actingAs($dono)
+        ->test(Formulario::class)
+        ->set('nome', 'Arena Teste')
+        ->set('endereco', 'Endereço Inexistente, 0')
+        ->set('bairro', 'Bairro Inexistente')
+        ->set('cidade', 'Cidade Inexistente')
+        ->set('esporte', Esporte::Futsal->value)
+        ->set('valor_hora', '80.00')
+        ->call('salvar')
+        ->assertHasNoErrors();
+
+    $quadra = Quadra::first();
+
+    expect($quadra)->not->toBeNull()
+        ->and($quadra->latitude)->toBeNull()
+        ->and($quadra->longitude)->toBeNull();
 });
 
 test('cadastro de quadra exige campos obrigatórios e valor_hora numérico', function () {
@@ -79,6 +113,8 @@ test('cadastro de quadra exige campos obrigatórios e valor_hora numérico', fun
 });
 
 test('dono edita a própria quadra', function () {
+    fakeNominatim(['lat' => '-8.0476', 'lon' => '-34.8770']);
+
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'nome' => 'Nome Antigo']);
 

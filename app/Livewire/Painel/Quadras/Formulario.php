@@ -5,13 +5,23 @@ namespace App\Livewire\Painel\Quadras;
 use App\Enums\Esporte;
 use App\Models\Quadra;
 use App\Models\QuadraFoto;
+use App\Services\Geocoding\NominatimClient;
+use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class Formulario extends Component
 {
+    use InteractsWithComponents;
     use WithFileUploads;
+
+    protected NominatimClient $geocoder;
+
+    public function boot(NominatimClient $geocoder): void
+    {
+        $this->geocoder = $geocoder;
+    }
 
     public ?Quadra $quadra = null;
 
@@ -125,6 +135,19 @@ class Formulario extends Component
             'cobertura' => $this->cobertura,
             'descricao' => $validated['descricao'] ?: null,
         ];
+
+        $coordenadas = $this->geocoder->geocodificar(
+            trim("{$validated['endereco']}, {$validated['bairro']}, {$validated['cidade']}")
+        );
+
+        if ($coordenadas !== null) {
+            [$dados['latitude'], $dados['longitude']] = $coordenadas;
+        } elseif (! $this->quadra) {
+            $this->toast(
+                __('Não foi possível localizar o endereço automaticamente. A quadra pode não aparecer em buscas por proximidade.'),
+                variant: 'warning',
+            );
+        }
 
         if ($this->quadra) {
             $this->authorize('update', $this->quadra);

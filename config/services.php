@@ -40,4 +40,9 @@ return [
         'user_agent' => env('OVERPASS_USER_AGENT', 'projetoTCC/1.0'),
     ],
 
+    'nominatim' => [
+        'url' => env('NOMINATIM_API_URL', 'https://nominatim.openstreetmap.org/search'),
+        'user_agent' => env('NOMINATIM_USER_AGENT', 'projetoTCC/1.0'),
+    ],
+
 ];
