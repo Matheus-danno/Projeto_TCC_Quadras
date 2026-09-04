@@ -196,10 +196,6 @@
                             </flux:text>
                         </div>
                     @endif
-                    <div class="flex items-center justify-between gap-3">
-                        <flux:text class="text-zinc-400">{{ __('Código') }}</flux:text>
-                        <flux:text class="text-right font-medium text-zinc-900">{{ $reserva->codigoReserva() }}</flux:text>
-                    </div>
                 </div>
 
                 @if ($reserva->user?->telefone || $reserva->user?->email)
@@ -217,6 +213,16 @@
                             </div>
                         @endif
                     </div>
+                @endif
+
+                @if ($reserva->user)
+                    <form wire:submit="enviarMensagem" class="flex flex-col gap-2 border-t border-zinc-100 pt-3">
+                        <flux:text class="text-sm font-medium text-zinc-700">{{ __('Enviar mensagem para o cliente') }}</flux:text>
+                        <flux:textarea wire:model="novaMensagem" class="rounded-xl" rows="3" placeholder="{{ __('Digite aqui a sua mensagem') }}" />
+                        <flux:button type="submit" variant="primary" color="orange" class="w-fit rounded-full">
+                            {{ __('Enviar mensagem') }}
+                        </flux:button>
+                    </form>
                 @endif
 
                 <div class="flex flex-col gap-2 sm:flex-row">
@@ -238,15 +244,46 @@
 
     <flux:modal name="cancelar-reserva" class="w-full md:w-96">
         @if ($this->reservaSelecionada)
+            @php $reservaCancelar = $this->reservaSelecionada; @endphp
             <div class="flex flex-col gap-4">
-                <flux:heading size="lg">{{ __('Cancelar reserva?') }}</flux:heading>
-                <flux:text>
-                    {{ __('Tem certeza que deseja cancelar a reserva de :cliente para :quadra, em :data? Essa ação não pode ser desfeita.', [
-                        'cliente' => $this->reservaSelecionada->nome_cliente,
-                        'quadra' => $this->reservaSelecionada->quadra->nome,
-                        'data' => $this->reservaSelecionada->data->format('d/m/Y'),
-                    ]) }}
-                </flux:text>
+                <div class="flex items-start justify-between">
+                    <flux:icon.exclamation-circle class="size-8 rounded-lg bg-red-50 p-1.5 text-red-500" />
+                    <flux:modal.close>
+                        <flux:icon.x-mark class="size-4 cursor-pointer text-zinc-400 hover:text-zinc-600" />
+                    </flux:modal.close>
+                </div>
+
+                <div>
+                    <flux:heading size="lg">{{ __('Cancelar Reserva?') }}</flux:heading>
+                    <flux:text class="mt-1">
+                        {{ __('Você está cancelando a reserva de :cliente para :quadra, em :data, :hora. Essa ação não poderá ser desfeita.', [
+                            'cliente' => $reservaCancelar->nome_cliente,
+                            'quadra' => $reservaCancelar->quadra->nome,
+                            'data' => $reservaCancelar->data->format('d/m/Y'),
+                            'hora' => substr($reservaCancelar->hora_inicio, 0, 5),
+                        ]) }}
+                    </flux:text>
+                </div>
+
+                <flux:textarea
+                    wire:model="motivoCancelamento"
+                    :label="__('Motivo do cancelamento')"
+                    class="rounded-xl"
+                    rows="3"
+                    placeholder="{{ __('Ex: Solicitação via telefone pelo cliente.') }}"
+                />
+
+                @if ($reservaCancelar->user)
+                    <flux:checkbox wire:model="notificarCliente" :label="__('Notificar cliente')" />
+                @endif
+
+                @if ($reservaCancelar->status === App\Enums\ReservaStatus::Confirmada && $reservaCancelar->user)
+                    <flux:text class="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                        {{ __('Reembolso automático de :valor será processado para o cliente.', [
+                            'valor' => 'R$ '.number_format($reservaCancelar->quadra->valor_hora, 2, ',', '.'),
+                        ]) }}
+                    </flux:text>
+                @endif
 
                 <div class="flex justify-end gap-3">
                     <flux:modal.close>

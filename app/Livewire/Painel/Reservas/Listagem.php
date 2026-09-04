@@ -3,6 +3,7 @@
 namespace App\Livewire\Painel\Reservas;
 
 use App\Enums\ReservaStatus;
+use App\Models\Conversa;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use Flux\Concerns\InteractsWithComponents;
@@ -23,6 +24,12 @@ class Listagem extends Component
     public string $aba = 'todas';
 
     public ?int $reservaSelecionadaId = null;
+
+    public string $motivoCancelamento = '';
+
+    public bool $notificarCliente = true;
+
+    public string $novaMensagem = '';
 
     #[Computed]
     public function quadras(): Collection
@@ -111,6 +118,8 @@ class Listagem extends Component
         $this->authorize('update', $reserva);
 
         $this->reservaSelecionadaId = $reservaId;
+        $this->motivoCancelamento = '';
+        $this->notificarCliente = true;
 
         $this->modal('cancelar-reserva')->show();
     }
@@ -134,12 +143,43 @@ class Listagem extends Component
 
     public function cancelar(): void
     {
-        $reserva = Reserva::findOrFail($this->reservaSelecionadaId);
+        $reserva = Reserva::with(['quadra', 'user'])->findOrFail($this->reservaSelecionadaId);
 
         $this->authorize('update', $reserva);
 
         if ($reserva->status !== ReservaStatus::Cancelada) {
-            $reserva->update(['status' => ReservaStatus::Cancelada]);
+            // Reembolso automático em crédito, mesmo mecanismo usado quando o
+            // próprio jogador cancela uma reserva confirmada (MinhasReservas::cancelar()).
+            if ($reserva->status === ReservaStatus::Confirmada && $reserva->user) {
+                $reserva->user->increment('saldo_creditos', (float) ($reserva->quadra?->valor_hora ?? 0));
+            }
+
+            $reserva->update([
+                'status' => ReservaStatus::Cancelada,
+                'cancelamento_tipo' => $reserva->status === ReservaStatus::Confirmada && $reserva->user ? 'credito' : null,
+                'motivo_cancelamento' => trim($this->motivoCancelamento) ?: null,
+            ]);
+
+            if ($this->notificarCliente && $reserva->user) {
+                $conversa = Conversa::firstOrCreate([
+                    'quadra_id' => $reserva->quadra_id,
+                    'jogador_id' => $reserva->user_id,
+                ]);
+
+                $texto = __('Sua reserva de :data às :hora foi cancelada.', [
+                    'data' => $reserva->data->format('d/m/Y'),
+                    'hora' => substr($reserva->hora_inicio, 0, 5),
+                ]);
+
+                if (trim($this->motivoCancelamento)) {
+                    $texto .= ' '.__('Motivo: :motivo', ['motivo' => trim($this->motivoCancelamento)]);
+                }
+
+                $conversa->mensagens()->create([
+                    'user_id' => auth()->id(),
+                    'texto' => $texto,
+                ]);
+            }
         }
 
         $this->modal('cancelar-reserva')->close();
@@ -147,6 +187,35 @@ class Listagem extends Component
 
         $this->reservaSelecionadaId = null;
         unset($this->reservas);
+    }
+
+    public function enviarMensagem(): void
+    {
+        $reserva = Reserva::findOrFail($this->reservaSelecionadaId);
+
+        $this->authorize('update', $reserva);
+
+        abort_unless($reserva->user_id, 404);
+
+        $validated = $this->validate([
+            'novaMensagem' => ['required', 'string', 'max:500'],
+        ], [
+            'novaMensagem.required' => __('Escreva uma mensagem antes de enviar.'),
+            'novaMensagem.max' => __('A mensagem pode ter no máximo 500 caracteres.'),
+        ]);
+
+        $conversa = Conversa::firstOrCreate([
+            'quadra_id' => $reserva->quadra_id,
+            'jogador_id' => $reserva->user_id,
+        ]);
+
+        $conversa->mensagens()->create([
+            'user_id' => auth()->id(),
+            'texto' => trim($validated['novaMensagem']),
+        ]);
+
+        $this->novaMensagem = '';
+        $this->toast(__('Mensagem enviada.'), variant: 'success');
     }
 
     public function render()

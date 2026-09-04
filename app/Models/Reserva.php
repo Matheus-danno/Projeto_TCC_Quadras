@@ -31,6 +31,7 @@ class Reserva extends Model
         'status',
         'metodo_pagamento',
         'cancelamento_tipo',
+        'motivo_cancelamento',
     ];
 
     protected function casts(): array

@@ -2,6 +2,7 @@
 
 use App\Enums\ReservaStatus;
 use App\Livewire\Painel\Reservas\Listagem;
+use App\Models\Conversa;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\User;
@@ -58,6 +59,130 @@ test('dono cancela uma reserva pendente ou confirmada', function () {
         ->call('cancelar');
 
     expect($reserva->fresh()->status)->toBe(ReservaStatus::Cancelada);
+});
+
+test('cancelar uma reserva confirmada credita o valor da quadra ao cliente automaticamente', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $cliente = User::factory()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 90]);
+    $reserva = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
+        'status' => ReservaStatus::Confirmada,
+    ]);
+
+    Livewire::actingAs($dono)
+        ->test(Listagem::class)
+        ->call('pedirCancelamento', $reserva->id)
+        ->set('motivoCancelamento', 'Manutenção na quadra.')
+        ->call('cancelar');
+
+    expect($reserva->fresh()->status)->toBe(ReservaStatus::Cancelada)
+        ->and($reserva->fresh()->cancelamento_tipo)->toBe('credito')
+        ->and($reserva->fresh()->motivo_cancelamento)->toBe('Manutenção na quadra.')
+        ->and((float) $cliente->fresh()->saldo_creditos)->toBe(90.0);
+});
+
+test('cancelar uma reserva pendente não gera credito', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $cliente = User::factory()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 90]);
+    $reserva = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
+        'status' => ReservaStatus::Pendente,
+    ]);
+
+    Livewire::actingAs($dono)
+        ->test(Listagem::class)
+        ->call('pedirCancelamento', $reserva->id)
+        ->call('cancelar');
+
+    expect($reserva->fresh()->status)->toBe(ReservaStatus::Cancelada)
+        ->and($reserva->fresh()->cancelamento_tipo)->toBeNull()
+        ->and((float) $cliente->fresh()->saldo_creditos)->toBe(0.0);
+});
+
+test('cancelar notificando o cliente cria uma mensagem na conversa', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $cliente = User::factory()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+    $reserva = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
+        'status' => ReservaStatus::Confirmada,
+    ]);
+
+    Livewire::actingAs($dono)
+        ->test(Listagem::class)
+        ->call('pedirCancelamento', $reserva->id)
+        ->set('notificarCliente', true)
+        ->call('cancelar');
+
+    $conversa = Conversa::where('quadra_id', $quadra->id)->where('jogador_id', $cliente->id)->first();
+
+    expect($conversa)->not->toBeNull()
+        ->and($conversa->mensagens)->toHaveCount(1);
+});
+
+test('cancelar sem marcar notificar cliente não cria mensagem', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $cliente = User::factory()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+    $reserva = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
+        'status' => ReservaStatus::Confirmada,
+    ]);
+
+    Livewire::actingAs($dono)
+        ->test(Listagem::class)
+        ->call('pedirCancelamento', $reserva->id)
+        ->set('notificarCliente', false)
+        ->call('cancelar');
+
+    expect(Conversa::where('quadra_id', $quadra->id)->where('jogador_id', $cliente->id)->exists())->toBeFalse();
+});
+
+test('dono envia mensagem para o cliente a partir dos detalhes da reserva', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $cliente = User::factory()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+    $reserva = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
+        'status' => ReservaStatus::Confirmada,
+    ]);
+
+    Livewire::actingAs($dono)
+        ->test(Listagem::class)
+        ->call('verDetalhes', $reserva->id)
+        ->set('novaMensagem', 'Olá, tudo certo para o seu horário.')
+        ->call('enviarMensagem')
+        ->assertHasNoErrors();
+
+    $conversa = Conversa::where('quadra_id', $quadra->id)->where('jogador_id', $cliente->id)->first();
+
+    expect($conversa)->not->toBeNull()
+        ->and($conversa->mensagens->first()->texto)->toBe('Olá, tudo certo para o seu horário.');
+});
+
+test('enviar mensagem vazia é rejeitado', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $cliente = User::factory()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+    $reserva = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
+        'status' => ReservaStatus::Confirmada,
+    ]);
+
+    Livewire::actingAs($dono)
+        ->test(Listagem::class)
+        ->call('verDetalhes', $reserva->id)
+        ->set('novaMensagem', '')
+        ->call('enviarMensagem')
+        ->assertHasErrors(['novaMensagem']);
 });
 
 test('dono vê os detalhes de uma reserva das próprias quadras', function () {
