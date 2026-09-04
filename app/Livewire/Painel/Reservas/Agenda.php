@@ -6,12 +6,15 @@ use App\Enums\ReservaStatus;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use Carbon\Carbon;
+use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Agenda extends Component
 {
+    use InteractsWithComponents;
+
     /**
      * Horários de início possíveis para uma reserva (quadras abrem 07h, fecham
      * 22h), mesma janela usada em Quadras\Listagem::horariosDisponiveis().
@@ -24,13 +27,14 @@ class Agenda extends Component
 
     public string $diaSelecionado;
 
-    public string $quadraId = '';
+    public ?int $slotQuadraId = null;
+
+    public ?string $slotHorario = null;
 
     public function mount(): void
     {
         $this->mesAtual = now()->startOfMonth()->toDateString();
         $this->diaSelecionado = now()->toDateString();
-        $this->quadraId = (string) ($this->quadras->first()?->id ?? '');
     }
 
     #[Computed]
@@ -93,35 +97,51 @@ class Agenda extends Component
     }
 
     /**
-     * @return list<array{inicio: string, ocupado: bool}>
+     * Grade do dia selecionado: uma linha por horário, uma coluna por quadra
+     * (mesma janela de horários usada em Quadras\Listagem::horariosDisponiveis()),
+     * para o dono comparar a ocupação de todas as quadras de uma vez.
+     *
+     * @return list<array{inicio: string, celulas: list<array{quadraId: int, ocupado: bool, status: ?ReservaStatus, cliente: ?string}>}>
      */
     #[Computed]
-    public function horariosDoDia(): array
+    public function gradeHorarios(): array
     {
-        if (! $this->quadraId) {
+        if ($this->quadras->isEmpty()) {
             return [];
         }
 
-        $reservasDaQuadra = Reserva::query()
-            ->where('quadra_id', $this->quadraId)
+        $reservasDoDiaPorQuadra = Reserva::query()
+            ->whereIn('quadra_id', $this->quadras->pluck('id'))
             ->whereDate('data', $this->diaSelecionado)
             ->where('status', '!=', ReservaStatus::Cancelada)
-            ->get();
+            ->get()
+            ->groupBy('quadra_id');
 
-        $horarios = [];
+        $linhas = [];
 
         for ($hora = self::HORA_ABERTURA; $hora < self::HORA_FECHAMENTO; $hora++) {
             $inicio = sprintf('%02d:00', $hora);
             $fim = sprintf('%02d:00', $hora + 1);
 
-            $ocupado = $reservasDaQuadra->contains(
-                fn (Reserva $reserva) => $reserva->hora_inicio < $fim && $reserva->hora_fim > $inicio
-            );
+            $celulas = [];
 
-            $horarios[] = ['inicio' => $inicio, 'ocupado' => $ocupado];
+            foreach ($this->quadras as $quadra) {
+                $reserva = $reservasDoDiaPorQuadra
+                    ->get($quadra->id, collect())
+                    ->first(fn (Reserva $r) => $r->hora_inicio < $fim && $r->hora_fim > $inicio);
+
+                $celulas[] = [
+                    'quadraId' => $quadra->id,
+                    'ocupado' => (bool) $reserva,
+                    'status' => $reserva?->status,
+                    'cliente' => $reserva?->nome_cliente,
+                ];
+            }
+
+            $linhas[] = ['inicio' => $inicio, 'celulas' => $celulas];
         }
 
-        return $horarios;
+        return $linhas;
     }
 
     public function mudarMes(int $delta): void
@@ -132,6 +152,14 @@ class Agenda extends Component
     public function selecionarDia(string $data): void
     {
         $this->diaSelecionado = $data;
+    }
+
+    public function abrirAgendamento(int $quadraId, string $horario): void
+    {
+        $this->slotQuadraId = $quadraId;
+        $this->slotHorario = $horario;
+
+        $this->modal('agendar-horario')->show();
     }
 
     public function render()

@@ -61,36 +61,64 @@
     <flux:card class="rounded-2xl">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <flux:heading size="lg">{{ __('Horários disponíveis') }}</flux:heading>
+                <flux:heading size="lg">{{ __('Grade de horários') }}</flux:heading>
                 <flux:text class="text-zinc-400">
-                    {{ $this->quadras->firstWhere('id', (int) $quadraId)?->nome }} - {{ \Illuminate\Support\Carbon::parse($diaSelecionado)->format('d/m/Y') }}
+                    {{ \Illuminate\Support\Carbon::parse($diaSelecionado)->format('d/m/Y') }}
                 </flux:text>
             </div>
 
-            <flux:select wire:model.live="quadraId" class="w-56 rounded-full">
-                @foreach ($this->quadras as $quadra)
-                    <flux:select.option value="{{ $quadra->id }}">{{ $quadra->nome }}</flux:select.option>
-                @endforeach
-            </flux:select>
+            <div class="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm border border-green-300 bg-green-100"></span>{{ __('Confirmada') }}</span>
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm border border-amber-300 bg-amber-100"></span>{{ __('Pendente') }}</span>
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm border border-zinc-200"></span>{{ __('Livre') }}</span>
+            </div>
         </div>
 
-        @if (empty($this->horariosDoDia))
-            <flux:text class="mt-4 text-zinc-400">{{ __('Cadastre uma quadra para ver os horários.') }}</flux:text>
+        @if (empty($this->gradeHorarios))
+            <flux:text class="mt-4 text-zinc-400">{{ __('Cadastre uma quadra para ver a grade de horários.') }}</flux:text>
         @else
-            <div class="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-7">
-                @foreach ($this->horariosDoDia as $horario)
-                    <div
-                        class="rounded-full border px-3 py-1.5 text-center text-sm
-                            {{ $horario['ocupado'] ? 'border-zinc-300 bg-zinc-200 text-zinc-500' : 'border-zinc-200 text-zinc-700' }}"
-                    >
-                        {{ $horario['inicio'] }}
-                    </div>
-                @endforeach
-            </div>
-
-            <div class="mt-3 flex items-center gap-4 text-sm text-zinc-500">
-                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-zinc-300"></span>{{ __('Ocupado') }}</span>
-                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm border border-zinc-300"></span>{{ __('Livre') }}</span>
+            <div class="mt-4 overflow-x-auto">
+                <table class="w-full border-separate border-spacing-1">
+                    <thead>
+                        <tr>
+                            <th class="sticky left-0 z-10 bg-white"></th>
+                            @foreach ($this->quadras as $quadra)
+                                <th class="min-w-32 px-1 pb-1 text-left text-xs font-semibold text-zinc-500">{{ $quadra->nome }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($this->gradeHorarios as $linha)
+                            <tr wire:key="linha-{{ $linha['inicio'] }}">
+                                <td class="sticky left-0 z-10 bg-white px-1 text-xs font-semibold whitespace-nowrap text-zinc-500">
+                                    {{ $linha['inicio'] }}
+                                </td>
+                                @foreach ($linha['celulas'] as $celula)
+                                    <td class="px-1 py-0.5">
+                                        @if ($celula['ocupado'])
+                                            <div
+                                                class="rounded-lg border px-2 py-1.5 text-center text-xs
+                                                    @if ($celula['status'] === App\Enums\ReservaStatus::Confirmada) border-green-300 bg-green-50 text-green-700
+                                                    @else border-amber-300 bg-amber-50 text-amber-700 @endif"
+                                                title="{{ $celula['cliente'] }}"
+                                            >
+                                                {{ \Illuminate\Support\Str::limit($celula['cliente'], 12) }}
+                                            </div>
+                                        @else
+                                            <button
+                                                type="button"
+                                                wire:click="abrirAgendamento({{ $celula['quadraId'] }}, '{{ $linha['inicio'] }}')"
+                                                class="w-full rounded-lg border border-zinc-200 px-2 py-1.5 text-center text-xs text-zinc-400 transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600"
+                                            >
+                                                {{ __('Livre') }}
+                                            </button>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         @endif
     </flux:card>
@@ -126,4 +154,33 @@
             </flux:card>
         @endif
     </div>
+
+    <flux:modal name="agendar-horario" class="w-full md:w-96">
+        <div class="flex flex-col gap-4">
+            <flux:heading size="lg">{{ __('Realizar agendamento') }}</flux:heading>
+
+            <flux:text>
+                {{ $this->quadras->firstWhere('id', $slotQuadraId)?->nome }}<br>
+                {{ \Illuminate\Support\Carbon::parse($diaSelecionado)->format('d/m/Y') }} - {{ $slotHorario }}
+            </flux:text>
+
+            <div class="flex justify-end gap-3">
+                <flux:modal.close>
+                    <flux:button variant="outline" class="rounded-full !border-orange-300 !text-orange-600 hover:!bg-orange-50">
+                        {{ __('Cancelar') }}
+                    </flux:button>
+                </flux:modal.close>
+
+                <flux:button
+                    variant="primary"
+                    color="orange"
+                    class="rounded-full"
+                    :href="route('painel.agendamento-manual', ['quadraId' => $slotQuadraId, 'data' => $diaSelecionado, 'horaInicio' => $slotHorario])"
+                    wire:navigate
+                >
+                    {{ __('Realizar agendamento') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

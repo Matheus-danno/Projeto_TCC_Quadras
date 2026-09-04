@@ -7,23 +7,39 @@ use App\Enums\UserRole;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\User;
+use Carbon\Carbon;
 use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Criar extends Component
 {
     use InteractsWithComponents;
 
+    #[Url]
     public string $quadraId = '';
 
+    #[Url]
     public string $data = '';
 
+    #[Url]
     public string $horaInicio = '';
 
     public string $horaFim = '';
+
+    /**
+     * Vindo da Agenda com um horário pré-selecionado (link "Realizar
+     * agendamento"): completa a hora de término automaticamente.
+     */
+    public function mount(): void
+    {
+        if ($this->horaInicio !== '' && $this->horaFim === '') {
+            $this->horaFim = Carbon::createFromFormat('H:i', $this->horaInicio)->addHour()->format('H:i');
+        }
+    }
 
     public string $tipoCliente = 'existente';
 
