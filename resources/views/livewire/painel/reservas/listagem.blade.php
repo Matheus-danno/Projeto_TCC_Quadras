@@ -80,7 +80,7 @@
         <flux:card class="rounded-2xl p-0">
             <flux:table>
                 <flux:table.columns>
-                    <flux:table.column>{{ __('Cliente') }}</flux:table.column>
+                    <flux:table.column class="ps-6!">{{ __('Cliente') }}</flux:table.column>
                     <flux:table.column>{{ __('Quadra') }}</flux:table.column>
                     <flux:table.column>{{ __('Data/Horário') }}</flux:table.column>
                     <flux:table.column>{{ __('Duração') }}</flux:table.column>
@@ -92,7 +92,7 @@
                 <flux:table.rows>
                     @foreach ($this->reservas as $reserva)
                         <flux:table.row wire:key="reserva-{{ $reserva->id }}">
-                            <flux:table.cell class="font-semibold text-zinc-900">{{ $reserva->nome_cliente }}</flux:table.cell>
+                            <flux:table.cell class="ps-6! font-semibold text-zinc-900">{{ $reserva->nome_cliente }}</flux:table.cell>
                             <flux:table.cell class="text-zinc-500">{{ $reserva->quadra->nome }}</flux:table.cell>
                             <flux:table.cell class="text-zinc-500">
                                 {{ $reserva->data->format('d/m/Y') }}, {{ substr($reserva->hora_inicio, 0, 5) }} - {{ substr($reserva->hora_fim, 0, 5) }}
