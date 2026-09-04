@@ -30,26 +30,23 @@
         @endforeach
     </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <flux:card class="rounded-2xl border-l-4 border-orange-500">
-            <flux:text class="text-zinc-400">{{ __('Reservas hoje') }}</flux:text>
-            <flux:heading size="xl" class="mt-1">{{ $this->resumo['hoje'] }}</flux:heading>
-        </flux:card>
-
-        <flux:card class="rounded-2xl border-l-4 border-green-500">
-            <flux:text class="text-zinc-400">{{ __('Reservas na semana') }}</flux:text>
-            <flux:heading size="xl" class="mt-1">{{ $this->resumo['semana'] }}</flux:heading>
-        </flux:card>
-
-        <flux:card class="rounded-2xl border-l-4 border-amber-500">
-            <flux:text class="text-zinc-400">{{ __('Pendentes') }}</flux:text>
-            <flux:heading size="xl" class="mt-1">{{ $this->resumo['pendentes'] }}</flux:heading>
-        </flux:card>
-
-        <flux:card class="rounded-2xl border-l-4 border-orange-500">
-            <flux:text class="text-zinc-400">{{ __('Faturamento da semana') }}</flux:text>
-            <flux:heading size="xl" class="mt-1">R$ {{ number_format($this->resumo['faturamentoSemana'], 2, ',', '.') }}</flux:heading>
-        </flux:card>
+    <div class="flex flex-wrap items-center gap-x-8 gap-y-3">
+        <div>
+            <flux:heading size="lg">{{ $this->resumo['hoje'] }}</flux:heading>
+            <flux:text class="text-xs text-zinc-400">{{ __('Hoje') }}</flux:text>
+        </div>
+        <div>
+            <flux:heading size="lg">{{ $this->resumo['semana'] }}</flux:heading>
+            <flux:text class="text-xs text-zinc-400">{{ __('Esta Semana') }}</flux:text>
+        </div>
+        <div>
+            <flux:heading size="lg">{{ $this->resumo['pendentes'] }}</flux:heading>
+            <flux:text class="text-xs text-zinc-400">{{ __('Pendentes') }}</flux:text>
+        </div>
+        <div>
+            <flux:heading size="lg">R$ {{ number_format($this->resumo['faturamentoSemana'], 2, ',', '.') }}</flux:heading>
+            <flux:text class="text-xs text-zinc-400">{{ __('Faturamento (semana)') }}</flux:text>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -97,15 +94,13 @@
                             <flux:table.cell class="text-zinc-500">
                                 {{ $reserva->data->format('d/m/Y') }}, {{ substr($reserva->hora_inicio, 0, 5) }} - {{ substr($reserva->hora_fim, 0, 5) }}
                             </flux:table.cell>
-                            <flux:table.cell class="text-zinc-500">
+                            <flux:table.cell class="text-zinc-500">{{ $reserva->duracaoFormatada() }}</flux:table.cell>
+                            <flux:table.cell class="font-medium text-zinc-900">
                                 @php
-                                    $duracaoMinutos = (strtotime($reserva->hora_fim) - strtotime($reserva->hora_inicio)) / 60;
-                                    $duracaoHoras = intdiv($duracaoMinutos, 60);
-                                    $duracaoRestoMin = $duracaoMinutos % 60;
+                                    $horas = (strtotime($reserva->hora_fim) - strtotime($reserva->hora_inicio)) / 3600;
                                 @endphp
-                                {{ $duracaoHoras }}h{{ $duracaoRestoMin > 0 ? sprintf('%02d', $duracaoRestoMin) : '' }}
+                                R$ {{ number_format($reserva->quadra->valor_hora * $horas, 2, ',', '.') }}
                             </flux:table.cell>
-                            <flux:table.cell class="font-medium text-zinc-900">R$ {{ number_format($reserva->quadra->valor_hora, 2, ',', '.') }}</flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge color="{{ match ($reserva->status) {
                                     App\Enums\ReservaStatus::Confirmada => 'green',
@@ -117,18 +112,21 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    @if ($reserva->status === App\Enums\ReservaStatus::Pendente)
-                                        <flux:button size="sm" variant="primary" color="orange" class="rounded-full" wire:click="confirmar({{ $reserva->id }})">
-                                            {{ __('Confirmar') }}
-                                        </flux:button>
-                                    @endif
+                                    <flux:button
+                                        size="sm"
+                                        variant="outline"
+                                        class="rounded-full !border-orange-300 !text-orange-600 hover:!bg-orange-50"
+                                        wire:click="verDetalhes({{ $reserva->id }})"
+                                    >
+                                        {{ __('Detalhes') }}
+                                    </flux:button>
 
                                     @if ($reserva->status !== App\Enums\ReservaStatus::Cancelada)
                                         <flux:button
                                             size="sm"
                                             variant="outline"
                                             class="rounded-full !border-red-300 !text-red-600 hover:!bg-red-50"
-                                            wire:click="cancelar({{ $reserva->id }})"
+                                            wire:click="pedirCancelamento({{ $reserva->id }})"
                                         >
                                             {{ __('Cancelar') }}
                                         </flux:button>
@@ -141,4 +139,125 @@
             </flux:table>
         </flux:card>
     @endif
+
+    <flux:modal name="detalhes-reserva" class="w-full md:w-[420px]">
+        @if ($this->reservaSelecionada)
+            @php $reserva = $this->reservaSelecionada; @endphp
+            <div class="flex flex-col gap-4">
+                <flux:heading size="lg">{{ __('Detalhes da reserva') }}</flux:heading>
+
+                <div class="flex items-center gap-3">
+                    @if ($reserva->user)
+                        <flux:avatar size="sm" :name="$reserva->user->name" :initials="$reserva->user->initials()" color="orange" />
+                    @endif
+                    <div>
+                        <flux:heading size="sm">{{ $reserva->nome_cliente }}</flux:heading>
+                        <flux:badge color="{{ match ($reserva->status) {
+                            App\Enums\ReservaStatus::Confirmada => 'green',
+                            App\Enums\ReservaStatus::Pendente => 'amber',
+                            App\Enums\ReservaStatus::Cancelada => 'red',
+                        } }}" size="sm">
+                            {{ $reserva->status->label() }}
+                        </flux:badge>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2 text-sm">
+                    <div class="flex items-center justify-between gap-3">
+                        <flux:text class="text-zinc-400">{{ __('Quadra') }}</flux:text>
+                        <flux:text class="text-right font-medium text-zinc-900">{{ $reserva->quadra->nome }}</flux:text>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <flux:text class="text-zinc-400">{{ __('Endereço') }}</flux:text>
+                        <flux:text class="text-right font-medium text-zinc-900">{{ $reserva->quadra->endereco }} - {{ $reserva->quadra->bairro }}</flux:text>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <flux:text class="text-zinc-400">{{ __('Data / Horário') }}</flux:text>
+                        <flux:text class="text-right font-medium text-zinc-900">
+                            {{ $reserva->data->format('d/m/Y') }}, {{ substr($reserva->hora_inicio, 0, 5) }}-{{ substr($reserva->hora_fim, 0, 5) }}
+                        </flux:text>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <flux:text class="text-zinc-400">{{ __('Duração') }}</flux:text>
+                        <flux:text class="text-right font-medium text-zinc-900">{{ $reserva->duracaoFormatada() }}</flux:text>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <flux:text class="text-zinc-400">{{ __('Valor') }}</flux:text>
+                        @php $horas = (strtotime($reserva->hora_fim) - strtotime($reserva->hora_inicio)) / 3600; @endphp
+                        <flux:text class="text-right font-medium text-zinc-900">R$ {{ number_format($reserva->quadra->valor_hora * $horas, 2, ',', '.') }}</flux:text>
+                    </div>
+                    @if ($reserva->metodo_pagamento)
+                        <div class="flex items-center justify-between gap-3">
+                            <flux:text class="text-zinc-400">{{ __('Pagamento') }}</flux:text>
+                            <flux:text class="text-right font-medium text-zinc-900">
+                                {{ App\Enums\FormaPagamento::tryFrom($reserva->metodo_pagamento)?->label() ?? $reserva->metodo_pagamento }}
+                            </flux:text>
+                        </div>
+                    @endif
+                    <div class="flex items-center justify-between gap-3">
+                        <flux:text class="text-zinc-400">{{ __('Código') }}</flux:text>
+                        <flux:text class="text-right font-medium text-zinc-900">{{ $reserva->codigoReserva() }}</flux:text>
+                    </div>
+                </div>
+
+                @if ($reserva->user?->telefone || $reserva->user?->email)
+                    <div class="flex flex-col gap-1 border-t border-zinc-100 pt-3 text-sm text-zinc-500">
+                        @if ($reserva->user->telefone)
+                            <div class="flex items-center gap-2">
+                                <flux:icon.phone variant="mini" />
+                                {{ $reserva->user->telefone }}
+                            </div>
+                        @endif
+                        @if ($reserva->user->email)
+                            <div class="flex items-center gap-2">
+                                <flux:icon.envelope variant="mini" />
+                                {{ $reserva->user->email }}
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                <div class="flex flex-col gap-2 sm:flex-row">
+                    <flux:modal.close>
+                        <flux:button variant="outline" class="w-full rounded-full !border-orange-300 !text-orange-600 hover:!bg-orange-50">
+                            {{ __('Fechar') }}
+                        </flux:button>
+                    </flux:modal.close>
+
+                    @if ($reserva->status === App\Enums\ReservaStatus::Pendente)
+                        <flux:button variant="primary" color="orange" class="w-full rounded-full" wire:click="confirmar({{ $reserva->id }})">
+                            {{ __('Confirmar reserva') }}
+                        </flux:button>
+                    @endif
+                </div>
+            </div>
+        @endif
+    </flux:modal>
+
+    <flux:modal name="cancelar-reserva" class="w-full md:w-96">
+        @if ($this->reservaSelecionada)
+            <div class="flex flex-col gap-4">
+                <flux:heading size="lg">{{ __('Cancelar reserva?') }}</flux:heading>
+                <flux:text>
+                    {{ __('Tem certeza que deseja cancelar a reserva de :cliente para :quadra, em :data? Essa ação não pode ser desfeita.', [
+                        'cliente' => $this->reservaSelecionada->nome_cliente,
+                        'quadra' => $this->reservaSelecionada->quadra->nome,
+                        'data' => $this->reservaSelecionada->data->format('d/m/Y'),
+                    ]) }}
+                </flux:text>
+
+                <div class="flex justify-end gap-3">
+                    <flux:modal.close>
+                        <flux:button variant="outline" class="rounded-full !border-orange-300 !text-orange-600 hover:!bg-orange-50">
+                            {{ __('Voltar') }}
+                        </flux:button>
+                    </flux:modal.close>
+
+                    <flux:button variant="danger" class="rounded-full" wire:click="cancelar">
+                        {{ __('Confirmar cancelamento') }}
+                    </flux:button>
+                </div>
+            </div>
+        @endif
+    </flux:modal>
 </div>

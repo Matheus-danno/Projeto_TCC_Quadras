@@ -54,12 +54,26 @@ test('dono cancela uma reserva pendente ou confirmada', function () {
 
     Livewire::actingAs($dono)
         ->test(Listagem::class)
-        ->call('cancelar', $reserva->id);
+        ->call('pedirCancelamento', $reserva->id)
+        ->call('cancelar');
 
     expect($reserva->fresh()->status)->toBe(ReservaStatus::Cancelada);
 });
 
-test('dono não consegue confirmar ou cancelar reserva de quadra que não é dele', function () {
+test('dono vê os detalhes de uma reserva das próprias quadras', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+    $reserva = Reserva::factory()->create(['quadra_id' => $quadra->id, 'status' => ReservaStatus::Confirmada]);
+
+    $component = Livewire::actingAs($dono)
+        ->test(Listagem::class)
+        ->call('verDetalhes', $reserva->id);
+
+    expect($component->get('reservaSelecionadaId'))->toBe($reserva->id)
+        ->and($component->instance()->reservaSelecionada->id)->toBe($reserva->id);
+});
+
+test('dono não consegue confirmar, ver detalhes ou cancelar reserva de quadra que não é dele', function () {
     $dono = User::factory()->donoQuadra()->create();
     $outroDono = User::factory()->donoQuadra()->create();
     $quadraAlheia = Quadra::factory()->create(['dono_id' => $outroDono->id]);
@@ -72,7 +86,12 @@ test('dono não consegue confirmar ou cancelar reserva de quadra que não é del
 
     Livewire::actingAs($dono)
         ->test(Listagem::class)
-        ->call('cancelar', $reserva->id)
+        ->call('verDetalhes', $reserva->id)
+        ->assertForbidden();
+
+    Livewire::actingAs($dono)
+        ->test(Listagem::class)
+        ->call('pedirCancelamento', $reserva->id)
         ->assertForbidden();
 
     expect($reserva->fresh()->status)->toBe(ReservaStatus::Pendente);

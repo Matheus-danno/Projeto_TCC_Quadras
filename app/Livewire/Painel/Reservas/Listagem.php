@@ -22,6 +22,8 @@ class Listagem extends Component
 
     public string $aba = 'todas';
 
+    public ?int $reservaSelecionadaId = null;
+
     #[Computed]
     public function quadras(): Collection
     {
@@ -81,6 +83,38 @@ class Listagem extends Component
         ];
     }
 
+    #[Computed]
+    public function reservaSelecionada(): ?Reserva
+    {
+        if (! $this->reservaSelecionadaId) {
+            return null;
+        }
+
+        return Reserva::query()->with(['quadra', 'user'])->find($this->reservaSelecionadaId);
+    }
+
+    public function verDetalhes(int $reservaId): void
+    {
+        $reserva = Reserva::findOrFail($reservaId);
+
+        $this->authorize('update', $reserva);
+
+        $this->reservaSelecionadaId = $reservaId;
+
+        $this->modal('detalhes-reserva')->show();
+    }
+
+    public function pedirCancelamento(int $reservaId): void
+    {
+        $reserva = Reserva::findOrFail($reservaId);
+
+        $this->authorize('update', $reserva);
+
+        $this->reservaSelecionadaId = $reservaId;
+
+        $this->modal('cancelar-reserva')->show();
+    }
+
     public function confirmar(int $reservaId): void
     {
         $reserva = Reserva::findOrFail($reservaId);
@@ -98,20 +132,20 @@ class Listagem extends Component
         unset($this->reservas);
     }
 
-    public function cancelar(int $reservaId): void
+    public function cancelar(): void
     {
-        $reserva = Reserva::findOrFail($reservaId);
+        $reserva = Reserva::findOrFail($this->reservaSelecionadaId);
 
         $this->authorize('update', $reserva);
 
-        if ($reserva->status === ReservaStatus::Cancelada) {
-            return;
+        if ($reserva->status !== ReservaStatus::Cancelada) {
+            $reserva->update(['status' => ReservaStatus::Cancelada]);
         }
 
-        $reserva->update(['status' => ReservaStatus::Cancelada]);
-
+        $this->modal('cancelar-reserva')->close();
         $this->toast('Reserva cancelada.', variant: 'success');
 
+        $this->reservaSelecionadaId = null;
         unset($this->reservas);
     }
 
