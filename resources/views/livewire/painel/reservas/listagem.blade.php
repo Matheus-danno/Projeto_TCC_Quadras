@@ -12,40 +12,42 @@
         </flux:tooltip>
     </div>
 
-    <div class="flex flex-wrap gap-2">
-        @foreach ([
-            'todas' => __('Todas'),
-            'hoje' => __('Hoje'),
-            'semana' => __('Esta Semana'),
-            'pendentes' => __('Pendentes'),
-            'concluidas' => __('Concluídas'),
-        ] as $valor => $rotulo)
-            <button
-                type="button"
-                wire:click="$set('aba', '{{ $valor }}')"
-                class="rounded-2xl px-4 py-2 text-sm font-semibold transition {{ $aba === $valor ? 'bg-orange-500 text-white' : 'border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50' }}"
-            >
-                {{ $rotulo }}
-            </button>
-        @endforeach
-    </div>
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap gap-2">
+            @foreach ([
+                'todas' => __('Todas'),
+                'hoje' => __('Hoje'),
+                'semana' => __('Esta Semana'),
+                'pendentes' => __('Pendentes'),
+                'concluidas' => __('Concluídas'),
+            ] as $valor => $rotulo)
+                <button
+                    type="button"
+                    wire:click="$set('aba', '{{ $valor }}')"
+                    class="rounded-2xl px-4 py-2 text-sm font-semibold transition {{ $aba === $valor ? 'bg-orange-500 text-white' : 'border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50' }}"
+                >
+                    {{ $rotulo }}
+                </button>
+            @endforeach
+        </div>
 
-    <div class="flex flex-wrap items-center gap-x-8 gap-y-3">
-        <div>
-            <flux:heading size="lg">{{ $this->resumo['hoje'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-400">{{ __('Hoje') }}</flux:text>
-        </div>
-        <div>
-            <flux:heading size="lg">{{ $this->resumo['semana'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-400">{{ __('Esta Semana') }}</flux:text>
-        </div>
-        <div>
-            <flux:heading size="lg">{{ $this->resumo['pendentes'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-400">{{ __('Pendentes') }}</flux:text>
-        </div>
-        <div>
-            <flux:heading size="lg">R$ {{ number_format($this->resumo['faturamentoSemana'], 2, ',', '.') }}</flux:heading>
-            <flux:text class="text-xs text-zinc-400">{{ __('Faturamento (semana)') }}</flux:text>
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div>
+                <flux:heading size="lg">{{ $this->resumo['hoje'] }}</flux:heading>
+                <flux:text class="text-xs text-zinc-400">{{ __('Hoje') }}</flux:text>
+            </div>
+            <div>
+                <flux:heading size="lg">{{ $this->resumo['semana'] }}</flux:heading>
+                <flux:text class="text-xs text-zinc-400">{{ __('Esta Semana') }}</flux:text>
+            </div>
+            <div>
+                <flux:heading size="lg">{{ $this->resumo['pendentes'] }}</flux:heading>
+                <flux:text class="text-xs text-zinc-400">{{ __('Pendentes') }}</flux:text>
+            </div>
+            <div>
+                <flux:heading size="lg">R$ {{ number_format($this->resumo['faturamentoSemana'], 2, ',', '.') }}</flux:heading>
+                <flux:text class="text-xs text-zinc-400">{{ __('Faturamento (semana)') }}</flux:text>
+            </div>
         </div>
     </div>
 
