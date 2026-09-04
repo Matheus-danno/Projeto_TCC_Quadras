@@ -5,11 +5,9 @@
             <flux:text class="mt-1 text-base text-zinc-400">{{ __('Acompanhe todas as reservas feitas nas suas quadras.') }}</flux:text>
         </div>
 
-        <flux:tooltip :content="__('Em breve')" position="bottom">
-            <flux:button icon="calendar-days" variant="outline" class="rounded-2xl cursor-not-allowed opacity-50" aria-disabled="true" tabindex="-1">
-                {{ __('Agenda') }}
-            </flux:button>
-        </flux:tooltip>
+        <flux:button :href="route('painel.reservas.agenda')" icon="calendar-days" variant="outline" class="rounded-2xl" wire:navigate>
+            {{ __('Agenda') }}
+        </flux:button>
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-4">

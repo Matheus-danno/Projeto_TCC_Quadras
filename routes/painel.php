@@ -32,6 +32,10 @@ Route::middleware(['auth', 'role:'.UserRole::DonoQuadra->value])
             return view('painel-reservas');
         })->name('reservas');
 
+        Route::get('/reservas/agenda', function () {
+            return view('painel-reservas-agenda');
+        })->name('reservas.agenda');
+
         Route::get('/financeiro', function () {
             return view('painel-financeiro');
         })->name('financeiro');
