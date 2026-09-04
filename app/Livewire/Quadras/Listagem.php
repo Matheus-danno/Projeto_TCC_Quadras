@@ -64,7 +64,7 @@ class Listagem extends Component
     public function quadras(): Collection
     {
         $quadras = Quadra::query()
-            ->with('fotos')
+            ->with(['fotos', 'dono'])
             ->when($this->cidade, fn ($query) => $query->where('cidade', $this->cidade))
             ->when($this->bairro, fn ($query) => $query->where('bairro', $this->bairro))
             ->when($this->esporte, fn ($query) => $query->where('esporte', $this->esporte))
@@ -81,7 +81,9 @@ class Listagem extends Component
                 );
             })
             ->orderBy('nome')
-            ->get();
+            ->get()
+            ->reject(fn (Quadra $quadra) => $quadra->dono?->estaPausado())
+            ->values();
 
         if ($this->userLat !== null && $this->userLng !== null) {
             $quadras->each(function (Quadra $quadra) {
@@ -185,6 +187,12 @@ class Listagem extends Component
         ]);
 
         $quadra = Quadra::findOrFail($this->quadraSelecionada);
+
+        if ($quadra->dono?->estaPausado()) {
+            $this->addError('horaInicio', 'Esta quadra está temporariamente indisponível para reservas.');
+
+            return null;
+        }
 
         $horaInicio = $validated['horaInicio'].':00';
         $horaFim = date('H:i:s', strtotime($horaInicio.' +1 hour'));

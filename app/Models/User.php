@@ -47,6 +47,15 @@ class User extends Authenticatable
         'notif_novo_jogador_sala',
         'notif_mensagens_grupo',
         'notif_ofertas_novidades',
+        'horario_funcionamento',
+        'metodos_pagamento_aceitos',
+        'notif_dono_dias_uteis',
+        'notif_dono_cancelamento',
+        'notif_dono_mensagens_clientes',
+        'pausa_ativa',
+        'pausa_motivo',
+        'pausa_ate',
+        'pausa_indeterminada',
     ];
 
     /**
@@ -81,6 +90,14 @@ class User extends Authenticatable
             'notif_novo_jogador_sala' => 'boolean',
             'notif_mensagens_grupo' => 'boolean',
             'notif_ofertas_novidades' => 'boolean',
+            'horario_funcionamento' => 'array',
+            'metodos_pagamento_aceitos' => 'array',
+            'notif_dono_dias_uteis' => 'boolean',
+            'notif_dono_cancelamento' => 'boolean',
+            'notif_dono_mensagens_clientes' => 'boolean',
+            'pausa_ativa' => 'boolean',
+            'pausa_ate' => 'date',
+            'pausa_indeterminada' => 'boolean',
         ];
     }
 
@@ -155,6 +172,33 @@ class User extends Authenticatable
     public function cartoes(): HasMany
     {
         return $this->hasMany(Cartao::class);
+    }
+
+    /**
+     * Exceções de data (fechamentos e horários especiais) cadastradas por
+     * este usuário como dono de quadra.
+     */
+    public function excecoesData(): HasMany
+    {
+        return $this->hasMany(ExcecaoData::class, 'dono_id');
+    }
+
+    /**
+     * Indica se a pausa temporária das quadras deste dono está em vigor
+     * agora, considerando o prazo definido em "pausa_ate" quando a pausa
+     * não é por tempo indeterminado.
+     */
+    public function estaPausado(): bool
+    {
+        if (! $this->pausa_ativa) {
+            return false;
+        }
+
+        if ($this->pausa_indeterminada) {
+            return true;
+        }
+
+        return $this->pausa_ate !== null && $this->pausa_ate->startOfDay()->greaterThanOrEqualTo(now()->startOfDay());
     }
 
     /**
