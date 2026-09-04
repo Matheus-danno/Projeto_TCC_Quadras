@@ -2,17 +2,23 @@
 
 namespace App\Livewire\Painel;
 
+use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Enums\FormaPagamento;
 use App\Models\ExcecaoData;
 use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
+use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
+use Laravel\Fortify\Features;
+use Laravel\Fortify\Fortify;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Configuracoes extends Component
 {
-    use InteractsWithComponents, ProfileValidationRules;
+    use InteractsWithComponents, PasswordValidationRules, ProfileValidationRules;
 
     public string $name = '';
 
@@ -74,7 +80,19 @@ class Configuracoes extends Component
 
     public string $excecaoHoraFechamento = '';
 
-    public function mount(): void
+    public string $currentPassword = '';
+
+    public string $newPassword = '';
+
+    public string $newPassword_confirmation = '';
+
+    public bool $twoFactorEnabled = false;
+
+    public bool $requiresConfirmation = false;
+
+    public string $prazoCancelamentoHoras = '5';
+
+    public function mount(DisableTwoFactorAuthentication $disableTwoFactorAuthentication): void
     {
         $user = auth()->user();
 
@@ -109,6 +127,17 @@ class Configuracoes extends Component
         $this->pausaMotivo = $user->pausa_motivo ?? '';
         $this->pausaAte = $user->pausa_ate?->toDateString() ?? '';
         $this->pausaIndeterminada = $user->pausa_indeterminada;
+
+        $this->prazoCancelamentoHoras = (string) $user->prazo_cancelamento_horas;
+
+        if (Features::enabled(Features::twoFactorAuthentication())) {
+            if (Fortify::confirmsTwoFactorAuthentication() && is_null($user->two_factor_confirmed_at)) {
+                $disableTwoFactorAuthentication($user);
+            }
+
+            $this->twoFactorEnabled = $user->hasEnabledTwoFactorAuthentication();
+            $this->requiresConfirmation = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
+        }
     }
 
     protected function rules(): array
@@ -334,6 +363,57 @@ class Configuracoes extends Component
         $this->reset(['pausaMotivo', 'pausaAte', 'pausaIndeterminada']);
 
         $this->toast('Quadras reativadas.', variant: 'success');
+    }
+
+    public function updatePassword(): void
+    {
+        try {
+            $validated = $this->validate([
+                'currentPassword' => $this->currentPasswordRules(),
+                'newPassword' => $this->passwordRules(),
+            ], [], [
+                'currentPassword' => 'senha atual',
+                'newPassword' => 'nova senha',
+            ]);
+        } catch (ValidationException $e) {
+            $this->reset('currentPassword', 'newPassword', 'newPassword_confirmation');
+
+            throw $e;
+        }
+
+        auth()->user()->update(['password' => $validated['newPassword']]);
+
+        $this->reset('currentPassword', 'newPassword', 'newPassword_confirmation');
+
+        $this->toast('Senha atualizada com sucesso.', variant: 'success');
+    }
+
+    #[On('two-factor-enabled')]
+    public function onTwoFactorEnabled(): void
+    {
+        $this->twoFactorEnabled = true;
+    }
+
+    public function disableTwoFactor(DisableTwoFactorAuthentication $disableTwoFactorAuthentication): void
+    {
+        $disableTwoFactorAuthentication(auth()->user());
+
+        $this->twoFactorEnabled = false;
+
+        $this->toast('Autenticação de dois fatores desativada.', variant: 'success');
+    }
+
+    public function salvarPoliticaCancelamento(): void
+    {
+        $validated = $this->validate([
+            'prazoCancelamentoHoras' => ['required', 'integer', 'min:0', 'max:168'],
+        ], [], [
+            'prazoCancelamentoHoras' => 'prazo de cancelamento',
+        ]);
+
+        auth()->user()->update(['prazo_cancelamento_horas' => $validated['prazoCancelamentoHoras']]);
+
+        $this->toast('Política de cancelamento atualizada.', variant: 'success');
     }
 
     public function render()

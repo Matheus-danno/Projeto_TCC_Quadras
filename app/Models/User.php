@@ -56,6 +56,7 @@ class User extends Authenticatable
         'pausa_motivo',
         'pausa_ate',
         'pausa_indeterminada',
+        'prazo_cancelamento_horas',
     ];
 
     /**

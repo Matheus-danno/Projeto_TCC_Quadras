@@ -15,10 +15,11 @@ class Reserva extends Model
     use HasFactory;
 
     /**
-     * Prazo mínimo, em minutos, antes do início do jogo para permitir cancelar
-     * uma reserva já confirmada (mesma regra usada em Sala::sairDaSala()).
+     * Prazo mínimo padrão, em horas, antes do início do jogo para permitir
+     * cancelar uma reserva já confirmada, usado quando o dono da quadra não
+     * tem uma política de cancelamento própria definida.
      */
-    private const MINUTOS_MINIMOS_PARA_CANCELAR = 300;
+    private const PRAZO_CANCELAMENTO_HORAS_PADRAO = 5;
 
     protected $fillable = [
         'quadra_id',
@@ -121,7 +122,9 @@ class Reserva extends Model
             return false;
         }
 
-        if ($this->status === ReservaStatus::Confirmada && $minutos < self::MINUTOS_MINIMOS_PARA_CANCELAR) {
+        $prazoHoras = $this->quadra?->dono?->prazo_cancelamento_horas ?? self::PRAZO_CANCELAMENTO_HORAS_PADRAO;
+
+        if ($this->status === ReservaStatus::Confirmada && $minutos < $prazoHoras * 60) {
             return false;
         }
 

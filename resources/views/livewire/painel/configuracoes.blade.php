@@ -94,6 +94,66 @@
     </flux:card>
 
     <flux:card class="rounded-2xl">
+        <flux:heading size="lg" class="mb-4">{{ __('Segurança') }}</flux:heading>
+
+        <div class="flex flex-col gap-6">
+            <div>
+                <flux:heading size="sm" class="mb-3">{{ __('Alterar senha') }}</flux:heading>
+
+                <form wire:submit="updatePassword" class="flex flex-col gap-4">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <flux:input wire:model="currentPassword" type="password" :label="__('Senha atual')" class="rounded-full" autocomplete="current-password" />
+                        <flux:input wire:model="newPassword" type="password" :label="__('Nova senha')" class="rounded-full" autocomplete="new-password" />
+                        <flux:input wire:model="newPassword_confirmation" type="password" :label="__('Confirmar nova senha')" class="rounded-full" autocomplete="new-password" />
+                    </div>
+
+                    <div>
+                        <flux:button type="submit" size="sm" variant="primary" color="orange" class="rounded-full">
+                            {{ __('Salvar senha') }}
+                        </flux:button>
+                    </div>
+                </form>
+            </div>
+
+            @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::twoFactorAuthentication()))
+                <div class="border-t border-zinc-100 pt-6 dark:border-zinc-700">
+                    <flux:heading size="sm" class="mb-1">{{ __('Autenticação de dois fatores') }}</flux:heading>
+                    <flux:text class="mb-3 text-zinc-400">{{ __('Peça um código extra do seu celular ao entrar na conta.') }}</flux:text>
+
+                    @if ($twoFactorEnabled)
+                        <div class="flex flex-col items-start gap-3">
+                            <flux:badge color="green" size="sm">{{ __('Ativado') }}</flux:badge>
+
+                            <livewire:pages::settings.two-factor.recovery-codes />
+
+                            <flux:button
+                                size="sm"
+                                variant="outline"
+                                class="rounded-full !border-red-300 !text-red-600 hover:!bg-red-50 dark:!border-red-400/30 dark:!text-red-400 dark:hover:!bg-red-400/10"
+                                wire:click="disableTwoFactor"
+                            >
+                                {{ __('Desativar 2FA') }}
+                            </flux:button>
+                        </div>
+                    @else
+                        <div class="flex flex-col items-start gap-3">
+                            <flux:badge color="red" size="sm">{{ __('Desativado') }}</flux:badge>
+
+                            <flux:modal.trigger name="two-factor-setup-modal">
+                                <flux:button size="sm" variant="primary" color="orange" class="rounded-full" wire:click="$dispatch('start-two-factor-setup')">
+                                    {{ __('Ativar 2FA') }}
+                                </flux:button>
+                            </flux:modal.trigger>
+
+                            <livewire:pages::settings.two-factor-setup-modal :requires-confirmation="$requiresConfirmation" />
+                        </div>
+                    @endif
+                </div>
+            @endif
+        </div>
+    </flux:card>
+
+    <flux:card class="rounded-2xl">
         <flux:heading size="lg" class="mb-4">{{ __('Horário de Funcionamento') }}</flux:heading>
 
         <div class="flex flex-col gap-4">
@@ -213,6 +273,21 @@
                 </div>
             </form>
         @endif
+    </flux:card>
+
+    <flux:card class="rounded-2xl">
+        <flux:heading size="lg" class="mb-1">{{ __('Política de Cancelamento') }}</flux:heading>
+        <flux:text class="mb-4 text-zinc-400">{{ __('Prazo mínimo, em horas antes do horário reservado, para o cliente cancelar uma reserva confirmada sem custo.') }}</flux:text>
+
+        <form wire:submit="salvarPoliticaCancelamento" class="flex flex-wrap items-end gap-4">
+            <div class="w-40">
+                <flux:input wire:model="prazoCancelamentoHoras" type="number" min="0" max="168" :label="__('Horas de antecedência')" class="rounded-full" />
+            </div>
+
+            <flux:button type="submit" size="sm" variant="primary" color="orange" class="rounded-full">
+                {{ __('Salvar') }}
+            </flux:button>
+        </form>
     </flux:card>
 
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
