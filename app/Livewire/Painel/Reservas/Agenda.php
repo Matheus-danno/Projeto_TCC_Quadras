@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Agenda extends Component
@@ -26,7 +27,12 @@ class Agenda extends Component
 
     public string $mesAtual;
 
-    public string $diaSelecionado;
+    /**
+     * Pode chegar pré-preenchido via URL (ex.: link "Realizar agendamento"
+     * do Agendamento Manual), para abrir a Agenda direto no dia agendado.
+     */
+    #[Url(as: 'data')]
+    public string $diaSelecionado = '';
 
     public ?int $slotQuadraId = null;
 
@@ -42,8 +48,11 @@ class Agenda extends Component
 
     public function mount(): void
     {
-        $this->mesAtual = now()->startOfMonth()->toDateString();
-        $this->diaSelecionado = now()->toDateString();
+        if ($this->diaSelecionado === '') {
+            $this->diaSelecionado = now()->toDateString();
+        }
+
+        $this->mesAtual = Carbon::parse($this->diaSelecionado)->startOfMonth()->toDateString();
     }
 
     #[Computed]

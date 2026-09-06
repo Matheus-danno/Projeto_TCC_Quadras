@@ -56,7 +56,12 @@
                                         class="flex flex-col items-start px-4 py-2 text-left hover:bg-orange-50"
                                     >
                                         <span class="font-semibold text-zinc-900">{{ $cliente->name }}</span>
-                                        <span class="text-sm text-zinc-500">{{ $cliente->email }}</span>
+                                        <span class="text-sm text-zinc-500">
+                                            {{ $cliente->email }}
+                                            @if ($cliente->telefone)
+                                                &middot; {{ $cliente->telefone }}
+                                            @endif
+                                        </span>
                                     </button>
                                 @endforeach
                             </div>
@@ -98,6 +103,15 @@
                     <flux:input wire:model.live="horaInicio" type="time" :label="__('Início')" class="rounded-full" />
                     <flux:input wire:model.live="horaFim" type="time" :label="__('Fim')" class="rounded-full" />
                 </div>
+
+                @if ($this->reservaConflitante)
+                    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {{ __('Conflito: já existe uma reserva de :cliente às :inicio.', [
+                            'cliente' => $this->reservaConflitante->nome_cliente,
+                            'inicio' => substr($this->reservaConflitante->hora_inicio, 0, 5),
+                        ]) }}
+                    </div>
+                @endif
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <flux:input :label="__('Duração')" class="rounded-full" value="{{ $this->duracaoFormatada ?? '—' }}" disabled />

@@ -21,11 +21,12 @@ test('dono agenda uma reserva confirmada para um cliente com conta', function ()
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'ativa' => true, 'valor_hora' => 50]);
     $cliente = User::factory()->create(['name' => 'João Cliente', 'email' => 'joao.cliente@example.com']);
+    $data = now()->addDay()->toDateString();
 
     Livewire::actingAs($dono)
         ->test(Criar::class)
         ->set('quadraId', (string) $quadra->id)
-        ->set('data', now()->addDay()->toDateString())
+        ->set('data', $data)
         ->set('horaInicio', '10:00')
         ->set('horaFim', '11:00')
         ->set('tipoCliente', 'existente')
@@ -35,7 +36,8 @@ test('dono agenda uma reserva confirmada para um cliente com conta', function ()
         ->set('formaPagamento', 'pix')
         ->set('observacoes', 'Cliente prefere a quadra coberta.')
         ->call('salvar')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertRedirect(route('painel.reservas.agenda', ['data' => $data]));
 
     expect(Reserva::count())->toBe(1);
 
@@ -56,11 +58,12 @@ test('dono agenda uma reserva confirmada para um cliente com conta', function ()
 test('dono agenda uma reserva confirmada para um cliente sem conta no sistema', function () {
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'ativa' => true]);
+    $data = now()->addDay()->toDateString();
 
     Livewire::actingAs($dono)
         ->test(Criar::class)
         ->set('quadraId', (string) $quadra->id)
-        ->set('data', now()->addDay()->toDateString())
+        ->set('data', $data)
         ->set('horaInicio', '14:00')
         ->set('horaFim', '15:00')
         ->set('tipoCliente', 'sem_conta')
@@ -69,7 +72,8 @@ test('dono agenda uma reserva confirmada para um cliente sem conta no sistema', 
         ->set('clienteEmail', 'maria@example.com')
         ->set('formaPagamento', 'dinheiro')
         ->call('salvar')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertRedirect(route('painel.reservas.agenda', ['data' => $data]));
 
     expect(Reserva::count())->toBe(1);
 
@@ -105,6 +109,50 @@ test('agendamento isento de pagamento não exige forma de pagamento', function (
 
     expect($reserva->status_pagamento)->toBe(StatusPagamento::Isento)
         ->and($reserva->metodo_pagamento)->toBeNull();
+});
+
+test('formulário avisa sobre conflito de horário antes de confirmar o agendamento', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'ativa' => true]);
+    $data = now()->addDay()->toDateString();
+
+    $existente = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => $data,
+        'hora_inicio' => '10:00:00',
+        'hora_fim' => '11:00:00',
+        'status' => ReservaStatus::Confirmada,
+    ]);
+
+    $component = Livewire::actingAs($dono)
+        ->test(Criar::class)
+        ->set('quadraId', (string) $quadra->id)
+        ->set('data', $data)
+        ->set('horaInicio', '10:30')
+        ->set('horaFim', '11:30');
+
+    expect($component->instance()->reservaConflitante?->id)->toBe($existente->id);
+
+    $component->assertSee(__('Conflito: já existe uma reserva de :cliente às :inicio.', [
+        'cliente' => $existente->nome_cliente,
+        'inicio' => '10:00',
+    ]));
+});
+
+test('busca de cliente cadastrado exibe o telefone junto ao e-mail', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    Quadra::factory()->create(['dono_id' => $dono->id, 'ativa' => true]);
+    $jogador = User::factory()->create([
+        'name' => 'Henrique Santos',
+        'email' => 'henrique@example.com',
+        'telefone' => '(14) 12345-6789',
+    ]);
+
+    Livewire::actingAs($dono)
+        ->test(Criar::class)
+        ->set('buscaCliente', 'Henrique')
+        ->assertSee('henrique@example.com')
+        ->assertSee('(14) 12345-6789');
 });
 
 test('agendamento é rejeitado quando o horário conflita com uma reserva existente', function () {

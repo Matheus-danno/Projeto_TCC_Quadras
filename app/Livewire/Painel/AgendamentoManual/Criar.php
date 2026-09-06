@@ -117,6 +117,37 @@ class Criar extends Component
     }
 
     /**
+     * Reserva já existente que conflita com os campos atuais do formulário
+     * (mesma quadra, data e horário sobreposto), para avisar o dono antes
+     * mesmo de tentar confirmar o agendamento.
+     */
+    #[Computed]
+    public function reservaConflitante(): ?Reserva
+    {
+        if ($this->quadraId === '' || $this->data === '' || $this->horaInicio === '' || $this->horaFim === '') {
+            return null;
+        }
+
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->data) || ! preg_match('/^\d{2}:\d{2}$/', $this->horaInicio) || ! preg_match('/^\d{2}:\d{2}$/', $this->horaFim)) {
+            return null;
+        }
+
+        return $this->buscarConflito($this->quadraId, $this->data, $this->horaInicio.':00', $this->horaFim.':00');
+    }
+
+    private function buscarConflito(string $quadraId, string $data, string $horaInicioSql, string $horaFimSql): ?Reserva
+    {
+        return Reserva::query()
+            ->where('quadra_id', $quadraId)
+            ->whereDate('data', $data)
+            ->where('status', '!=', ReservaStatus::Cancelada)
+            ->where('hora_inicio', '<', $horaFimSql)
+            ->where('hora_fim', '>', $horaInicioSql)
+            ->with(['quadra', 'user'])
+            ->first();
+    }
+
+    /**
      * Duração da reserva formatada (ex.: "1h", "1h30min"), a partir dos
      * campos ainda não salvos do formulário.
      */
@@ -218,15 +249,7 @@ class Criar extends Component
         $horaInicioSql = $validated['horaInicio'].':00';
         $horaFimSql = $validated['horaFim'].':00';
 
-        $existeConflito = Reserva::query()
-            ->where('quadra_id', $quadra->id)
-            ->whereDate('data', $validated['data'])
-            ->where('status', '!=', ReservaStatus::Cancelada)
-            ->where('hora_inicio', '<', $horaFimSql)
-            ->where('hora_fim', '>', $horaInicioSql)
-            ->exists();
-
-        if ($existeConflito) {
+        if ($this->buscarConflito((string) $quadra->id, $validated['data'], $horaInicioSql, $horaFimSql)) {
             $this->addError('horaInicio', 'Já existe uma reserva para esta quadra nesse horário.');
 
             return;
@@ -250,13 +273,7 @@ class Criar extends Component
 
         $this->toast('Reserva agendada com sucesso.', variant: 'success');
 
-        $this->reset([
-            'quadraId', 'data', 'horaInicio', 'horaFim',
-            'tipoCliente', 'buscaCliente', 'clienteId', 'clienteNome', 'clienteTelefone', 'clienteEmail',
-            'observacoes', 'valor', 'statusPagamento', 'formaPagamento',
-        ]);
-        $this->valorEditadoManualmente = false;
-        $this->resetErrorBag();
+        $this->redirect(route('painel.reservas.agenda', ['data' => $validated['data']]), navigate: true);
     }
 
     public function render()

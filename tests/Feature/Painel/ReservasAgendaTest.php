@@ -43,6 +43,17 @@ test('semanas marca os dias com reservas confirmadas e pendentes', function () {
         ->and($dias[now()->addDay()->toDateString()]['pendentes'])->toBe(1);
 });
 
+test('agenda abre no dia recebido pela URL, vindo do agendamento manual', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $data = now()->addMonth()->startOfMonth()->addDays(4)->toDateString();
+
+    $componente = Livewire::actingAs($dono)
+        ->test(Agenda::class, ['diaSelecionado' => $data]);
+
+    expect($componente->instance()->diaSelecionado)->toBe($data)
+        ->and($componente->instance()->mesAtual)->toBe(Carbon\Carbon::parse($data)->startOfMonth()->toDateString());
+});
+
 test('reservas canceladas não aparecem na agenda', function () {
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
