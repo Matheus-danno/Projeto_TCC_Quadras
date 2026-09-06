@@ -57,6 +57,7 @@ class User extends Authenticatable
         'pausa_ate',
         'pausa_indeterminada',
         'prazo_cancelamento_horas',
+        'chave_pix_recebimento',
     ];
 
     /**

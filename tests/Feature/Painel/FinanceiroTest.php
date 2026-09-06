@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ReservaStatus;
+use App\Enums\StatusPagamento;
 use App\Livewire\Painel\Financeiro;
 use App\Models\Quadra;
 use App\Models\Reserva;
@@ -16,20 +17,31 @@ test('rota painel.financeiro renderiza o componente', function () {
         ->assertSeeLivewire(Financeiro::class);
 });
 
-test('faturamento do mês atual soma apenas reservas confirmadas do dono no período', function () {
+test('faturamento por quadra soma apenas reservas confirmadas e pagas do mês atual, do dono', function () {
     $dono = User::factory()->donoQuadra()->create();
     $outroDono = User::factory()->donoQuadra()->create();
 
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 100]);
     $quadraOutroDono = Quadra::factory()->create(['dono_id' => $outroDono->id, 'valor_hora' => 500]);
 
-    // Confirmada, 2h, dentro do mês atual: conta (100 * 2 = 200).
+    // Confirmada, paga, 2h, dentro do mês atual: conta (100 * 2 = 200).
     Reserva::factory()->create([
         'quadra_id' => $quadra->id,
         'data' => now()->startOfMonth()->addDays(2)->toDateString(),
         'hora_inicio' => '08:00:00',
         'hora_fim' => '10:00:00',
         'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    // Confirmada, mas isenta: não conta.
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->startOfMonth()->addDays(2)->toDateString(),
+        'hora_inicio' => '11:00:00',
+        'hora_fim' => '12:00:00',
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Isento,
     ]);
 
     // Pendente, dentro do mês atual: não conta.
@@ -41,13 +53,14 @@ test('faturamento do mês atual soma apenas reservas confirmadas do dono no per�
         'status' => ReservaStatus::Pendente,
     ]);
 
-    // Confirmada, mas no mês passado: não conta no período padrão.
+    // Confirmada, mas no mês passado: não conta.
     Reserva::factory()->create([
         'quadra_id' => $quadra->id,
         'data' => now()->subMonthNoOverflow()->startOfMonth()->addDays(2)->toDateString(),
         'hora_inicio' => '08:00:00',
         'hora_fim' => '10:00:00',
         'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
     ]);
 
     // Confirmada, dentro do mês, mas de outro dono: não conta.
@@ -55,99 +68,61 @@ test('faturamento do mês atual soma apenas reservas confirmadas do dono no per�
         'quadra_id' => $quadraOutroDono->id,
         'data' => now()->startOfMonth()->addDays(2)->toDateString(),
         'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
     ]);
 
     $component = Livewire::actingAs($dono)->test(Financeiro::class);
 
-    expect((float) $component->instance()->faturamento)->toBe(200.0)
-        ->and($component->instance()->reservas->total())->toBe(1);
+    expect((float) $component->instance()->faturamentoTotalMes)->toBe(200.0);
 });
 
-test('filtro mês passado calcula o faturamento do mês anterior', function () {
+test('faturamento por quadra usa o valor lançado manualmente quando existir', function () {
     $dono = User::factory()->donoQuadra()->create();
-    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 50]);
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 100]);
 
-    // Confirmada de 3h no mês passado: conta (50 * 3 = 150).
+    // Valor manual de 70, mesmo a quadra custando 100/hora.
     Reserva::factory()->create([
         'quadra_id' => $quadra->id,
-        'data' => now()->subMonthNoOverflow()->startOfMonth()->addDays(1)->toDateString(),
-        'hora_inicio' => '08:00:00',
-        'hora_fim' => '11:00:00',
-        'status' => ReservaStatus::Confirmada,
-    ]);
-
-    // Confirmada no mês atual: não deve contar quando o filtro é "mês passado".
-    Reserva::factory()->create([
-        'quadra_id' => $quadra->id,
-        'data' => now()->startOfMonth()->addDays(1)->toDateString(),
-        'status' => ReservaStatus::Confirmada,
-    ]);
-
-    $faturamento = Livewire::actingAs($dono)
-        ->test(Financeiro::class)
-        ->set('periodo', 'mes_passado')
-        ->instance()
-        ->faturamento;
-
-    expect((float) $faturamento)->toBe(150.0);
-});
-
-test('período personalizado filtra o faturamento pelo intervalo de datas informado', function () {
-    $dono = User::factory()->donoQuadra()->create();
-    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 80]);
-
-    $dentroDoIntervalo = now()->subDays(10);
-    $foraDoIntervalo = now()->subDays(40);
-
-    // Confirmada de 1h dentro do intervalo customizado: conta (80 * 1 = 80).
-    Reserva::factory()->create([
-        'quadra_id' => $quadra->id,
-        'data' => $dentroDoIntervalo->toDateString(),
+        'data' => now()->startOfMonth()->addDays(2)->toDateString(),
         'hora_inicio' => '08:00:00',
         'hora_fim' => '09:00:00',
         'status' => ReservaStatus::Confirmada,
-    ]);
-
-    // Confirmada fora do intervalo customizado: não conta.
-    Reserva::factory()->create([
-        'quadra_id' => $quadra->id,
-        'data' => $foraDoIntervalo->toDateString(),
-        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+        'valor' => 70,
     ]);
 
     $faturamento = Livewire::actingAs($dono)
         ->test(Financeiro::class)
-        ->set('periodo', 'personalizado')
-        ->set('dataInicio', now()->subDays(15)->toDateString())
-        ->set('dataFim', now()->subDays(5)->toDateString())
         ->instance()
-        ->faturamento;
+        ->faturamentoTotalMes;
 
-    expect((float) $faturamento)->toBe(80.0);
+    expect((float) $faturamento)->toBe(70.0);
 });
 
-test('faturamento por quadra agrupa e soma corretamente cada quadra do dono', function () {
+test('faturamento por quadra agrupa, soma e ordena do maior para o menor, com percentual relativo', function () {
     $dono = User::factory()->donoQuadra()->create();
 
     $quadraA = Quadra::factory()->create(['dono_id' => $dono->id, 'nome' => 'Quadra A', 'valor_hora' => 100]);
     $quadraB = Quadra::factory()->create(['dono_id' => $dono->id, 'nome' => 'Quadra B', 'valor_hora' => 60]);
 
-    // Quadra A: duas reservas de 1h confirmadas = 200.
+    // Quadra A: duas reservas de 1h confirmadas e pagas = 200.
     Reserva::factory()->count(2)->create([
         'quadra_id' => $quadraA->id,
         'data' => now()->startOfMonth()->addDays(2)->toDateString(),
         'hora_inicio' => '08:00:00',
         'hora_fim' => '09:00:00',
         'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
     ]);
 
-    // Quadra B: uma reserva de 1h confirmada = 60.
+    // Quadra B: uma reserva de 1h confirmada e paga = 60.
     Reserva::factory()->create([
         'quadra_id' => $quadraB->id,
         'data' => now()->startOfMonth()->addDays(2)->toDateString(),
         'hora_inicio' => '08:00:00',
         'hora_fim' => '09:00:00',
         'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
     ]);
 
     $porQuadra = Livewire::actingAs($dono)
@@ -160,36 +135,182 @@ test('faturamento por quadra agrupa e soma corretamente cada quadra do dono', fu
     $linhaA = $porQuadra->firstWhere('quadra.id', $quadraA->id);
     $linhaB = $porQuadra->firstWhere('quadra.id', $quadraB->id);
 
-    expect($linhaA['reservas'])->toBe(2)
-        ->and((float) $linhaA['faturamento'])->toBe(200.0)
-        ->and($linhaB['reservas'])->toBe(1)
-        ->and((float) $linhaB['faturamento'])->toBe(60.0);
+    expect((float) $linhaA['faturamento'])->toBe(200.0)
+        ->and($linhaA['percentual'])->toBe(100.0)
+        ->and((float) $linhaB['faturamento'])->toBe(60.0)
+        ->and($linhaB['percentual'])->toBe(30.0);
 
-    // Ordenado do maior para o menor faturamento.
     expect($porQuadra->first()['quadra']->id)->toBe($quadraA->id);
 });
 
-test('tabela de reservas do período traz apenas confirmadas e é paginada', function () {
+test('proxima liberacao aponta a reserva confirmada e paga mais próxima no futuro', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 80]);
+
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->addDays(10)->toDateString(),
+        'hora_inicio' => '08:00:00',
+        'hora_fim' => '09:00:00',
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    // Mais próxima: em 3 dias.
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->addDays(3)->toDateString(),
+        'hora_inicio' => '08:00:00',
+        'hora_fim' => '09:00:00',
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    // Isenta e mais próxima ainda, mas não deve contar.
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->addDay()->toDateString(),
+        'hora_inicio' => '08:00:00',
+        'hora_fim' => '09:00:00',
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Isento,
+    ]);
+
+    $proximaLiberacao = Livewire::actingAs($dono)
+        ->test(Financeiro::class)
+        ->instance()
+        ->proximaLiberacao;
+
+    expect($proximaLiberacao['dias'])->toBe(3)
+        ->and((float) $proximaLiberacao['valor'])->toBe(80.0);
+});
+
+test('transações recentes trazem confirmadas e canceladas com reembolso, com status correto', function () {
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+    $cliente = User::factory()->create();
 
-    Reserva::factory()->count(12)->create([
+    $paga = Reserva::factory()->create([
         'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
         'data' => now()->startOfMonth()->addDays(2)->toDateString(),
         'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    $reembolsada = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
+        'data' => now()->startOfMonth()->addDays(3)->toDateString(),
+        'status' => ReservaStatus::Cancelada,
+        'cancelamento_tipo' => 'credito',
+    ]);
+
+    // Pendente (nunca confirmada): não é uma transação.
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->startOfMonth()->addDays(4)->toDateString(),
+        'status' => ReservaStatus::Pendente,
+    ]);
+
+    // Cancelada sem reembolso (nunca foi paga): não é uma transação.
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->startOfMonth()->addDays(5)->toDateString(),
+        'status' => ReservaStatus::Cancelada,
+        'cancelamento_tipo' => null,
+    ]);
+
+    $component = Livewire::actingAs($dono)->test(Financeiro::class);
+
+    $transacoes = $component->instance()->transacoes;
+
+    expect($transacoes->total())->toBe(2);
+
+    $statusPaga = $component->instance()->statusTransacao($paga->fresh());
+    $statusReembolsada = $component->instance()->statusTransacao($reembolsada->fresh());
+
+    expect($statusPaga['label'])->toBe('Pago')
+        ->and($statusReembolsada['label'])->toBe('Reembolsado');
+});
+
+test('busca filtra transações por nome do cliente ou nome da quadra', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'nome' => 'Quadra Central']);
+
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'cliente_nome' => 'Fulano de Tal',
+        'data' => now()->startOfMonth()->addDays(2)->toDateString(),
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
     ]);
 
     Reserva::factory()->create([
         'quadra_id' => $quadra->id,
-        'data' => now()->startOfMonth()->addDays(2)->toDateString(),
-        'status' => ReservaStatus::Pendente,
+        'cliente_nome' => 'Beltrano da Silva',
+        'data' => now()->startOfMonth()->addDays(3)->toDateString(),
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
     ]);
 
-    $reservas = Livewire::actingAs($dono)
+    $transacoes = Livewire::actingAs($dono)
+        ->test(Financeiro::class)
+        ->set('busca', 'Fulano')
+        ->instance()
+        ->transacoes;
+
+    expect($transacoes->total())->toBe(1)
+        ->and($transacoes->first()->cliente_nome)->toBe('Fulano de Tal');
+});
+
+test('filtro de status isola apenas transações reembolsadas', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+    $cliente = User::factory()->create();
+
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
+        'data' => now()->startOfMonth()->addDays(2)->toDateString(),
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $cliente->id,
+        'data' => now()->startOfMonth()->addDays(3)->toDateString(),
+        'status' => ReservaStatus::Cancelada,
+        'cancelamento_tipo' => 'credito',
+    ]);
+
+    $transacoes = Livewire::actingAs($dono)
+        ->test(Financeiro::class)
+        ->set('filtroStatus', 'reembolsado')
+        ->instance()
+        ->transacoes;
+
+    expect($transacoes->total())->toBe(1)
+        ->and($transacoes->first()->status)->toBe(ReservaStatus::Cancelada);
+});
+
+test('dono cadastra e visualiza a chave Pix de recebimento mascarada', function () {
+    $dono = User::factory()->donoQuadra()->create();
+
+    Livewire::actingAs($dono)
+        ->test(Financeiro::class)
+        ->call('editarChavePix')
+        ->set('chavePixRecebimento', 'ana.silva@email.com')
+        ->call('salvarChavePix')
+        ->assertHasNoErrors();
+
+    expect($dono->fresh()->chave_pix_recebimento)->toBe('ana.silva@email.com');
+
+    $mascarada = Livewire::actingAs($dono)
         ->test(Financeiro::class)
         ->instance()
-        ->reservas;
+        ->chavePixMascarada();
 
-    expect($reservas->total())->toBe(12)
-        ->and($reservas->count())->toBe(10);
+    expect($mascarada)->toBe('••••.silva@email.com');
 });

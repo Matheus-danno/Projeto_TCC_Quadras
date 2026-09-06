@@ -3,6 +3,7 @@
 namespace App\Livewire\Quadras;
 
 use App\Enums\ReservaStatus;
+use App\Enums\StatusPagamento;
 use App\Models\Reserva;
 use Livewire\Component;
 
@@ -43,6 +44,7 @@ class Pagamento extends Component
         $this->reserva->update([
             'status' => ReservaStatus::Confirmada,
             'metodo_pagamento' => $this->metodo,
+            'status_pagamento' => StatusPagamento::Pago,
         ]);
 
         $this->redirect(route('reservas.confirmacao', $this->reserva), navigate: false);
@@ -71,6 +73,7 @@ class Pagamento extends Component
         $this->reserva->update([
             'status' => ReservaStatus::Confirmada,
             'metodo_pagamento' => 'credito',
+            'status_pagamento' => StatusPagamento::Pago,
         ]);
 
         $this->redirect(route('reservas.confirmacao', $this->reserva), navigate: false);
