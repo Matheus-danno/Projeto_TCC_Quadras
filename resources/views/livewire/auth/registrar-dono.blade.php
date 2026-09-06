@@ -64,7 +64,7 @@
                 <label class="cadastro-label">Estado</label>
                 <select class="cadastro-select" wire:model="estado">
                     <option value="">UF</option>
-                    @foreach (['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'] as $uf)
+                    @foreach (\App\Livewire\Auth\RegistrarDono::UFS as $uf)
                         <option value="{{ $uf }}">{{ $uf }}</option>
                     @endforeach
                 </select>

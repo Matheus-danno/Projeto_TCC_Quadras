@@ -5,8 +5,11 @@ namespace App\Livewire\Auth;
 use App\Concerns\PasswordValidationRules;
 use App\Enums\UserRole;
 use App\Models\User;
+use App\Rules\CnpjValido;
+use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class RegistrarDono extends Component
@@ -35,35 +38,63 @@ class RegistrarDono extends Component
 
     public bool $aceitaComissao = false;
 
-    public function registrar()
+    /**
+     * Siglas de UF válidas, usadas tanto no formulário (blade) quanto aqui.
+     *
+     * @var list<string>
+     */
+    public const UFS = [
+        'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
+        'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
+        'SP', 'SE', 'TO',
+    ];
+
+    protected function rules(): array
     {
-        $validated = $this->validate([
-            'nomeEstabelecimento' => ['required', 'string', 'max:255'],
-            'cnpj' => ['required', 'string'],
-            'telefone' => ['required', 'string'],
-            'name' => ['required', 'string', 'max:255'],
+        return [
+            'nomeEstabelecimento' => ['required', 'string', 'min:3', 'max:255'],
+            'cnpj' => [
+                'required',
+                'string',
+                new CnpjValido,
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if (User::where('cnpj', preg_replace('/\D/', '', $value))->exists()) {
+                        $fail('Esse CNPJ já está cadastrado.');
+                    }
+                },
+            ],
+            'telefone' => [
+                'required',
+                'string',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    $digitos = preg_replace('/\D/', '', $value);
+
+                    if (strlen($digitos) < 10 || strlen($digitos) > 11) {
+                        $fail('Informe um telefone válido, com DDD.');
+                    }
+                },
+            ],
+            'name' => ['required', 'string', 'min:3', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'endereco' => ['required', 'string', 'max:255'],
-            'cidade' => ['required', 'string', 'max:255'],
-            'estado' => ['required', 'string', 'size:2'],
+            'endereco' => ['required', 'string', 'min:5', 'max:255'],
+            'cidade' => ['required', 'string', 'min:2', 'max:255'],
+            'estado' => ['required', 'string', Rule::in(self::UFS)],
             'password' => $this->passwordRules(),
             'aceitaComissao' => ['accepted'],
-        ], [
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
             'aceitaComissao.accepted' => 'Você precisa aceitar o termo de comissão para continuar.',
-        ]);
+            'estado.in' => 'Selecione um estado (UF) válido.',
+        ];
+    }
 
-        $cnpjDigitos = preg_replace('/\D/', '', $validated['cnpj']);
-        if (strlen($cnpjDigitos) !== 14) {
-            $this->addError('cnpj', 'Informe um CNPJ válido com 14 dígitos.');
-
-            return;
-        }
-
-        if (User::where('cnpj', $cnpjDigitos)->exists()) {
-            $this->addError('cnpj', 'Esse CNPJ já está cadastrado.');
-
-            return;
-        }
+    public function registrar()
+    {
+        $validated = $this->validate();
 
         $user = User::create([
             'name' => $validated['name'],
@@ -71,7 +102,7 @@ class RegistrarDono extends Component
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => UserRole::DonoQuadra,
-            'cnpj' => $cnpjDigitos,
+            'cnpj' => preg_replace('/\D/', '', $validated['cnpj']),
             'endereco' => $validated['endereco'],
             'cidade' => $validated['cidade'],
             'estado' => strtoupper($validated['estado']),

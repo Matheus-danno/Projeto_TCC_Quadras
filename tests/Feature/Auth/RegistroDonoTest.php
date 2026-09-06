@@ -9,7 +9,7 @@ function dadosValidosDeCadastroDono(array $sobrescrever = []): array
 {
     return array_merge([
         'nomeEstabelecimento' => 'Arena Sports Bauru',
-        'cnpj' => '12.345.678/0001-90',
+        'cnpj' => '12.345.678/0001-95',
         'telefone' => '(14) 99711-2233',
         'name' => 'João Silva',
         'email' => 'joao.silva@example.com',
@@ -36,7 +36,7 @@ test('cadastro de estabelecimento cria dono de quadra e loga automaticamente', f
     expect($user)->not->toBeNull()
         ->and($user->name)->toBe('João Silva')
         ->and($user->nome_estabelecimento)->toBe('Arena Sports Bauru')
-        ->and($user->cnpj)->toBe('12345678000190')
+        ->and($user->cnpj)->toBe('12345678000195')
         ->and($user->role)->toBe(UserRole::DonoQuadra)
         ->and($user->cidade)->toBe('Bauru')
         ->and($user->estado)->toBe('SP')
@@ -71,8 +71,34 @@ test('rejeita cnpj com menos de 14 dígitos', function () {
     expect(User::where('email', 'joao.silva@example.com')->exists())->toBeFalse();
 });
 
+test('rejeita cnpj com dígito verificador inválido', function () {
+    $component = Livewire::test(RegistrarDono::class);
+
+    // Mesma base da versão válida ("12.345.678/0001-95"), mas com os dígitos
+    // verificadores adulterados.
+    foreach (dadosValidosDeCadastroDono(['cnpj' => '12.345.678/0001-90']) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('cnpj');
+
+    expect(User::where('email', 'joao.silva@example.com')->exists())->toBeFalse();
+});
+
+test('rejeita cnpj com todos os dígitos iguais', function () {
+    $component = Livewire::test(RegistrarDono::class);
+
+    foreach (dadosValidosDeCadastroDono(['cnpj' => '11.111.111/1111-11']) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('cnpj');
+
+    expect(User::where('email', 'joao.silva@example.com')->exists())->toBeFalse();
+});
+
 test('rejeita cnpj já cadastrado', function () {
-    User::factory()->create(['cnpj' => '12345678000190']);
+    User::factory()->create(['cnpj' => '12345678000195']);
 
     $component = Livewire::test(RegistrarDono::class);
 
@@ -81,6 +107,30 @@ test('rejeita cnpj já cadastrado', function () {
     }
 
     $component->call('registrar')->assertHasErrors('cnpj');
+});
+
+test('rejeita telefone com poucos dígitos', function () {
+    $component = Livewire::test(RegistrarDono::class);
+
+    foreach (dadosValidosDeCadastroDono(['telefone' => '(14) 9971']) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('telefone');
+
+    expect(User::where('email', 'joao.silva@example.com')->exists())->toBeFalse();
+});
+
+test('rejeita estado que não é uma UF válida', function () {
+    $component = Livewire::test(RegistrarDono::class);
+
+    foreach (dadosValidosDeCadastroDono(['estado' => 'XX']) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('estado');
+
+    expect(User::where('email', 'joao.silva@example.com')->exists())->toBeFalse();
 });
 
 test('rejeita e-mail já cadastrado', function () {
