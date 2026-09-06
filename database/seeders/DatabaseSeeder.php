@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
             );
         });
 
-        Produto::factory()->count(6)->create();
+        $donos->each(fn (User $dono) => Produto::factory()->count(2)->create(['dono_id' => $dono->id]));
     }
 
     /**

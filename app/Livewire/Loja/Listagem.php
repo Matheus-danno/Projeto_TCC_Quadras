@@ -17,6 +17,7 @@ class Listagem extends Component
     public function produtos(): Collection
     {
         return Produto::query()
+            ->where('ativo', true)
             ->when($this->categoria, fn ($query) => $query->where('categoria', $this->categoria))
             ->when($this->busca, fn ($query) => $query->where(
                 fn ($query) => $query->where('nome', 'like', "%{$this->busca}%")
@@ -29,7 +30,7 @@ class Listagem extends Component
     #[Computed]
     public function categorias(): Collection
     {
-        return Produto::query()->whereNotNull('categoria')->distinct()->orderBy('categoria')->pluck('categoria');
+        return Produto::query()->where('ativo', true)->whereNotNull('categoria')->distinct()->orderBy('categoria')->pluck('categoria');
     }
 
     public function render()

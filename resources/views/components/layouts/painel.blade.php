@@ -56,6 +56,9 @@
                     <x-painel-nav-item :href="route('painel.quadras')" :current="request()->routeIs('painel.quadras')">
                         {{ __('Minhas Quadras') }}
                     </x-painel-nav-item>
+                    <x-painel-nav-item :href="route('painel.loja')" :current="request()->routeIs('painel.loja*')">
+                        {{ __('Loja') }}
+                    </x-painel-nav-item>
                     <x-painel-nav-item :href="route('painel.reservas')" :current="request()->routeIs('painel.reservas')">
                         {{ __('Reservas') }}
                     </x-painel-nav-item>

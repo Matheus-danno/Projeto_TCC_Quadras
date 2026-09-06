@@ -136,6 +136,11 @@ class User extends Authenticatable
         return $this->hasMany(Quadra::class, 'dono_id');
     }
 
+    public function produtos(): HasMany
+    {
+        return $this->hasMany(Produto::class, 'dono_id');
+    }
+
     /**
      * Reservas feitas por este usuário.
      */

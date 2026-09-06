@@ -12,8 +12,8 @@
                 <div class="card border-0 shadow-sm" style="border-radius: 15px;" wire:key="carrinho-item-{{ $item->produto->id }}">
                     <div class="card-body d-flex flex-wrap align-items-center gap-3 p-3">
                         <div class="produto-img-container flex-shrink-0 rounded-3" style="width: 80px; height: 80px;">
-                            @if ($item->produto->imagem)
-                                <img src="{{ asset($item->produto->imagem) }}" alt="{{ $item->produto->nome }}" class="produto-img">
+                            @if ($item->produto->imagemUrl())
+                                <img src="{{ $item->produto->imagemUrl() }}" alt="{{ $item->produto->nome }}" class="produto-img">
                             @else
                                 <div class="d-flex align-items-center justify-content-center h-100">
                                     <i class="bi bi-bag text-secondary"></i>

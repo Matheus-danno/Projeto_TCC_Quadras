@@ -31,8 +31,8 @@
 
                     <!-- Imagem do Produto -->
                     <div class="produto-img-container d-flex align-items-center justify-content-center">
-                        @if ($produto->imagem)
-                            <img src="{{ asset($produto->imagem) }}" alt="{{ $produto->nome }}" class="produto-img">
+                        @if ($produto->imagemUrl())
+                            <img src="{{ $produto->imagemUrl() }}" alt="{{ $produto->nome }}" class="produto-img">
                         @else
                             <i class="bi bi-bag text-secondary" style="font-size: 2.5rem;"></i>
                         @endif

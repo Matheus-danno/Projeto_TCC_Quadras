@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\Produto;
 use App\Models\Quadra;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,22 @@ Route::middleware(['auth', 'role:'.UserRole::DonoQuadra->value])
         Route::get('/quadras/{quadra}', function (Quadra $quadra) {
             return view('painel-quadras-detalhe', ['quadra' => $quadra]);
         })->name('quadras.show');
+
+        Route::get('/loja', function () {
+            return view('painel-loja');
+        })->name('loja');
+
+        Route::get('/loja/novo', function () {
+            return view('painel-loja-formulario');
+        })->name('loja.criar');
+
+        Route::get('/loja/{produto}/editar', function (Produto $produto) {
+            return view('painel-loja-formulario', ['produto' => $produto]);
+        })->name('loja.editar');
+
+        Route::get('/loja/{produto}', function (Produto $produto) {
+            return view('painel-loja-detalhe', ['produto' => $produto]);
+        })->name('loja.show');
 
         Route::get('/reservas', function () {
             return view('painel-reservas');

@@ -6,8 +6,8 @@
     <div class="row g-5">
         <div class="col-md-5">
             <div class="produto-img-container rounded-4 shadow-sm" style="height: 360px;">
-                @if ($produto->imagem)
-                    <img src="{{ asset($produto->imagem) }}" alt="{{ $produto->nome }}" class="produto-img">
+                @if ($produto->imagemUrl())
+                    <img src="{{ $produto->imagemUrl() }}" alt="{{ $produto->nome }}" class="produto-img">
                 @else
                     <div class="d-flex align-items-center justify-content-center h-100">
                         <i class="bi bi-bag text-secondary" style="font-size: 4rem;"></i>
