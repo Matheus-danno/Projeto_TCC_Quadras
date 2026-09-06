@@ -36,10 +36,45 @@ class Notificacoes extends Component
         'notif_ofertas_novidades' => 'Ofertas e novidades',
     ];
 
+    /**
+     * Ids das notificações reais (persistidas) que ainda estavam não lidas
+     * quando a página foi aberta, capturados antes de marcá-las como lidas,
+     * só para destacar visualmente "novas" nesta renderização.
+     *
+     * @var array<int, string>
+     */
+    public array $idsNaoLidosAoAbrir = [];
+
+    public function mount(): void
+    {
+        $this->idsNaoLidosAoAbrir = Auth::user()->unreadNotifications->pluck('id')->all();
+
+        Auth::user()->unreadNotifications->markAsRead();
+    }
+
     #[Computed]
     public function notificacoes(): Collection
     {
-        return $this->salasFechando()->concat($this->quadrasAbaixoDaMedia());
+        return $this->notificacoesReais()
+            ->concat($this->salasFechando())
+            ->concat($this->quadrasAbaixoDaMedia());
+    }
+
+    /**
+     * Notificações reais e persistidas (ex.: mudança de status de pedido da
+     * Loja), mais recentes primeiro.
+     */
+    private function notificacoesReais(): Collection
+    {
+        return Auth::user()->notifications->map(fn ($notificacao) => [
+            'tipo' => $notificacao->data['tipo'] ?? 'aviso',
+            'icone' => $notificacao->data['icone'] ?? 'bi-bell',
+            'titulo' => $notificacao->data['titulo'] ?? '',
+            'mensagem' => $notificacao->data['mensagem'] ?? '',
+            'link' => $notificacao->data['link'] ?? '#',
+            'linkTexto' => $notificacao->data['linkTexto'] ?? 'Ver',
+            'nova' => in_array($notificacao->id, $this->idsNaoLidosAoAbrir, true),
+        ]);
     }
 
     #[Computed]

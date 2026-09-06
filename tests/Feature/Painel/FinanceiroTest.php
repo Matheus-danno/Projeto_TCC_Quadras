@@ -1,12 +1,45 @@
 <?php
 
+use App\Enums\PedidoStatus;
 use App\Enums\ReservaStatus;
 use App\Enums\StatusPagamento;
 use App\Livewire\Painel\Financeiro;
+use App\Models\ItemPedido;
+use App\Models\Pedido;
+use App\Models\Produto;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\User;
 use Livewire\Livewire;
+
+function criarPedidoParaFinanceiro(
+    User $dono,
+    User $comprador,
+    Produto $produto,
+    int $quantidade = 1,
+    PedidoStatus $status = PedidoStatus::Aguardando
+): Pedido {
+    $total = $produto->preco * $quantidade;
+
+    $pedido = Pedido::create([
+        'user_id' => $comprador->id,
+        'dono_id' => $dono->id,
+        'status' => $status,
+        'total' => $total,
+        'numero_retirada' => Pedido::gerarNumeroRetirada(),
+        'comissao_percentual' => 5,
+        'comissao_valor' => round($total * 0.05, 2),
+    ]);
+
+    ItemPedido::create([
+        'pedido_id' => $pedido->id,
+        'produto_id' => $produto->id,
+        'quantidade' => $quantidade,
+        'preco_unitario' => $produto->preco,
+    ]);
+
+    return $pedido;
+}
 
 test('rota painel.financeiro renderiza o componente', function () {
     $dono = User::factory()->donoQuadra()->create();
@@ -240,6 +273,7 @@ test('busca filtra transações por nome do cliente ou nome da quadra', function
 
     Reserva::factory()->create([
         'quadra_id' => $quadra->id,
+        'user_id' => null,
         'cliente_nome' => 'Fulano de Tal',
         'data' => now()->startOfMonth()->addDays(2)->toDateString(),
         'status' => ReservaStatus::Confirmada,
@@ -248,6 +282,7 @@ test('busca filtra transações por nome do cliente ou nome da quadra', function
 
     Reserva::factory()->create([
         'quadra_id' => $quadra->id,
+        'user_id' => null,
         'cliente_nome' => 'Beltrano da Silva',
         'data' => now()->startOfMonth()->addDays(3)->toDateString(),
         'status' => ReservaStatus::Confirmada,
@@ -261,7 +296,7 @@ test('busca filtra transações por nome do cliente ou nome da quadra', function
         ->transacoes;
 
     expect($transacoes->total())->toBe(1)
-        ->and($transacoes->first()->cliente_nome)->toBe('Fulano de Tal');
+        ->and($transacoes->first()['cliente'])->toBe('Fulano de Tal');
 });
 
 test('filtro de status isola apenas transações reembolsadas', function () {
@@ -292,7 +327,7 @@ test('filtro de status isola apenas transações reembolsadas', function () {
         ->transacoes;
 
     expect($transacoes->total())->toBe(1)
-        ->and($transacoes->first()->status)->toBe(ReservaStatus::Cancelada);
+        ->and($transacoes->first()['statusLabel'])->toBe('Reembolsado');
 });
 
 test('dono cadastra e visualiza a chave Pix de recebimento mascarada', function () {
@@ -376,4 +411,138 @@ test('exportarCsv baixa as transações do mês atual respeitando os filtros ati
         ->test(Financeiro::class)
         ->call('exportarCsv')
         ->assertFileDownloaded('transacoes-'.now()->format('Y-m').'.csv');
+});
+
+test('comissaoReserva calcula 5% do valor da reserva', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 100]);
+
+    $reserva = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'hora_inicio' => '08:00:00',
+        'hora_fim' => '10:00:00',
+    ]);
+
+    $comissao = Livewire::actingAs($dono)
+        ->test(Financeiro::class)
+        ->instance()
+        ->comissaoReserva($reserva);
+
+    expect($comissao)->toBe(10.0);
+});
+
+test('faturamento e comissao da loja somam apenas pedidos nao cancelados do dono no mes atual', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $outroDono = User::factory()->donoQuadra()->create();
+    $comprador = User::factory()->create();
+
+    $produto = Produto::factory()->create(['dono_id' => $dono->id, 'preco' => 100]);
+    $produtoOutroDono = Produto::factory()->create(['dono_id' => $outroDono->id, 'preco' => 500]);
+
+    criarPedidoParaFinanceiro($dono, $comprador, $produto, status: PedidoStatus::Aguardando);
+    criarPedidoParaFinanceiro($dono, $comprador, $produto, status: PedidoStatus::Cancelado);
+    criarPedidoParaFinanceiro($outroDono, $comprador, $produtoOutroDono, status: PedidoStatus::Aguardando);
+
+    $component = Livewire::actingAs($dono)->test(Financeiro::class);
+
+    expect((float) $component->instance()->faturamentoLojaMes)->toBe(100.0)
+        ->and((float) $component->instance()->comissaoLojaMes)->toBe(5.0);
+});
+
+test('faturamento por produto agrupa e ordena do maior para o menor, com percentual relativo', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $comprador = User::factory()->create();
+
+    $produtoA = Produto::factory()->create(['dono_id' => $dono->id, 'nome' => 'Produto A', 'preco' => 100]);
+    $produtoB = Produto::factory()->create(['dono_id' => $dono->id, 'nome' => 'Produto B', 'preco' => 30]);
+
+    criarPedidoParaFinanceiro($dono, $comprador, $produtoA, quantidade: 2);
+    criarPedidoParaFinanceiro($dono, $comprador, $produtoB, quantidade: 1);
+
+    $porProduto = Livewire::actingAs($dono)
+        ->test(Financeiro::class)
+        ->instance()
+        ->faturamentoPorProduto;
+
+    expect($porProduto)->toHaveCount(2);
+
+    $linhaA = $porProduto->firstWhere('produto.id', $produtoA->id);
+    $linhaB = $porProduto->firstWhere('produto.id', $produtoB->id);
+
+    expect((float) $linhaA['faturamento'])->toBe(200.0)
+        ->and($linhaA['percentual'])->toBe(100.0)
+        ->and((float) $linhaB['faturamento'])->toBe(30.0)
+        ->and($linhaB['percentual'])->toBe(15.0);
+
+    expect($porProduto->first()['produto']->id)->toBe($produtoA->id);
+});
+
+test('resumoGeral soma faturamento e comissao de reservas e loja', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 100]);
+    $comprador = User::factory()->create();
+    $produto = Produto::factory()->create(['dono_id' => $dono->id, 'preco' => 50]);
+
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->startOfMonth()->addDays(2)->toDateString(),
+        'hora_inicio' => '08:00:00',
+        'hora_fim' => '09:00:00',
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    criarPedidoParaFinanceiro($dono, $comprador, $produto);
+
+    $resumo = Livewire::actingAs($dono)
+        ->test(Financeiro::class)
+        ->instance()
+        ->resumoGeral;
+
+    expect($resumo['faturamentoReservas'])->toBe(100.0)
+        ->and($resumo['faturamentoLoja'])->toBe(50.0)
+        ->and($resumo['faturamentoTotal'])->toBe(150.0)
+        ->and($resumo['comissaoTotal'])->toBe(7.5)
+        ->and($resumo['liquidoTotal'])->toBe(142.5);
+});
+
+test('transacoes unificadas trazem reservas e pedidos juntos, e o filtro de tipo isola cada um', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
+    $comprador = User::factory()->create();
+    $produto = Produto::factory()->create(['dono_id' => $dono->id]);
+
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->startOfMonth()->addDays(2)->toDateString(),
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    criarPedidoParaFinanceiro($dono, $comprador, $produto);
+
+    $component = Livewire::actingAs($dono)->test(Financeiro::class);
+
+    expect($component->instance()->transacoes->total())->toBe(2);
+
+    $component->set('filtroTipo', 'reservas');
+    expect($component->instance()->transacoes->total())->toBe(1)
+        ->and($component->instance()->transacoes->first()['tipo'])->toBe('reserva');
+
+    $component->set('filtroTipo', 'produtos');
+    expect($component->instance()->transacoes->total())->toBe(1)
+        ->and($component->instance()->transacoes->first()['tipo'])->toBe('produto');
+});
+
+test('pedido cancelado nao aparece nas transacoes nem no faturamento da loja', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $comprador = User::factory()->create();
+    $produto = Produto::factory()->create(['dono_id' => $dono->id]);
+
+    criarPedidoParaFinanceiro($dono, $comprador, $produto, status: PedidoStatus::Cancelado);
+
+    $component = Livewire::actingAs($dono)->test(Financeiro::class);
+
+    expect((float) $component->instance()->faturamentoLojaMes)->toBe(0.0)
+        ->and($component->instance()->transacoes->total())->toBe(0);
 });

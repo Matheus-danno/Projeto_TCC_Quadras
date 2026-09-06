@@ -43,14 +43,24 @@
     <h6 class="fw-bold text-secondary mb-3">Avisos</h6>
     <div class="d-flex flex-column gap-3">
         @forelse ($this->notificacoes as $notificacao)
-            <div class="card border border-light-subtle shadow-none" style="border-radius: 15px;" wire:key="notificacao-{{ $loop->index }}">
+            @php $nova = $notificacao['nova'] ?? false; @endphp
+            <div
+                class="card shadow-none {{ $nova ? 'border-orange' : 'border border-light-subtle' }}"
+                style="border-radius: 15px; {{ $nova ? 'background-color: #fff8f0;' : '' }}"
+                wire:key="notificacao-{{ $loop->index }}"
+            >
                 <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div class="d-flex align-items-start gap-3">
                         <div class="grupo-avatar flex-shrink-0" style="background-color: #fff3e0;">
                             <i class="bi {{ $notificacao['icone'] }} text-orange"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold mb-1" style="color: #2D3748;">{{ $notificacao['titulo'] }}</h6>
+                            <div class="d-flex align-items-center gap-2">
+                                <h6 class="fw-bold mb-1" style="color: #2D3748;">{{ $notificacao['titulo'] }}</h6>
+                                @if ($nova)
+                                    <span class="badge bg-orange rounded-pill">Novo</span>
+                                @endif
+                            </div>
                             <p class="text-muted small mb-0">{{ $notificacao['mensagem'] }}</p>
                         </div>
                     </div>

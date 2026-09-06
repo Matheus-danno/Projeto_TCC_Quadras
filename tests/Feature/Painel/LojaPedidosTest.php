@@ -6,6 +6,8 @@ use App\Models\ItemPedido;
 use App\Models\Pedido;
 use App\Models\Produto;
 use App\Models\User;
+use App\Notifications\PedidoStatusAlterado;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 function criarPedidoDoDono(
@@ -174,4 +176,61 @@ test('dono não consegue cancelar pedido de outro dono', function () {
 
     expect($pedidoAlheio->fresh()->status)->toBe(PedidoStatus::Aguardando)
         ->and($produto->fresh()->estoque)->toBe(5);
+});
+
+test('marcar como retirado notifica o comprador', function () {
+    Notification::fake();
+
+    $dono = User::factory()->donoQuadra()->create();
+    $comprador = User::factory()->create();
+    $produto = Produto::factory()->create(['dono_id' => $dono->id]);
+    $pedido = criarPedidoDoDono($dono, $comprador, $produto);
+
+    Livewire::actingAs($dono)
+        ->test(Pedidos::class)
+        ->call('marcarRetirado', $pedido->id);
+
+    Notification::assertSentTo(
+        $comprador,
+        PedidoStatusAlterado::class,
+        fn (PedidoStatusAlterado $notification) => $notification->toDatabase($comprador)['tipo'] === 'pedido_retirado'
+    );
+});
+
+test('cancelar notifica o comprador', function () {
+    Notification::fake();
+
+    $dono = User::factory()->donoQuadra()->create();
+    $comprador = User::factory()->create();
+    $produto = Produto::factory()->create(['dono_id' => $dono->id]);
+    $pedido = criarPedidoDoDono($dono, $comprador, $produto);
+
+    Livewire::actingAs($dono)
+        ->test(Pedidos::class)
+        ->call('cancelar', $pedido->id);
+
+    Notification::assertSentTo(
+        $comprador,
+        PedidoStatusAlterado::class,
+        fn (PedidoStatusAlterado $notification) => $notification->toDatabase($comprador)['tipo'] === 'pedido_cancelado'
+    );
+});
+
+test('conteúdo da notificação cita o número de retirada e o estabelecimento', function () {
+    $dono = User::factory()->donoQuadra()->create(['nome_estabelecimento' => 'Arena Teste']);
+    $comprador = User::factory()->create();
+    $produto = Produto::factory()->create(['dono_id' => $dono->id]);
+    $pedido = criarPedidoDoDono($dono, $comprador, $produto);
+
+    Livewire::actingAs($dono)
+        ->test(Pedidos::class)
+        ->call('marcarRetirado', $pedido->id);
+
+    $notificacao = $comprador->notifications()->first();
+
+    expect($notificacao)->not->toBeNull()
+        ->and($notificacao->data['titulo'])->toBe('Pedido retirado')
+        ->and($notificacao->data['mensagem'])->toContain($pedido->numero_retirada)
+        ->and($notificacao->data['mensagem'])->toContain('Arena Teste')
+        ->and($notificacao->read_at)->toBeNull();
 });

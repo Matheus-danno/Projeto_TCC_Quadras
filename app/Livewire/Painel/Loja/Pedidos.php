@@ -5,6 +5,7 @@ namespace App\Livewire\Painel\Loja;
 use App\Enums\PedidoStatus;
 use App\Models\Pedido;
 use App\Models\Produto;
+use App\Notifications\PedidoStatusAlterado;
 use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +45,8 @@ class Pedidos extends Component
 
         $pedido->update(['status' => PedidoStatus::Retirado]);
 
+        $pedido->user->notify(new PedidoStatusAlterado($pedido));
+
         $this->toast('Pedido marcado como retirado.', variant: 'success');
 
         unset($this->pedidos);
@@ -64,6 +67,8 @@ class Pedidos extends Component
 
             $pedido->update(['status' => PedidoStatus::Cancelado]);
         });
+
+        $pedido->user->notify(new PedidoStatusAlterado($pedido));
 
         $this->toast('Pedido cancelado e estoque devolvido.', variant: 'success');
 

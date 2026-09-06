@@ -27,6 +27,13 @@
                 <a href="{{ route('perfil') }}#ajuda" class="navbar_icone-btn" title="Ajuda">
                     <i class="bi bi-question-circle"></i>
                 </a>
+                @php $naoLidas = auth()->user()->unreadNotifications->count(); @endphp
+                <a href="{{ route('perfil') }}#notificacoes" class="navbar_icone-btn" title="Notificações">
+                    <i class="bi bi-bell"></i>
+                    @if ($naoLidas > 0)
+                        <span class="navbar_icone-badge">{{ $naoLidas > 9 ? '9+' : $naoLidas }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('carrinho.index') }}" class="navbar_icone-btn" title="Carrinho">
                     <i class="bi bi-cart3"></i>
                 </a>
