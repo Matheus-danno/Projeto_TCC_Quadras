@@ -34,10 +34,17 @@ class Mensagens extends Component
             ->keyBy('quadra_id');
 
         return $quadras->each(function (Quadra $quadra) use ($conversas) {
-            $quadra->ultimaMensagem = $conversas->get($quadra->id)?->ultimaMensagem();
+            $conversa = $conversas->get($quadra->id);
+
+            $quadra->ultimaMensagem = $conversa?->ultimaMensagem();
+            $quadra->naoLidas = $conversa?->mensagensNaoLidasPara(Auth::id()) ?? 0;
         });
     }
 
+    /**
+     * Marca as mensagens do dono como lidas sempre que a conversa é exibida
+     * (na seleção inicial e a cada wire:poll da tela aberta).
+     */
     #[Computed]
     public function conversaAtual(): ?Conversa
     {
@@ -45,10 +52,14 @@ class Mensagens extends Component
             return null;
         }
 
-        return Conversa::where('quadra_id', $this->quadraSelecionada)
+        $conversa = Conversa::where('quadra_id', $this->quadraSelecionada)
             ->where('jogador_id', Auth::id())
             ->with('mensagens.user')
             ->first();
+
+        $conversa?->marcarComoLidaPara(Auth::id());
+
+        return $conversa;
     }
 
     public function selecionarQuadra(int $quadraId): void

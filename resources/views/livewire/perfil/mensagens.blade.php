@@ -20,12 +20,17 @@
                                 <i class="bi bi-person-badge me-1"></i> {{ $quadra->dono?->nome_estabelecimento ?? $quadra->dono?->name ?? 'Dono da quadra' }}
                             </p>
                             @if ($ultimaMensagem)
-                                <p class="text-muted small mb-0 mt-1">{{ Str::limit($ultimaMensagem->texto, 60) }} · {{ $ultimaMensagem->tempoDecorrido() }} atrás</p>
+                                <p class="small mb-0 mt-1 {{ $quadra->naoLidas > 0 ? 'fw-semibold text-body' : 'text-muted' }}">{{ Str::limit($ultimaMensagem->texto, 60) }} · {{ $ultimaMensagem->tempoDecorrido() }} atrás</p>
                             @else
                                 <p class="text-muted small mb-0 mt-1">Nenhuma mensagem ainda</p>
                             @endif
                         </div>
-                        <i class="bi bi-chevron-right text-orange"></i>
+                        <div class="d-flex align-items-center gap-2">
+                            @if ($quadra->naoLidas > 0)
+                                <span class="badge bg-orange rounded-pill">{{ $quadra->naoLidas }}</span>
+                            @endif
+                            <i class="bi bi-chevron-right text-orange"></i>
+                        </div>
                     </div>
                 </button>
             @empty
