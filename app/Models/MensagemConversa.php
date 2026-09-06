@@ -15,7 +15,15 @@ class MensagemConversa extends Model
         'conversa_id',
         'user_id',
         'texto',
+        'lida_em',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'lida_em' => 'datetime',
+        ];
+    }
 
     public function conversa(): BelongsTo
     {

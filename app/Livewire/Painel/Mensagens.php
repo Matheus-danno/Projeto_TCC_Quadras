@@ -13,6 +13,8 @@ class Mensagens extends Component
 
     public string $novaMensagem = '';
 
+    public string $busca = '';
+
     /**
      * Conversas de jogadores com as quadras deste dono, da mais recente para a mais antiga.
      */
@@ -21,12 +23,24 @@ class Mensagens extends Component
     {
         return Conversa::query()
             ->whereHas('quadra', fn ($query) => $query->where('dono_id', Auth::id()))
+            ->when($this->busca, function ($query) {
+                $termo = '%'.$this->busca.'%';
+
+                $query->where(function ($query) use ($termo) {
+                    $query->whereHas('jogador', fn ($query) => $query->where('name', 'like', $termo))
+                        ->orWhereHas('quadra', fn ($query) => $query->where('nome', 'like', $termo));
+                });
+            })
             ->with(['quadra', 'jogador', 'mensagens'])
             ->get()
             ->sortByDesc(fn (Conversa $conversa) => $conversa->ultimaMensagem()?->created_at)
             ->values();
     }
 
+    /**
+     * Marca as mensagens do jogador como lidas sempre que a conversa é
+     * exibida (na seleção inicial e a cada wire:poll da tela aberta).
+     */
     #[Computed]
     public function conversaAtual(): ?Conversa
     {
@@ -34,10 +48,14 @@ class Mensagens extends Component
             return null;
         }
 
-        return Conversa::query()
+        $conversa = Conversa::query()
             ->whereHas('quadra', fn ($query) => $query->where('dono_id', Auth::id()))
             ->with(['quadra', 'jogador', 'mensagens.user'])
             ->find($this->conversaSelecionada);
+
+        $conversa?->marcarComoLidaPara(Auth::id());
+
+        return $conversa;
     }
 
     public function selecionarConversa(int $conversaId): void
@@ -49,6 +67,8 @@ class Mensagens extends Component
         $this->conversaSelecionada = $conversa->id;
         $this->novaMensagem = '';
         $this->resetErrorBag();
+
+        unset($this->conversas);
     }
 
     public function voltar(): void

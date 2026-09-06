@@ -44,4 +44,28 @@ class Conversa extends Model
     {
         return $this->mensagens->last();
     }
+
+    /**
+     * Quantidade de mensagens ainda não lidas por $userId nesta conversa
+     * (enviadas pela outra pessoa e sem lida_em).
+     */
+    public function mensagensNaoLidasPara(int $userId): int
+    {
+        return $this->mensagens
+            ->where('user_id', '!=', $userId)
+            ->whereNull('lida_em')
+            ->count();
+    }
+
+    /**
+     * Marca como lidas todas as mensagens desta conversa enviadas pela
+     * outra pessoa (não por $userId).
+     */
+    public function marcarComoLidaPara(int $userId): void
+    {
+        $this->mensagens()
+            ->where('user_id', '!=', $userId)
+            ->whereNull('lida_em')
+            ->update(['lida_em' => now()]);
+    }
 }

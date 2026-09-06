@@ -5,15 +5,22 @@
     </div>
 
     @if ($conversaSelecionada === null)
+        <flux:input wire:model.live.debounce.300ms="busca" :placeholder="__('Buscar por jogador ou quadra...')" class="rounded-full" icon="magnifying-glass" />
+
         @if ($this->conversas->isEmpty())
             <flux:card class="flex flex-col items-center gap-2 py-16 text-center">
                 <flux:icon.chat-bubble-left-right class="size-8 text-zinc-300" />
                 <flux:heading size="lg">{{ __('Nenhuma mensagem ainda') }}</flux:heading>
-                <flux:text>{{ __('Quando um jogador enviar uma mensagem sobre alguma das suas quadras, ela aparece aqui.') }}</flux:text>
+                <flux:text>
+                    {{ $busca
+                        ? __('Nenhuma conversa encontrada para ":busca".', ['busca' => $busca])
+                        : __('Quando um jogador enviar uma mensagem sobre alguma das suas quadras, ela aparece aqui.') }}
+                </flux:text>
             </flux:card>
         @else
             <flux:card class="divide-y divide-zinc-100 rounded-2xl p-0">
                 @foreach ($this->conversas as $conversa)
+                    @php $naoLidas = $conversa->mensagensNaoLidasPara(auth()->id()); @endphp
                     <button
                         type="button"
                         wire:click="selecionarConversa({{ $conversa->id }})"
@@ -24,10 +31,15 @@
                             <p class="font-semibold text-zinc-900">{{ $conversa->jogador->name }}</p>
                             <p class="text-sm text-zinc-500">{{ $conversa->quadra->nome }}</p>
                             @if ($ultima = $conversa->ultimaMensagem())
-                                <p class="mt-1 text-sm text-zinc-400">{{ Str::limit($ultima->texto, 60) }} · {{ $ultima->tempoDecorrido() }} atrás</p>
+                                <p class="mt-1 text-sm {{ $naoLidas > 0 ? 'font-medium text-zinc-700' : 'text-zinc-400' }}">{{ Str::limit($ultima->texto, 60) }} · {{ $ultima->tempoDecorrido() }} atrás</p>
                             @endif
                         </div>
-                        <flux:icon.chevron-right class="size-4 text-zinc-300" />
+                        <div class="flex items-center gap-2">
+                            @if ($naoLidas > 0)
+                                <flux:badge color="orange" size="sm">{{ $naoLidas }}</flux:badge>
+                            @endif
+                            <flux:icon.chevron-right class="size-4 text-zinc-300" />
+                        </div>
                     </button>
                 @endforeach
             </flux:card>
