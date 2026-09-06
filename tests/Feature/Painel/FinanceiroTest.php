@@ -314,3 +314,66 @@ test('dono cadastra e visualiza a chave Pix de recebimento mascarada', function 
 
     expect($mascarada)->toBe('••••.silva@email.com');
 });
+
+test('faturamento dos últimos 6 meses traz o mês atual por último e ignora reservas fora do intervalo', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 100]);
+
+    // Mês atual: 1h confirmada e paga = 100.
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->startOfMonth()->addDays(2)->toDateString(),
+        'hora_inicio' => '08:00:00',
+        'hora_fim' => '09:00:00',
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    // 2 meses atrás: 1h confirmada e paga = 100.
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->subMonthsNoOverflow(2)->startOfMonth()->addDays(2)->toDateString(),
+        'hora_inicio' => '08:00:00',
+        'hora_fim' => '09:00:00',
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    // Fora do intervalo de 6 meses: não deve contar em nenhum mês.
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'data' => now()->subMonthsNoOverflow(8)->startOfMonth()->addDays(2)->toDateString(),
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    $meses = Livewire::actingAs($dono)
+        ->test(Financeiro::class)
+        ->instance()
+        ->faturamentoUltimosMeses;
+
+    expect($meses)->toHaveCount(6)
+        ->and($meses[5]['atual'])->toBeTrue()
+        ->and((float) $meses[5]['faturamento'])->toBe(100.0)
+        ->and($meses[5]['mes']->isSameMonth(now()))->toBeTrue()
+        ->and((float) $meses[3]['faturamento'])->toBe(100.0)
+        ->and(collect($meses)->sum('faturamento'))->toBe(200.0);
+});
+
+test('exportarCsv baixa as transações do mês atual respeitando os filtros ativos', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'nome' => 'Quadra Exportação']);
+
+    Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'cliente_nome' => 'Cliente Exportado',
+        'data' => now()->startOfMonth()->addDays(2)->toDateString(),
+        'status' => ReservaStatus::Confirmada,
+        'status_pagamento' => StatusPagamento::Pago,
+    ]);
+
+    Livewire::actingAs($dono)
+        ->test(Financeiro::class)
+        ->call('exportarCsv')
+        ->assertFileDownloaded('transacoes-'.now()->format('Y-m').'.csv');
+});

@@ -67,6 +67,28 @@
         </flux:card>
     </div>
 
+    <flux:card class="flex flex-col gap-4 rounded-2xl">
+        <div class="flex items-center justify-between gap-2">
+            <flux:heading size="lg">{{ __('Faturamento nos últimos 6 meses') }}</flux:heading>
+            <flux:text class="font-semibold text-zinc-900">R$ {{ number_format($this->faturamentoUltimosMeses[5]['faturamento'], 2, ',', '.') }}</flux:text>
+        </div>
+
+        <div class="flex h-32 items-end gap-3">
+            @foreach ($this->faturamentoUltimosMeses as $linha)
+                <div
+                    class="flex h-full flex-1 flex-col items-center justify-end gap-1.5"
+                    title="{{ ucfirst($linha['mes']->translatedFormat('F/Y')) }}: R$ {{ number_format($linha['faturamento'], 2, ',', '.') }}"
+                >
+                    <div
+                        class="w-full rounded-t-md {{ $linha['atual'] ? 'bg-orange-500' : 'bg-orange-200' }}"
+                        style="height: {{ $linha['percentual'] }}%; min-height: 2px"
+                    ></div>
+                    <span class="text-xs capitalize {{ $linha['atual'] ? 'font-semibold text-zinc-900' : 'text-zinc-500' }}">{{ $linha['label'] }}</span>
+                </div>
+            @endforeach
+        </div>
+    </flux:card>
+
     <flux:card class="flex flex-col gap-4 rounded-2xl p-0">
         <div class="flex flex-col gap-3 p-6 pb-0 md:flex-row md:items-center md:justify-between">
             <flux:heading size="lg">{{ __('Transações recentes') }}</flux:heading>
@@ -88,6 +110,10 @@
                     <flux:select.option value="isento">{{ __('Isento') }}</flux:select.option>
                     <flux:select.option value="reembolsado">{{ __('Reembolsado') }}</flux:select.option>
                 </flux:select>
+
+                <flux:button wire:click="exportarCsv" variant="outline" class="rounded-full !border-orange-300 !text-orange-600 hover:!bg-orange-50 dark:!border-orange-400/30 dark:!text-orange-400 dark:hover:!bg-orange-400/10">
+                    {{ __('Exportar CSV') }}
+                </flux:button>
             </div>
         </div>
 

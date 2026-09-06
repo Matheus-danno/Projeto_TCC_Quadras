@@ -15,6 +15,7 @@ use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Financeiro extends Component
 {
@@ -173,8 +174,11 @@ class Financeiro extends Component
         ];
     }
 
-    #[Computed]
-    public function transacoes(): LengthAwarePaginator
+    /**
+     * Consulta base das transações do mês atual, já com busca e filtros
+     * aplicados — reaproveitada pela tabela paginada e pela exportação CSV.
+     */
+    protected function transacoesQuery(): Builder
     {
         [$inicio, $fim] = $this->intervaloMesAtual();
 
@@ -199,11 +203,94 @@ class Financeiro extends Component
                         ->orWhereHas('user', fn (Builder $query) => $query->where('name', 'like', $termo))
                         ->orWhereHas('quadra', fn (Builder $query) => $query->where('nome', 'like', $termo));
                 });
-            })
+            });
+    }
+
+    #[Computed]
+    public function transacoes(): LengthAwarePaginator
+    {
+        return $this->transacoesQuery()
             ->with(['quadra', 'user'])
             ->orderByDesc('data')
             ->orderByDesc('hora_inicio')
             ->paginate(5);
+    }
+
+    /**
+     * Faturamento confirmado (não isento) dos últimos 6 meses, incluindo o
+     * atual, com o percentual relativo ao mês de maior faturamento — usado
+     * no gráfico de tendência.
+     *
+     * @return list<array{mes: Carbon, label: string, faturamento: float, percentual: float, atual: bool}>
+     */
+    #[Computed]
+    public function faturamentoUltimosMeses(): array
+    {
+        $inicioIntervalo = now()->startOfMonth()->subMonths(5);
+
+        $reservas = $this->reservasDoDonoQuery()
+            ->where('status', ReservaStatus::Confirmada)
+            ->where('status_pagamento', '!=', StatusPagamento::Isento->value)
+            ->where('data', '>=', $inicioIntervalo->toDateString())
+            ->with('quadra')
+            ->get()
+            ->groupBy(fn (Reserva $reserva) => $reserva->data->format('Y-m'));
+
+        $meses = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $mes = now()->startOfMonth()->subMonths($i);
+
+            $meses[] = [
+                'mes' => $mes,
+                'label' => $mes->translatedFormat('M'),
+                'faturamento' => (float) $reservas->get($mes->format('Y-m'), collect())
+                    ->sum(fn (Reserva $reserva) => $this->valorReserva($reserva)),
+                'atual' => $i === 0,
+            ];
+        }
+
+        $maximo = (float) collect($meses)->max('faturamento') ?: 1.0;
+
+        return collect($meses)
+            ->map(fn (array $linha) => $linha + [
+                'percentual' => min(100.0, ($linha['faturamento'] / $maximo) * 100),
+            ])
+            ->all();
+    }
+
+    /**
+     * Exporta as transações do mês atual (com a busca e os filtros ativos)
+     * como CSV para download.
+     */
+    public function exportarCsv(): StreamedResponse
+    {
+        $transacoes = $this->transacoesQuery()
+            ->with(['quadra', 'user'])
+            ->orderByDesc('data')
+            ->orderByDesc('hora_inicio')
+            ->get();
+
+        $nomeArquivo = 'transacoes-'.now()->format('Y-m').'.csv';
+
+        return response()->streamDownload(function () use ($transacoes) {
+            $saida = fopen('php://output', 'w');
+            fputcsv($saida, ['Data', 'Quadra', 'Cliente', 'Valor', 'Status']);
+
+            foreach ($transacoes as $transacao) {
+                $status = $this->statusTransacao($transacao);
+
+                fputcsv($saida, [
+                    $transacao->data->format('d/m/Y'),
+                    $transacao->quadra->nome,
+                    $transacao->nome_cliente,
+                    number_format($this->valorReserva($transacao), 2, ',', '.'),
+                    $status['label'],
+                ]);
+            }
+
+            fclose($saida);
+        }, $nomeArquivo, ['Content-Type' => 'text/csv']);
     }
 
     public function editarChavePix(): void
