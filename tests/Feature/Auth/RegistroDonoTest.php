@@ -18,6 +18,7 @@ function dadosValidosDeCadastroDono(array $sobrescrever = []): array
         'estado' => 'SP',
         'password' => 'SenhaForte123',
         'password_confirmation' => 'SenhaForte123',
+        'aceitaComissao' => true,
     ], $sobrescrever);
 }
 
@@ -43,6 +44,19 @@ test('cadastro de estabelecimento cria dono de quadra e loga automaticamente', f
 
     expect(auth()->check())->toBeTrue();
     expect(auth()->id())->toBe($user->id);
+    expect($user->comissao_aceita_em)->not->toBeNull();
+});
+
+test('rejeita cadastro sem aceitar o termo de comissão de 5%', function () {
+    $component = Livewire::test(RegistrarDono::class);
+
+    foreach (dadosValidosDeCadastroDono(['aceitaComissao' => false]) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('aceitaComissao');
+
+    expect(User::where('email', 'joao.silva@example.com')->exists())->toBeFalse();
 });
 
 test('rejeita cnpj com menos de 14 dígitos', function () {

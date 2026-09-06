@@ -58,6 +58,7 @@ class User extends Authenticatable
         'pausa_indeterminada',
         'prazo_cancelamento_horas',
         'chave_pix_recebimento',
+        'comissao_aceita_em',
     ];
 
     /**
@@ -81,6 +82,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'comissao_aceita_em' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
             'sexo' => Sexo::class,

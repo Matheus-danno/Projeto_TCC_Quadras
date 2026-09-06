@@ -84,6 +84,25 @@
             </div>
         </div>
 
+        <div class="cadastro-field">
+            <div class="form-check">
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="aceitaComissao"
+                    wire:model="aceitaComissao"
+                    style="accent-color: var(--primary-orange, #ff8c00);"
+                >
+                <label class="form-check-label small text-muted" for="aceitaComissao">
+                    Declaro estar ciente e de acordo que a AlugaQuadra reterá uma comissão de
+                    <strong>5% sobre o valor de cada reserva</strong> realizada nas minhas quadras,
+                    inclusive quando o agendamento for feito manualmente pelo estabelecimento
+                    (Agendamento Manual).
+                </label>
+            </div>
+            @error('aceitaComissao') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+        </div>
+
         <div class="d-flex gap-3">
             <a href="{{ route('login.dono') }}" class="btn btn-cadastro-cancelar w-50">Cancelar</a>
             <button type="submit" class="btn btn-cadastro-criar w-50" wire:loading.attr="disabled">Criar Conta</button>

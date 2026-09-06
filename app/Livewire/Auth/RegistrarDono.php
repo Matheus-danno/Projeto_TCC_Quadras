@@ -33,6 +33,8 @@ class RegistrarDono extends Component
 
     public string $password_confirmation = '';
 
+    public bool $aceitaComissao = false;
+
     public function registrar()
     {
         $validated = $this->validate([
@@ -45,6 +47,9 @@ class RegistrarDono extends Component
             'cidade' => ['required', 'string', 'max:255'],
             'estado' => ['required', 'string', 'size:2'],
             'password' => $this->passwordRules(),
+            'aceitaComissao' => ['accepted'],
+        ], [
+            'aceitaComissao.accepted' => 'Você precisa aceitar o termo de comissão para continuar.',
         ]);
 
         $cnpjDigitos = preg_replace('/\D/', '', $validated['cnpj']);
@@ -71,6 +76,7 @@ class RegistrarDono extends Component
             'cidade' => $validated['cidade'],
             'estado' => strtoupper($validated['estado']),
             'telefone' => preg_replace('/\D/', '', $validated['telefone']),
+            'comissao_aceita_em' => now(),
         ]);
 
         Auth::login($user);
