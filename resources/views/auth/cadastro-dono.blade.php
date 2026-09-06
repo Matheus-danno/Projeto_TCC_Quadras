@@ -13,7 +13,7 @@
             background-color: #FAFAFA;
         }
         .cadastro-dono-card {
-            max-width: 480px;
+            max-width: 980px;
             width: 100%;
             border: 1px solid var(--cor-principal);
             border-radius: 24px;
