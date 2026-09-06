@@ -24,6 +24,6 @@ test('login redireciona jogador para a listagem de quadras', function () {
 test('login redireciona dono de quadra para o próprio painel', function () {
     $dono = User::factory()->donoQuadra()->create();
 
-    $this->post(route('login.store'), ['email' => $dono->email, 'password' => 'password'])
+    $this->post(route('login.store'), ['contexto' => 'dono', 'email' => $dono->email, 'password' => 'password'])
         ->assertRedirect(route('painel.dashboard', absolute: false));
 });

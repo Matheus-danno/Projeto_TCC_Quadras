@@ -35,6 +35,7 @@
 
                     <form method="POST" action="{{ route('login.store') }}">
                         @csrf
+                        <input type="hidden" name="contexto" value="dono">
 
                         <div class="login-input-wrap mb-4">
                             <i class="bi bi-envelope-fill"></i>

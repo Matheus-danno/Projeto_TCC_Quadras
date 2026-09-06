@@ -82,6 +82,50 @@ test('usuário autenticado é redirecionado ao acessar a tela de login', functio
         ->assertRedirect(route('dashboard'));
 });
 
+test('dono de quadra não consegue entrar pela tela de login do cliente', function () {
+    $dono = User::factory()->donoQuadra()->create();
+
+    $response = $this->post(route('login.store'), [
+        'contexto' => 'jogador',
+        'email' => $dono->email,
+        'password' => 'password',
+    ]);
+
+    $response->assertSessionHasErrorsIn('email');
+
+    $this->assertGuest();
+});
+
+test('jogador não consegue entrar pela tela de login do dono', function () {
+    $jogador = User::factory()->create();
+
+    $response = $this->post(route('login.store'), [
+        'contexto' => 'dono',
+        'email' => $jogador->email,
+        'password' => 'password',
+    ]);
+
+    $response->assertSessionHasErrorsIn('email');
+
+    $this->assertGuest();
+});
+
+test('dono de quadra consegue entrar pela tela de login do dono', function () {
+    $dono = User::factory()->donoQuadra()->create();
+
+    $response = $this->post(route('login.store'), [
+        'contexto' => 'dono',
+        'email' => $dono->email,
+        'password' => 'password',
+    ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('painel.dashboard', absolute: false));
+
+    $this->assertAuthenticatedAs($dono);
+});
+
 test('users can logout', function () {
     $user = User::factory()->create();
 
