@@ -31,28 +31,6 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ __('E-mail') }}</flux:text>
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ $email ?: '—' }}</flux:text>
-                    </div>
-                    <div>
-                        <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ __('Endereço') }}</flux:text>
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ $endereco ?: '—' }}</flux:text>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ __('Cidade') }}</flux:text>
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ $cidade ?: '—' }}</flux:text>
-                    </div>
-                    <div>
-                        <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ __('Estado (UF)') }}</flux:text>
-                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ $estado ?: '—' }}</flux:text>
-                    </div>
-                </div>
-
                 <div>
                     <flux:button type="button" variant="primary" color="orange" class="rounded-full" wire:click="editarEstabelecimento">
                         {{ __('Editar') }}
@@ -69,16 +47,6 @@
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <flux:input wire:model="name" :label="__('Responsável')" class="rounded-full" />
                     <flux:input wire:model="telefone" :label="__('Telefone')" class="rounded-full" placeholder="(11) 91234-5678" />
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <flux:input wire:model="email" type="email" :label="__('E-mail')" class="rounded-full" />
-                    <flux:input wire:model="endereco" :label="__('Endereço')" class="rounded-full" />
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <flux:input wire:model="cidade" :label="__('Cidade')" class="rounded-full" />
-                    <flux:input wire:model="estado" :label="__('Estado (UF)')" class="rounded-full" maxlength="2" />
                 </div>
 
                 <div class="flex gap-3">

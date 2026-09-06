@@ -16,60 +16,38 @@ test('rota painel.configuracoes renderiza o componente', function () {
 test('formulário é preenchido com os dados atuais do dono', function () {
     $dono = User::factory()->donoQuadra()->create([
         'name' => 'Carlos Andrade',
-        'email' => 'carlos@demo.com',
         'nome_estabelecimento' => 'Arena Sports Bauru',
         'telefone' => '14997112233',
-        'endereco' => 'Rua Correia Júnior, 357',
-        'cidade' => 'Bauru',
-        'estado' => 'SP',
         'cnpj' => '12345678000190',
     ]);
 
     Livewire::actingAs($dono)
         ->test(Configuracoes::class)
         ->assertSet('name', 'Carlos Andrade')
-        ->assertSet('email', 'carlos@demo.com')
         ->assertSet('nomeEstabelecimento', 'Arena Sports Bauru')
-        ->assertSet('telefone', '14997112233')
-        ->assertSet('endereco', 'Rua Correia Júnior, 357')
-        ->assertSet('cidade', 'Bauru')
-        ->assertSet('estado', 'SP');
+        ->assertSet('telefone', '14997112233');
 });
 
-test('dono consegue atualizar seu nome e e-mail', function () {
+test('dono consegue atualizar o nome do responsável, do estabelecimento e o telefone', function () {
     $dono = User::factory()->donoQuadra()->create([
         'name' => 'Nome Antigo',
-        'email' => 'antigo@demo.com',
-        'nome_estabelecimento' => 'Estabelecimento Teste',
-        'telefone' => '11999998888',
-        'endereco' => 'Rua Teste, 1',
-        'cidade' => 'Bauru',
-        'estado' => 'SP',
+        'nome_estabelecimento' => 'Nome Antigo',
+        'telefone' => '11900000000',
     ]);
 
     Livewire::actingAs($dono)
         ->test(Configuracoes::class)
         ->set('name', 'Nome Novo')
-        ->set('email', 'novo@demo.com')
+        ->set('nomeEstabelecimento', 'Arena Nova')
+        ->set('telefone', '(14) 99711-2233')
         ->call('salvar')
         ->assertHasNoErrors();
 
     $dono->refresh();
 
     expect($dono->name)->toBe('Nome Novo')
-        ->and($dono->email)->toBe('novo@demo.com')
-        ->and($dono->email_verified_at)->toBeNull();
-});
-
-test('e-mail já usado por outro usuário é rejeitado ao salvar configurações', function () {
-    User::factory()->create(['email' => 'ocupado@demo.com']);
-    $dono = User::factory()->donoQuadra()->create();
-
-    Livewire::actingAs($dono)
-        ->test(Configuracoes::class)
-        ->set('email', 'ocupado@demo.com')
-        ->call('salvar')
-        ->assertHasErrors('email');
+        ->and($dono->nome_estabelecimento)->toBe('Arena Nova')
+        ->and($dono->telefone)->toBe('14997112233');
 });
 
 test('cnpj é exibido formatado e desabilitado no formulário', function () {
@@ -82,46 +60,16 @@ test('cnpj é exibido formatado e desabilitado no formulário', function () {
         ->assertSee('O CNPJ não pode ser alterado após o cadastro.');
 });
 
-test('dono atualiza nome do estabelecimento, telefone, endereço, cidade e estado', function () {
-    $dono = User::factory()->donoQuadra()->create([
-        'nome_estabelecimento' => 'Nome Antigo',
-        'telefone' => '11900000000',
-        'endereco' => 'Endereço Antigo',
-        'cidade' => 'Cidade Antiga',
-        'estado' => 'SP',
-    ]);
-
-    Livewire::actingAs($dono)
-        ->test(Configuracoes::class)
-        ->set('nomeEstabelecimento', 'Arena Nova')
-        ->set('telefone', '(14) 99711-2233')
-        ->set('endereco', 'Rua Nova, 123')
-        ->set('cidade', 'Bauru')
-        ->set('estado', 'sp')
-        ->call('salvar')
-        ->assertHasNoErrors();
-
-    $dono->refresh();
-
-    expect($dono->nome_estabelecimento)->toBe('Arena Nova')
-        ->and($dono->telefone)->toBe('14997112233')
-        ->and($dono->endereco)->toBe('Rua Nova, 123')
-        ->and($dono->cidade)->toBe('Bauru')
-        ->and($dono->estado)->toBe('SP');
-});
-
 test('campos obrigatórios são exigidos ao salvar', function () {
     $dono = User::factory()->donoQuadra()->create();
 
     Livewire::actingAs($dono)
         ->test(Configuracoes::class)
+        ->set('name', '')
         ->set('nomeEstabelecimento', '')
         ->set('telefone', '')
-        ->set('endereco', '')
-        ->set('cidade', '')
-        ->set('estado', '')
         ->call('salvar')
-        ->assertHasErrors(['nomeEstabelecimento', 'telefone', 'endereco', 'cidade', 'estado']);
+        ->assertHasErrors(['name', 'nomeEstabelecimento', 'telefone']);
 });
 
 test('cnpj do dono permanece inalterado após salvar outras informações', function () {

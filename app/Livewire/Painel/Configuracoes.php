@@ -22,17 +22,9 @@ class Configuracoes extends Component
 
     public string $name = '';
 
-    public string $email = '';
-
     public string $nomeEstabelecimento = '';
 
     public string $telefone = '';
-
-    public string $endereco = '';
-
-    public string $cidade = '';
-
-    public string $estado = '';
 
     public bool $editandoEstabelecimento = false;
 
@@ -97,12 +89,8 @@ class Configuracoes extends Component
         $user = auth()->user();
 
         $this->name = $user->name;
-        $this->email = $user->email;
         $this->nomeEstabelecimento = $user->nome_estabelecimento ?? '';
         $this->telefone = $user->telefone ?? '';
-        $this->endereco = $user->endereco ?? '';
-        $this->cidade = $user->cidade ?? '';
-        $this->estado = $user->estado ?? '';
 
         $horario = $user->horario_funcionamento ?? [];
 
@@ -142,13 +130,11 @@ class Configuracoes extends Component
 
     protected function rules(): array
     {
-        return array_merge($this->profileRules(auth()->id()), [
+        return [
+            'name' => $this->nameRules(),
             'nomeEstabelecimento' => ['required', 'string', 'max:255'],
             'telefone' => ['required', 'string', 'max:20'],
-            'endereco' => ['required', 'string', 'max:255'],
-            'cidade' => ['required', 'string', 'max:255'],
-            'estado' => ['required', 'string', 'size:2'],
-        ]);
+        ];
     }
 
     protected function messages(): array
@@ -186,12 +172,8 @@ class Configuracoes extends Component
         $user = auth()->user();
 
         $this->name = $user->name;
-        $this->email = $user->email;
         $this->nomeEstabelecimento = $user->nome_estabelecimento ?? '';
         $this->telefone = $user->telefone ?? '';
-        $this->endereco = $user->endereco ?? '';
-        $this->cidade = $user->cidade ?? '';
-        $this->estado = $user->estado ?? '';
 
         $this->resetErrorBag();
         $this->editandoEstabelecimento = false;
@@ -201,23 +183,11 @@ class Configuracoes extends Component
     {
         $validated = $this->validate();
 
-        $user = auth()->user();
-
-        $user->fill([
+        auth()->user()->update([
             'name' => $validated['name'],
-            'email' => $validated['email'],
             'nome_estabelecimento' => $validated['nomeEstabelecimento'],
             'telefone' => preg_replace('/\D/', '', $validated['telefone']),
-            'endereco' => $validated['endereco'],
-            'cidade' => $validated['cidade'],
-            'estado' => strtoupper($validated['estado']),
         ]);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
 
         $this->editandoEstabelecimento = false;
 
