@@ -100,7 +100,7 @@
         @else
             <flux:table>
                 <flux:table.columns>
-                    <flux:table.column>{{ __('Data') }}</flux:table.column>
+                    <flux:table.column class="ps-6!">{{ __('Data') }}</flux:table.column>
                     <flux:table.column>{{ __('Quadra') }}</flux:table.column>
                     <flux:table.column>{{ __('Cliente') }}</flux:table.column>
                     <flux:table.column>{{ __('Valor') }}</flux:table.column>
@@ -111,7 +111,7 @@
                     @foreach ($this->transacoes as $transacao)
                         @php $status = $this->statusTransacao($transacao); @endphp
                         <flux:table.row wire:key="transacao-{{ $transacao->id }}">
-                            <flux:table.cell class="text-zinc-500">{{ $transacao->data->format('d/m') }}</flux:table.cell>
+                            <flux:table.cell class="ps-6! text-zinc-500">{{ $transacao->data->format('d/m') }}</flux:table.cell>
                             <flux:table.cell class="text-zinc-500">{{ $transacao->quadra->nome }}</flux:table.cell>
                             <flux:table.cell class="font-semibold text-zinc-900">{{ $transacao->nome_cliente }}</flux:table.cell>
                             <flux:table.cell class="font-medium text-zinc-900">R$ {{ number_format($this->valorReserva($transacao), 2, ',', '.') }}</flux:table.cell>
