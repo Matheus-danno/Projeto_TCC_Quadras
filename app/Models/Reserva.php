@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ReservaStatus;
+use App\Enums\StatusPagamento;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,11 +27,15 @@ class Reserva extends Model
         'user_id',
         'cliente_nome',
         'cliente_telefone',
+        'cliente_email',
         'data',
         'hora_inicio',
         'hora_fim',
         'status',
         'metodo_pagamento',
+        'status_pagamento',
+        'valor',
+        'observacoes',
         'cancelamento_tipo',
         'motivo_cancelamento',
     ];
@@ -40,6 +45,8 @@ class Reserva extends Model
         return [
             'data' => 'date',
             'status' => ReservaStatus::class,
+            'status_pagamento' => StatusPagamento::class,
+            'valor' => 'decimal:2',
         ];
     }
 

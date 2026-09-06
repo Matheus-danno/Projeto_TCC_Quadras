@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ReservaStatus;
+use App\Enums\StatusPagamento;
 use App\Livewire\Painel\AgendamentoManual\Criar;
 use App\Models\Quadra;
 use App\Models\Reserva;
@@ -18,7 +19,7 @@ test('rota painel.agendamento-manual renderiza o componente', function () {
 
 test('dono agenda uma reserva confirmada para um cliente com conta', function () {
     $dono = User::factory()->donoQuadra()->create();
-    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'ativa' => true]);
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'ativa' => true, 'valor_hora' => 50]);
     $cliente = User::factory()->create(['name' => 'João Cliente', 'email' => 'joao.cliente@example.com']);
 
     Livewire::actingAs($dono)
@@ -30,6 +31,9 @@ test('dono agenda uma reserva confirmada para um cliente com conta', function ()
         ->set('tipoCliente', 'existente')
         ->set('buscaCliente', 'joao.cliente')
         ->call('selecionarCliente', $cliente->id)
+        ->set('statusPagamento', 'pago')
+        ->set('formaPagamento', 'pix')
+        ->set('observacoes', 'Cliente prefere a quadra coberta.')
         ->call('salvar')
         ->assertHasNoErrors();
 
@@ -42,7 +46,11 @@ test('dono agenda uma reserva confirmada para um cliente com conta', function ()
         ->and($reserva->cliente_nome)->toBeNull()
         ->and($reserva->status)->toBe(ReservaStatus::Confirmada)
         ->and(substr($reserva->hora_inicio, 0, 5))->toBe('10:00')
-        ->and(substr($reserva->hora_fim, 0, 5))->toBe('11:00');
+        ->and(substr($reserva->hora_fim, 0, 5))->toBe('11:00')
+        ->and((float) $reserva->valor)->toBe(50.0)
+        ->and($reserva->status_pagamento)->toBe(StatusPagamento::Pago)
+        ->and($reserva->metodo_pagamento)->toBe('pix')
+        ->and($reserva->observacoes)->toBe('Cliente prefere a quadra coberta.');
 });
 
 test('dono agenda uma reserva confirmada para um cliente sem conta no sistema', function () {
@@ -58,6 +66,8 @@ test('dono agenda uma reserva confirmada para um cliente sem conta no sistema', 
         ->set('tipoCliente', 'sem_conta')
         ->set('clienteNome', 'Maria Sem Conta')
         ->set('clienteTelefone', '11912345678')
+        ->set('clienteEmail', 'maria@example.com')
+        ->set('formaPagamento', 'dinheiro')
         ->call('salvar')
         ->assertHasNoErrors();
 
@@ -68,7 +78,33 @@ test('dono agenda uma reserva confirmada para um cliente sem conta no sistema', 
     expect($reserva->user_id)->toBeNull()
         ->and($reserva->cliente_nome)->toBe('Maria Sem Conta')
         ->and($reserva->cliente_telefone)->toBe('11912345678')
-        ->and($reserva->status)->toBe(ReservaStatus::Confirmada);
+        ->and($reserva->cliente_email)->toBe('maria@example.com')
+        ->and($reserva->status)->toBe(ReservaStatus::Confirmada)
+        ->and($reserva->status_pagamento)->toBe(StatusPagamento::Pendente)
+        ->and($reserva->metodo_pagamento)->toBe('dinheiro');
+});
+
+test('agendamento isento de pagamento não exige forma de pagamento', function () {
+    $dono = User::factory()->donoQuadra()->create();
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'ativa' => true]);
+
+    Livewire::actingAs($dono)
+        ->test(Criar::class)
+        ->set('quadraId', (string) $quadra->id)
+        ->set('data', now()->addDay()->toDateString())
+        ->set('horaInicio', '16:00')
+        ->set('horaFim', '17:00')
+        ->set('tipoCliente', 'sem_conta')
+        ->set('clienteNome', 'Amigo do Dono')
+        ->set('clienteTelefone', '11900000000')
+        ->set('statusPagamento', 'isento')
+        ->call('salvar')
+        ->assertHasNoErrors();
+
+    $reserva = Reserva::first();
+
+    expect($reserva->status_pagamento)->toBe(StatusPagamento::Isento)
+        ->and($reserva->metodo_pagamento)->toBeNull();
 });
 
 test('agendamento é rejeitado quando o horário conflita com uma reserva existente', function () {
@@ -93,6 +129,7 @@ test('agendamento é rejeitado quando o horário conflita com uma reserva existe
         ->set('tipoCliente', 'sem_conta')
         ->set('clienteNome', 'Cliente Conflitante')
         ->set('clienteTelefone', '11900000000')
+        ->set('formaPagamento', 'pix')
         ->call('salvar')
         ->assertHasErrors('horaInicio');
 
@@ -121,6 +158,7 @@ test('agendamento não conflita com reserva cancelada no mesmo horário', functi
         ->set('tipoCliente', 'sem_conta')
         ->set('clienteNome', 'Cliente Livre')
         ->set('clienteTelefone', '11900000000')
+        ->set('formaPagamento', 'pix')
         ->call('salvar')
         ->assertHasNoErrors();
 
@@ -141,6 +179,7 @@ test('dono não consegue agendar em quadra de outro dono', function () {
         ->set('tipoCliente', 'sem_conta')
         ->set('clienteNome', 'Cliente Qualquer')
         ->set('clienteTelefone', '11900000000')
+        ->set('formaPagamento', 'pix')
         ->call('salvar')
         ->assertForbidden();
 
