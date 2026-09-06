@@ -9,6 +9,10 @@ Route::get('/', function () {
     return view('home');
 })->name('home');
 
+Route::get('/politica-de-privacidade', function () {
+    return view('politica-privacidade');
+})->name('politica.privacidade');
+
 Route::get('/dashboard', function () {
     return redirect()->route(auth()->user()->role->dashboardRoute());
 })->middleware(['auth', 'verified'])->name('dashboard');

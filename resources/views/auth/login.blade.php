@@ -24,7 +24,7 @@
                         <img src="{{ asset('imagens/tela_inicial/logo_login.png') }}" alt="AlugaQuadra" class="login-logo-img">
                     </a>
                     <p class="login-legal mx-auto mx-lg-0">
-                        Ao clicar em Entrar você concorda a <a href="#">Política de Privacidade</a> do AlugaQuadra.
+                        Ao clicar em Entrar você concorda a <a href="{{ route('politica.privacidade') }}" target="_blank">Política de Privacidade</a> do AlugaQuadra.
                     </p>
                 </div>
 

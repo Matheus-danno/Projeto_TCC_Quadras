@@ -15,6 +15,18 @@ test('login screen has a link to the dono de quadra login screen', function () {
     $response->assertOk()->assertSee(route('login.dono'), escape: false);
 });
 
+test('login screen has a link to the privacy policy page', function () {
+    $response = $this->get(route('login'));
+
+    $response->assertOk()->assertSee(route('politica.privacidade'), escape: false);
+});
+
+test('privacy policy page can be rendered', function () {
+    $response = $this->get(route('politica.privacidade'));
+
+    $response->assertOk()->assertSee('Política de Privacidade');
+});
+
 test('dono de quadra login screen can be rendered', function () {
     $response = $this->get(route('login.dono'));
 
