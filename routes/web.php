@@ -91,7 +91,11 @@ Route::get('/carrinho', function () {
 Route::get('/loja/pedido/{pedido}', function (Pedido $pedido) {
     abort_unless($pedido->user_id === auth()->id(), 403);
 
-    return view('loja-pedido-confirmacao', ['pedido' => $pedido->load('itens.produto')]);
+    $pedidos = Pedido::where('lote_compra', $pedido->lote_compra)
+        ->with('itens.produto', 'dono')
+        ->get();
+
+    return view('loja-pedido-confirmacao', ['pedidos' => $pedidos]);
 })->middleware('auth')->name('loja.pedido.confirmacao');
 Route::get('/criar-sala', function () {
     return view('criar_sala');

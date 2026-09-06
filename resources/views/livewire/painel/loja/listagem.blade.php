@@ -5,9 +5,17 @@
             <flux:text class="mt-1 text-base text-zinc-400">{{ __('Cadastre e gerencie os produtos que você vende.') }}</flux:text>
         </div>
 
-        <flux:button variant="primary" color="orange" icon="plus" class="rounded-2xl" :href="route('painel.loja.criar')" wire:navigate>
-            {{ __('Cadastrar Produto') }}
-        </flux:button>
+        <div class="flex flex-wrap items-center gap-2">
+            <flux:button variant="primary" color="orange" class="rounded-full" :href="route('painel.loja')" wire:navigate>
+                {{ __('Produtos') }}
+            </flux:button>
+            <flux:button variant="outline" class="rounded-full !border-orange-300 !text-orange-600 hover:!bg-orange-50" :href="route('painel.loja.pedidos')" wire:navigate>
+                {{ __('Pedidos') }}
+            </flux:button>
+            <flux:button variant="primary" color="orange" icon="plus" class="rounded-2xl" :href="route('painel.loja.criar')" wire:navigate>
+                {{ __('Cadastrar Produto') }}
+            </flux:button>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

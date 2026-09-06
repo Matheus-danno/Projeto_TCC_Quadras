@@ -8,7 +8,7 @@ use App\Models\Produto;
 use App\Models\User;
 use Livewire\Livewire;
 
-function criarVenda(Produto $produto, int $quantidade = 1, PedidoStatus $status = PedidoStatus::Confirmado): ItemPedido
+function criarVenda(Produto $produto, int $quantidade = 1, PedidoStatus $status = PedidoStatus::Aguardando): ItemPedido
 {
     $pedido = Pedido::create([
         'user_id' => User::factory()->create()->id,
@@ -162,9 +162,9 @@ test('resumoVendas soma unidades e receita apenas de pedidos não cancelados dos
     $produto = Produto::factory()->create(['dono_id' => $dono->id, 'preco' => 50]);
     $produtoAlheio = Produto::factory()->create(['dono_id' => $outroDono->id, 'preco' => 100]);
 
-    criarVenda($produto, quantidade: 2, status: PedidoStatus::Confirmado);
+    criarVenda($produto, quantidade: 2, status: PedidoStatus::Aguardando);
     criarVenda($produto, quantidade: 3, status: PedidoStatus::Cancelado);
-    criarVenda($produtoAlheio, quantidade: 1, status: PedidoStatus::Confirmado);
+    criarVenda($produtoAlheio, quantidade: 1, status: PedidoStatus::Aguardando);
 
     $resumo = Livewire::actingAs($dono)
         ->test(Listagem::class)

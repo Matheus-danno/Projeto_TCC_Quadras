@@ -11,12 +11,17 @@ use Livewire\Livewire;
 test('meus pedidos mostra apenas os pedidos do usuário autenticado, do mais recente pro mais antigo', function () {
     $user = User::factory()->create();
     $outroUsuario = User::factory()->create();
-    $produto = Produto::factory()->create(['nome' => 'Bola de Futebol Society', 'preco' => 89.90]);
+    $dono = User::factory()->donoQuadra()->create();
+    $produto = Produto::factory()->create(['dono_id' => $dono->id, 'nome' => 'Bola de Futebol Society', 'preco' => 89.90]);
 
     $pedidoAntigo = Pedido::create([
         'user_id' => $user->id,
-        'status' => PedidoStatus::Confirmado,
+        'dono_id' => $dono->id,
+        'status' => PedidoStatus::Aguardando,
         'total' => 89.90,
+        'numero_retirada' => Pedido::gerarNumeroRetirada(),
+        'comissao_percentual' => 5,
+        'comissao_valor' => 4.50,
     ]);
     $pedidoAntigo->forceFill(['created_at' => now()->subDays(3)])->save();
     ItemPedido::create([
@@ -28,8 +33,12 @@ test('meus pedidos mostra apenas os pedidos do usuário autenticado, do mais rec
 
     $pedidoRecente = Pedido::create([
         'user_id' => $user->id,
-        'status' => PedidoStatus::Confirmado,
+        'dono_id' => $dono->id,
+        'status' => PedidoStatus::Aguardando,
         'total' => 179.80,
+        'numero_retirada' => Pedido::gerarNumeroRetirada(),
+        'comissao_percentual' => 5,
+        'comissao_valor' => 8.99,
     ]);
     ItemPedido::create([
         'pedido_id' => $pedidoRecente->id,
@@ -40,8 +49,12 @@ test('meus pedidos mostra apenas os pedidos do usuário autenticado, do mais rec
 
     Pedido::create([
         'user_id' => $outroUsuario->id,
-        'status' => PedidoStatus::Confirmado,
+        'dono_id' => $dono->id,
+        'status' => PedidoStatus::Aguardando,
         'total' => 50,
+        'numero_retirada' => Pedido::gerarNumeroRetirada(),
+        'comissao_percentual' => 5,
+        'comissao_valor' => 2.50,
     ]);
 
     Livewire::actingAs($user)

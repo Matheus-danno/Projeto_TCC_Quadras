@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Pedido;
 use App\Models\Produto;
 use App\Models\Quadra;
 use App\Models\Reserva;
+use App\Policies\PedidoPolicy;
 use App\Policies\ProdutoPolicy;
 use App\Policies\QuadraPolicy;
 use App\Policies\ReservaPolicy;
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Quadra::class, QuadraPolicy::class);
         Gate::policy(Reserva::class, ReservaPolicy::class);
         Gate::policy(Produto::class, ProdutoPolicy::class);
+        Gate::policy(Pedido::class, PedidoPolicy::class);
     }
 
     /**

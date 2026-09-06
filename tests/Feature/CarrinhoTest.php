@@ -80,8 +80,9 @@ test('remover um item esvazia o carrinho', function () {
 
 test('finalizar pedido cria o pedido, decrementa o estoque e limpa o carrinho', function () {
     $user = User::factory()->create();
-    $produtoA = Produto::factory()->create(['estoque' => 10, 'preco' => 89.90]);
-    $produtoB = Produto::factory()->create(['estoque' => 5, 'preco' => 49.90]);
+    $dono = User::factory()->donoQuadra()->create();
+    $produtoA = Produto::factory()->create(['dono_id' => $dono->id, 'estoque' => 10, 'preco' => 89.90]);
+    $produtoB = Produto::factory()->create(['dono_id' => $dono->id, 'estoque' => 5, 'preco' => 49.90]);
 
     actingAsComUmItemNoCarrinho($user, $produtoA, 2);
     actingAsComUmItemNoCarrinho($user, $produtoB, 1);
@@ -98,7 +99,11 @@ test('finalizar pedido cria o pedido, decrementa o estoque e limpa o carrinho', 
     $pedido = Pedido::first();
 
     expect($pedido->user_id)->toBe($user->id)
-        ->and($pedido->status)->toBe(PedidoStatus::Confirmado)
+        ->and($pedido->dono_id)->toBe($dono->id)
+        ->and($pedido->status)->toBe(PedidoStatus::Aguardando)
+        ->and($pedido->numero_retirada)->not->toBeNull()
+        ->and((float) $pedido->comissao_percentual)->toBe(5.0)
+        ->and(round((float) $pedido->comissao_valor, 2))->toBe(round($totalEsperado * 0.05, 2))
         ->and(round((float) $pedido->total, 2))->toBe(round((float) $totalEsperado, 2))
         ->and($pedido->itens)->toHaveCount(2);
 
@@ -107,6 +112,40 @@ test('finalizar pedido cria o pedido, decrementa o estoque e limpa o carrinho', 
     expect($produtoA->fresh()->estoque)->toBe(8)
         ->and($produtoB->fresh()->estoque)->toBe(4)
         ->and(Carrinho::itens())->toHaveCount(0);
+});
+
+test('carrinho com produtos de donos diferentes gera um pedido separado por dono', function () {
+    $user = User::factory()->create();
+    $donoA = User::factory()->donoQuadra()->create();
+    $donoB = User::factory()->donoQuadra()->create();
+    $produtoA = Produto::factory()->create(['dono_id' => $donoA->id, 'estoque' => 10, 'preco' => 100]);
+    $produtoB = Produto::factory()->create(['dono_id' => $donoB->id, 'estoque' => 10, 'preco' => 50]);
+
+    actingAsComUmItemNoCarrinho($user, $produtoA, 1);
+    actingAsComUmItemNoCarrinho($user, $produtoB, 2);
+
+    Livewire::actingAs($user)
+        ->test(CarrinhoComponent::class)
+        ->call('finalizarPedido')
+        ->assertRedirect();
+
+    expect(Pedido::count())->toBe(2);
+
+    $pedidoA = Pedido::where('dono_id', $donoA->id)->first();
+    $pedidoB = Pedido::where('dono_id', $donoB->id)->first();
+
+    expect($pedidoA->total)->toEqual(100.0)
+        ->and($pedidoA->comissao_valor)->toEqual(5.0)
+        ->and($pedidoA->itens)->toHaveCount(1)
+        ->and($pedidoB->total)->toEqual(100.0)
+        ->and($pedidoB->comissao_valor)->toEqual(5.0)
+        ->and($pedidoB->itens)->toHaveCount(1)
+        ->and($pedidoA->numero_retirada)->not->toBe($pedidoB->numero_retirada)
+        ->and($pedidoA->lote_compra)->not->toBeNull()
+        ->and($pedidoA->lote_compra)->toBe($pedidoB->lote_compra);
+
+    expect($produtoA->fresh()->estoque)->toBe(9)
+        ->and($produtoB->fresh()->estoque)->toBe(8);
 });
 
 test('preço do item do pedido fica congelado mesmo se o preço do produto mudar depois', function () {

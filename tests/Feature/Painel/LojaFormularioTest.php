@@ -135,7 +135,7 @@ test('exclusão pelo formulário é bloqueada quando o produto já foi vendido',
 
     $pedido = Pedido::create([
         'user_id' => User::factory()->create()->id,
-        'status' => PedidoStatus::Confirmado,
+        'status' => PedidoStatus::Aguardando,
         'total' => $produto->preco,
     ]);
 

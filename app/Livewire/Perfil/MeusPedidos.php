@@ -12,7 +12,7 @@ class MeusPedidos extends Component
     public function pedidos()
     {
         return Auth::user()->pedidos()
-            ->with('itens.produto')
+            ->with('itens.produto', 'dono')
             ->latest()
             ->get();
     }

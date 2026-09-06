@@ -13,12 +13,25 @@
                                 <i class="bi bi-calendar-check me-1 text-warning"></i> {{ $pedido->created_at->format('d/m/Y \à\s H:i') }}
                             </span>
                         </div>
-                        <span class="badge rounded-pill px-3 {{ match ($pedido->status->value) {
-                            'confirmado' => 'bg-success',
-                            'pendente' => 'bg-warning text-dark',
-                            'cancelado' => 'bg-secondary',
+                        <span class="badge rounded-pill px-3 {{ match ($pedido->status) {
+                            App\Enums\PedidoStatus::Retirado => 'bg-success',
+                            App\Enums\PedidoStatus::Aguardando => 'bg-warning text-dark',
+                            App\Enums\PedidoStatus::Cancelado => 'bg-secondary',
                         } }} text-white">{{ $pedido->status->label() }}</span>
                     </div>
+
+                    @unless ($pedido->status === App\Enums\PedidoStatus::Cancelado)
+                        <div class="rounded-3 p-3 mb-3" style="background: #FFF4E5;">
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                Retire em: {{ $pedido->dono->nome_estabelecimento ?? $pedido->dono->name }},
+                                {{ $pedido->dono->endereco }}, {{ $pedido->dono->cidade }} - {{ $pedido->dono->estado }}
+                            </p>
+                            <p class="fw-bold mb-0" style="letter-spacing: 0.1em; color: #FF8C00;">
+                                Código de retirada: {{ $pedido->numero_retirada }}
+                            </p>
+                        </div>
+                    @endunless
 
                     <div class="d-flex flex-column gap-2 mb-3">
                         @foreach ($pedido->itens as $item)

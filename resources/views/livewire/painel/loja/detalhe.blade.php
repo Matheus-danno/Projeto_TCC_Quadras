@@ -104,11 +104,7 @@
                                     R$ {{ number_format($item->quantidade * $item->preco_unitario, 2, ',', '.') }}
                                 </flux:table.cell>
                                 <flux:table.cell>
-                                    <flux:badge color="{{ match ($item->pedido->status) {
-                                        App\Enums\PedidoStatus::Confirmado => 'green',
-                                        App\Enums\PedidoStatus::Pendente => 'amber',
-                                        App\Enums\PedidoStatus::Cancelado => 'red',
-                                    } }}" size="sm">
+                                    <flux:badge color="{{ $item->pedido->status->corBadge() }}" size="sm">
                                         {{ $item->pedido->status->label() }}
                                     </flux:badge>
                                 </flux:table.cell>

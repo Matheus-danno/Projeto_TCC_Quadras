@@ -3,15 +3,20 @@
 namespace Database\Seeders;
 
 use App\Enums\Esporte;
+use App\Enums\PedidoStatus;
 use App\Enums\ReservaStatus;
 use App\Enums\UserRole;
+use App\Models\ItemPedido;
+use App\Models\Pedido;
 use App\Models\Produto;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\Sala;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Recria o banco com dados realistas para demonstração/apresentação.
@@ -194,7 +199,7 @@ class DemoSeeder extends Seeder
             'status' => ReservaStatus::Confirmada,
         ]);
 
-        collect([
+        $produtos = collect([
             ['nome' => 'Bola de Futebol Society', 'descricao' => 'Bola oficial para gramado sintético.', 'categoria' => 'Acessórios', 'preco' => 89.90, 'estoque' => 25, 'dono_id' => $dono->id],
             ['nome' => 'Camisa Dry-Fit AlugaQuadra', 'descricao' => 'Tecido leve, ideal para dias quentes.', 'categoria' => 'Vestuário', 'preco' => 79.90, 'estoque' => 40, 'dono_id' => $dono->id],
             ['nome' => 'Luvas de Goleiro Profissional', 'descricao' => 'Aderência reforçada, tamanhos P ao GG.', 'categoria' => 'Acessórios', 'preco' => 149.90, 'estoque' => 0, 'dono_id' => $dono->id],
@@ -203,13 +208,64 @@ class DemoSeeder extends Seeder
             ['nome' => 'Kit Coletes Numerados (10 un.)', 'descricao' => 'Ideal para organizar os times na sala.', 'categoria' => 'Acessórios', 'preco' => 199.90, 'estoque' => 12, 'dono_id' => $outroDono->id],
             ['nome' => 'Chuteira Society Turf', 'descricao' => 'Solado com travas curtas para gramado sintético.', 'categoria' => 'Calçados', 'preco' => 219.90, 'estoque' => 15, 'dono_id' => $outroDono->id],
             ['nome' => 'Tênis de Vôlei Antiderrapante', 'descricao' => 'Solado emborrachado com maior aderência em quadra.', 'categoria' => 'Calçados', 'preco' => 259.90, 'estoque' => 9, 'dono_id' => $outroDono->id],
-        ])->each(fn (array $dados) => Produto::create($dados));
+        ])->map(fn (array $dados) => Produto::create($dados));
+
+        $this->criarPedidosDemo($jogador, $produtos);
 
         $this->command?->info('Dados de demonstração criados.');
         $this->command?->table(['Papel', 'E-mail', 'Senha'], [
             ['Jogador', 'jogador@demo.com', 'password'],
             ['Dono de quadra', 'dono@demo.com', 'password'],
             ['Dono de quadra (2)', 'dono2@demo.com', 'password'],
+        ]);
+    }
+
+    /**
+     * Cria pedidos de exemplo (jogador comprando produtos do dono) para a
+     * tela de Pedidos do painel não nascer vazia na demonstração.
+     */
+    private function criarPedidosDemo(User $jogador, Collection $produtos): void
+    {
+        $bola = $produtos->firstWhere('nome', 'Bola de Futebol Society');
+        $camisa = $produtos->firstWhere('nome', 'Camisa Dry-Fit AlugaQuadra');
+
+        $pedidoAguardando = Pedido::create([
+            'user_id' => $jogador->id,
+            'dono_id' => $bola->dono_id,
+            'status' => PedidoStatus::Aguardando,
+            'total' => $bola->preco,
+            'numero_retirada' => Pedido::gerarNumeroRetirada(),
+            'lote_compra' => (string) Str::uuid(),
+            'comissao_percentual' => 5.00,
+            'comissao_valor' => round($bola->preco * 0.05, 2),
+        ]);
+
+        ItemPedido::create([
+            'pedido_id' => $pedidoAguardando->id,
+            'produto_id' => $bola->id,
+            'quantidade' => 1,
+            'preco_unitario' => $bola->preco,
+        ]);
+
+        $totalCamisas = $camisa->preco * 2;
+
+        $pedidoRetirado = Pedido::create([
+            'user_id' => $jogador->id,
+            'dono_id' => $camisa->dono_id,
+            'status' => PedidoStatus::Retirado,
+            'total' => $totalCamisas,
+            'numero_retirada' => Pedido::gerarNumeroRetirada(),
+            'lote_compra' => (string) Str::uuid(),
+            'comissao_percentual' => 5.00,
+            'comissao_valor' => round($totalCamisas * 0.05, 2),
+        ]);
+        $pedidoRetirado->forceFill(['created_at' => now()->subDays(4)])->save();
+
+        ItemPedido::create([
+            'pedido_id' => $pedidoRetirado->id,
+            'produto_id' => $camisa->id,
+            'quantidade' => 2,
+            'preco_unitario' => $camisa->preco,
         ]);
     }
 }

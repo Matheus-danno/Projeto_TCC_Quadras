@@ -8,6 +8,7 @@ use App\Models\Produto;
 use App\Support\Carrinho as CarrinhoSessao;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -55,6 +56,11 @@ class Carrinho extends Component
         $this->sincronizarQuantidades();
     }
 
+    /**
+     * Percentual retido pelo site em cada venda de produto.
+     */
+    private const COMISSAO_PERCENTUAL = 5.00;
+
     public function finalizarPedido()
     {
         abort_unless(auth()->check(), 403);
@@ -65,32 +71,45 @@ class Carrinho extends Component
             return;
         }
 
-        $pedido = DB::transaction(function () use ($itens) {
-            $pedido = Pedido::create([
-                'user_id' => auth()->id(),
-                'status' => PedidoStatus::Confirmado,
-                'total' => CarrinhoSessao::total(),
-            ]);
+        $itensPorDono = $itens->groupBy(fn (object $item) => $item->produto->dono_id);
+        $loteCompra = (string) Str::uuid();
 
-            foreach ($itens as $item) {
-                $pedido->itens()->create([
-                    'produto_id' => $item->produto->id,
-                    'quantidade' => $item->quantidade,
-                    'preco_unitario' => $item->produto->preco,
+        $pedidos = DB::transaction(function () use ($itensPorDono, $loteCompra) {
+            return $itensPorDono->map(function (Collection $itensDoDono) use ($loteCompra) {
+                $total = (float) $itensDoDono->sum('subtotal');
+                $comissaoValor = round($total * self::COMISSAO_PERCENTUAL / 100, 2);
+
+                $pedido = Pedido::create([
+                    'user_id' => auth()->id(),
+                    'dono_id' => $itensDoDono->first()->produto->dono_id,
+                    'status' => PedidoStatus::Aguardando,
+                    'total' => $total,
+                    'numero_retirada' => Pedido::gerarNumeroRetirada(),
+                    'lote_compra' => $loteCompra,
+                    'comissao_percentual' => self::COMISSAO_PERCENTUAL,
+                    'comissao_valor' => $comissaoValor,
                 ]);
 
-                Produto::query()
-                    ->where('id', $item->produto->id)
-                    ->where('estoque', '>=', $item->quantidade)
-                    ->decrement('estoque', $item->quantidade);
-            }
+                foreach ($itensDoDono as $item) {
+                    $pedido->itens()->create([
+                        'produto_id' => $item->produto->id,
+                        'quantidade' => $item->quantidade,
+                        'preco_unitario' => $item->produto->preco,
+                    ]);
 
-            return $pedido;
+                    Produto::query()
+                        ->where('id', $item->produto->id)
+                        ->where('estoque', '>=', $item->quantidade)
+                        ->decrement('estoque', $item->quantidade);
+                }
+
+                return $pedido;
+            })->values();
         });
 
         CarrinhoSessao::limpar();
 
-        return redirect()->route('loja.pedido.confirmacao', $pedido);
+        return redirect()->route('loja.pedido.confirmacao', $pedidos->first());
     }
 
     protected function sincronizarQuantidades(): void

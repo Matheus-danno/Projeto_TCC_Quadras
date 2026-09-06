@@ -37,6 +37,10 @@ Route::middleware(['auth', 'role:'.UserRole::DonoQuadra->value])
             return view('painel-loja-formulario');
         })->name('loja.criar');
 
+        Route::get('/loja/pedidos', function () {
+            return view('painel-loja-pedidos');
+        })->name('loja.pedidos');
+
         Route::get('/loja/{produto}/editar', function (Produto $produto) {
             return view('painel-loja-formulario', ['produto' => $produto]);
         })->name('loja.editar');

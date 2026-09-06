@@ -29,7 +29,7 @@ test('dono vê os detalhes e as vendas recentes do próprio produto', function (
     $produto = Produto::factory()->create(['dono_id' => $dono->id, 'nome' => 'Bola de Futevôlei']);
     $comprador = User::factory()->create(['name' => 'Cliente Teste']);
 
-    criarVendaDoProduto($produto, $comprador, 1, PedidoStatus::Confirmado);
+    criarVendaDoProduto($produto, $comprador, 1, PedidoStatus::Aguardando);
 
     $this->actingAs($dono)
         ->get(route('painel.loja.show', $produto))
@@ -54,9 +54,9 @@ test('indicadores calculam unidades vendidas e receita apenas de pedidos não ca
     $produto = Produto::factory()->create(['dono_id' => $dono->id, 'preco' => 50, 'estoque' => 30]);
     $comprador = User::factory()->create();
 
-    criarVendaDoProduto($produto, $comprador, 2, PedidoStatus::Confirmado);
+    criarVendaDoProduto($produto, $comprador, 2, PedidoStatus::Aguardando);
     criarVendaDoProduto($produto, $comprador, 5, PedidoStatus::Cancelado);
-    criarVendaDoProduto($produto, $comprador, 1, PedidoStatus::Pendente);
+    criarVendaDoProduto($produto, $comprador, 1, PedidoStatus::Retirado);
 
     $indicadores = Livewire::actingAs($dono)
         ->test(Detalhe::class, ['produto' => $produto])
@@ -73,7 +73,7 @@ test('vendasRecentes trazem os itens de pedido mais recentes com o comprador car
     $produto = Produto::factory()->create(['dono_id' => $dono->id]);
     $comprador = User::factory()->create(['name' => 'Comprador Recente']);
 
-    criarVendaDoProduto($produto, $comprador, 1, PedidoStatus::Confirmado);
+    criarVendaDoProduto($produto, $comprador, 1, PedidoStatus::Aguardando);
 
     $vendas = Livewire::actingAs($dono)
         ->test(Detalhe::class, ['produto' => $produto])
@@ -90,7 +90,7 @@ test('vendasRecentes ficam limitadas às 10 mais recentes do produto', function 
     $comprador = User::factory()->create();
 
     for ($i = 0; $i < 12; $i++) {
-        criarVendaDoProduto($produto, $comprador, 1, PedidoStatus::Confirmado);
+        criarVendaDoProduto($produto, $comprador, 1, PedidoStatus::Aguardando);
     }
 
     $vendas = Livewire::actingAs($dono)
