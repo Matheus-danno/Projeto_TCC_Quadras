@@ -81,10 +81,10 @@ Route::get('/reservas/{reserva}/confirmacao', function (\App\Models\Reserva $res
 })->middleware('auth')->name('reservas.confirmacao');
 Route::get('/loja', function () {
     return view('loja');
-})->middleware('auth')->name('loja');
+})->name('loja');
 Route::get('/loja/{produto}', function (Produto $produto) {
     return view('loja-produto', ['produto' => $produto]);
-})->middleware('auth')->name('loja.produto');
+})->name('loja.produto');
 Route::get('/carrinho', function () {
     return view('carrinho');
 })->middleware('auth')->name('carrinho.index');
