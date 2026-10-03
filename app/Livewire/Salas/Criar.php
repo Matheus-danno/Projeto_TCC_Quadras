@@ -104,6 +104,41 @@ class Criar extends Component
         $this->quadraId = null;
     }
 
+    /**
+     * Horários de início (dentro de horariosDisponiveis()) em que pelo menos uma quadra
+     * compatível com o esporte/busca atuais está livre na data e duração escolhidas.
+     * Evita que o usuário escolha um horário em que nenhuma quadra sequer está disponível.
+     * Enquanto a data ainda não foi definida, devolve a lista completa.
+     *
+     * @return list<string>
+     */
+    public function horariosComQuadraDisponivel(): array
+    {
+        if ($this->data === '') {
+            return $this->horariosDisponiveis();
+        }
+
+        $quadrasCandidatas = Quadra::query()
+            ->where('ativa', true)
+            ->when($this->esporte, fn ($query) => $query->where('esporte', $this->esporte))
+            ->when($this->buscaQuadra, fn ($query) => $query->where('nome', 'like', '%'.$this->buscaQuadra.'%'))
+            ->with('dono')
+            ->get();
+
+        $horariosLivres = [];
+
+        foreach ($quadrasCandidatas as $quadra) {
+            foreach ($quadra->horariosLivres($this->data, $this->duracaoMinutos) as $horario) {
+                $horariosLivres[$horario] = true;
+            }
+        }
+
+        return array_values(array_filter(
+            $this->horariosDisponiveis(),
+            fn (string $horario) => isset($horariosLivres[$horario])
+        ));
+    }
+
     public function selecionarFormato(string $tipo): void
     {
         if ($this->esporte === '') {

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Esporte;
 use App\Enums\ReservaStatus;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,14 @@ class Quadra extends Model
 {
     /** @use HasFactory<\Database\Factories\QuadraFactory> */
     use HasFactory;
+
+    /**
+     * Fuso horário em que os horários de funcionamento das quadras (ex.: "09:00") são
+     * interpretados. A aplicação roda com app.timezone = UTC, mas esses horários são
+     * sempre pensados como horário local do Brasil, então não dá pra comparar com
+     * now()/Carbon::now() diretamente sem especificar esse fuso.
+     */
+    private const FUSO_HORARIO = 'America/Sao_Paulo';
 
     protected $fillable = [
         'dono_id',
@@ -144,11 +153,26 @@ class Quadra extends Model
     }
 
     /**
-     * Se a quadra está livre nesse intervalo (mesma regra usada na reserva avulsa de quadras):
-     * nenhuma reserva não cancelada com sobreposição de horário na mesma data.
+     * Se a quadra está livre nesse intervalo: dentro do horário de funcionamento do dono
+     * nessa data (considerando pausa e exceções cadastradas) e sem nenhuma reserva não
+     * cancelada que sobreponha o intervalo.
      */
     public function horarioDisponivel(string $data, string $horaInicio, string $horaFim, ?int $ignorarReservaId = null): bool
     {
+        if (Carbon::parse($data.' '.$horaInicio, self::FUSO_HORARIO)->isPast()) {
+            return false;
+        }
+
+        $funcionamento = $this->dono?->horarioFuncionamentoEm($data);
+
+        if (! $funcionamento) {
+            return false;
+        }
+
+        if ($horaInicio < $funcionamento['abertura'].':00' || $horaFim > $funcionamento['fechamento'].':00') {
+            return false;
+        }
+
         return ! $this->reservas()
             ->whereDate('data', $data)
             ->where('status', '!=', ReservaStatus::Cancelada->value)
@@ -156,5 +180,55 @@ class Quadra extends Model
             ->where('hora_fim', '>', $horaInicio)
             ->when($ignorarReservaId, fn ($query) => $query->where('id', '!=', $ignorarReservaId))
             ->exists();
+    }
+
+    /**
+     * Lista os horários de início (formato "HH:MM", de hora em hora a partir da abertura)
+     * em que esta quadra está livre nesta data para uma partida com a duração informada,
+     * considerando o horário de funcionamento do dono e as reservas já existentes.
+     *
+     * @return list<string>
+     */
+    public function horariosLivres(string $data, int $duracaoMinutos = 60): array
+    {
+        $funcionamento = $this->dono?->horarioFuncionamentoEm($data);
+
+        if (! $funcionamento) {
+            return [];
+        }
+
+        [$horaAbertura, $minAbertura] = array_pad(array_map('intval', explode(':', $funcionamento['abertura'])), 2, 0);
+        [$horaFechamento, $minFechamento] = array_pad(array_map('intval', explode(':', $funcionamento['fechamento'])), 2, 0);
+
+        $inicioMinutos = $horaAbertura * 60 + $minAbertura;
+        $fimMinutos = $horaFechamento * 60 + $minFechamento;
+
+        $candidatos = [];
+        for ($minutos = $inicioMinutos; $minutos + $duracaoMinutos <= $fimMinutos; $minutos += 60) {
+            $candidatos[] = sprintf('%02d:%02d', intdiv($minutos, 60), $minutos % 60);
+        }
+
+        $candidatos = array_values(array_filter(
+            $candidatos,
+            fn (string $horario) => ! Carbon::parse($data.' '.$horario, self::FUSO_HORARIO)->isPast()
+        ));
+
+        if ($candidatos === []) {
+            return [];
+        }
+
+        $reservas = $this->reservas()
+            ->whereDate('data', $data)
+            ->where('status', '!=', ReservaStatus::Cancelada->value)
+            ->get(['hora_inicio', 'hora_fim']);
+
+        return array_values(array_filter($candidatos, function (string $horario) use ($duracaoMinutos, $reservas) {
+            $inicio = $horario.':00';
+            $fim = date('H:i:s', strtotime($inicio.' +'.$duracaoMinutos.' minutes'));
+
+            return ! $reservas->contains(
+                fn (Reserva $reserva) => $reserva->hora_inicio < $fim && $reserva->hora_fim > $inicio
+            );
+        }));
     }
 }

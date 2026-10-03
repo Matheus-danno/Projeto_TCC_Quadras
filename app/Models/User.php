@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Enums\NivelHabilidade;
 use App\Enums\Sexo;
 use App\Enums\UserRole;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -208,6 +209,60 @@ class User extends Authenticatable
         }
 
         return $this->pausa_ate !== null && $this->pausa_ate->startOfDay()->greaterThanOrEqualTo(now()->startOfDay());
+    }
+
+    /**
+     * Janela de funcionamento (abertura/fechamento) deste dono nesta data, considerando
+     * pausa temporária, exceções cadastradas (feriados/fechamentos) e o horário semanal
+     * padrão configurado em "horario_funcionamento". Retorna null quando o dono não
+     * atende nessa data (pausado, exceção de fechamento total, ou dia fechado na semana).
+     *
+     * Donos que ainda não configuraram horário de funcionamento (campo nulo) são tratados
+     * como sempre abertos das 07h às 22h, para não quebrar quadras cadastradas antes dessa
+     * configuração existir.
+     *
+     * @return array{abertura: string, fechamento: string}|null
+     */
+    public function horarioFuncionamentoEm(string $data): ?array
+    {
+        if ($this->estaPausado()) {
+            return null;
+        }
+
+        $excecao = $this->excecoesData()->whereDate('data', $data)->first();
+
+        if ($excecao) {
+            if ($excecao->fechado_dia_todo) {
+                return null;
+            }
+
+            return [
+                'abertura' => substr((string) $excecao->hora_abertura, 0, 5) ?: '00:00',
+                'fechamento' => substr((string) $excecao->hora_fechamento, 0, 5) ?: '23:59',
+            ];
+        }
+
+        if (! $this->horario_funcionamento) {
+            return ['abertura' => '07:00', 'fechamento' => '22:00'];
+        }
+
+        $diaSemana = Carbon::parse($data)->dayOfWeekIso;
+        $chave = match ($diaSemana) {
+            6 => 'sabado',
+            7 => 'domingo',
+            default => 'dias_uteis',
+        };
+
+        $horario = $this->horario_funcionamento[$chave] ?? null;
+
+        if (! $horario || ! ($horario['aberto'] ?? false)) {
+            return null;
+        }
+
+        return [
+            'abertura' => $horario['inicio'] ?? '00:00',
+            'fechamento' => $horario['fim'] ?? '23:59',
+        ];
     }
 
     /**

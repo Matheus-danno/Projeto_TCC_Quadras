@@ -118,17 +118,21 @@
                                     <div class="border-top pt-3">
                                         <div class="mb-2">
                                             <label class="small fw-bold">Data</label>
-                                            <input type="date" class="form-control form-control-sm border-orange" wire:model="data" min="{{ now()->toDateString() }}">
+                                            <input type="date" class="form-control form-control-sm border-orange" wire:model.live="data" min="{{ now()->toDateString() }}">
                                             @error('data') <span class="text-danger small">{{ $message }}</span> @enderror
                                         </div>
                                         <div class="mb-3">
                                             <label class="small fw-bold">Horário</label>
+                                            @php $horariosLivres = $this->horariosLivresQuadraSelecionada(); @endphp
                                             <select class="form-select form-select-sm border-orange" wire:model="horaInicio">
                                                 <option value="">Selecione</option>
                                                 @foreach ($this->horariosDisponiveis() as $horario)
-                                                    <option value="{{ $horario }}">{{ $horario }}</option>
+                                                    <option value="{{ $horario }}" @disabled(! in_array($horario, $horariosLivres, true))>{{ $horario }}</option>
                                                 @endforeach
                                             </select>
+                                            @if ($data !== '' && $horariosLivres === [])
+                                                <span class="text-danger small d-block mt-1">Esta quadra não tem horários disponíveis nessa data.</span>
+                                            @endif
                                             @error('horaInicio') <span class="text-danger small">{{ $message }}</span> @enderror
                                         </div>
                                         <div class="d-flex gap-2">

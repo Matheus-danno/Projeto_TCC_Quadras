@@ -177,6 +177,33 @@ class Listagem extends Component
         $this->resetErrorBag();
     }
 
+    public function updatedData(): void
+    {
+        if ($this->horaInicio !== '' && ! in_array($this->horaInicio, $this->horariosLivresQuadraSelecionada(), true)) {
+            $this->horaInicio = '';
+        }
+    }
+
+    /**
+     * Horários de início realmente disponíveis para a quadra selecionada na data
+     * escolhida (dentro do horário de funcionamento do dono e sem reserva conflitante).
+     * Enquanto a quadra ou a data não estão definidas, devolve a lista completa, para
+     * não desabilitar nada antes de haver informação suficiente para decidir.
+     *
+     * @return list<string>
+     */
+    public function horariosLivresQuadraSelecionada(): array
+    {
+        if (! $this->quadraSelecionada || $this->data === '') {
+            return $this->horariosDisponiveis();
+        }
+
+        $quadra = $this->quadras->firstWhere('id', $this->quadraSelecionada)
+            ?? Quadra::with('dono')->find($this->quadraSelecionada);
+
+        return $quadra?->horariosLivres($this->data) ?? [];
+    }
+
     public function reservar()
     {
         abort_unless(auth()->check(), 403);

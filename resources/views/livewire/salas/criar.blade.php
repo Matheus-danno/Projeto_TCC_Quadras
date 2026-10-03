@@ -63,21 +63,25 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
                         <label class="detalhes-subtitulo d-block mb-1">Data</label>
-                        <input type="date" class="form-control detalhes-input" wire:model="data" value="{{ $data }}" min="{{ now()->toDateString() }}">
+                        <input type="date" class="form-control detalhes-input" wire:model.live="data" value="{{ $data }}" min="{{ now()->toDateString() }}">
                         @error('data') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4">
                         <label class="detalhes-subtitulo d-block mb-1">Hora</label>
+                        @php $horariosComQuadra = $this->horariosComQuadraDisponivel(); @endphp
                         <select class="form-select detalhes-input" wire:model="horaInicio">
                             @foreach ($this->horariosDisponiveis() as $hora)
-                                <option value="{{ $hora }}" @selected($hora === $horaInicio)>{{ $hora }}</option>
+                                <option value="{{ $hora }}" @selected($hora === $horaInicio) @disabled(! in_array($hora, $horariosComQuadra, true))>{{ $hora }}</option>
                             @endforeach
                         </select>
+                        @if ($data !== '' && $horariosComQuadra === [])
+                            <div class="text-danger small mt-1">Nenhuma quadra está disponível nessa data.</div>
+                        @endif
                         @error('horaInicio') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4">
                         <label class="detalhes-subtitulo d-block mb-1">Duração</label>
-                        <select class="form-select detalhes-input" wire:model="duracaoMinutos">
+                        <select class="form-select detalhes-input" wire:model.live="duracaoMinutos">
                             @foreach ($this->duracoesDisponiveis() as $minutos)
                                 <option value="{{ $minutos }}" @selected($minutos === $duracaoMinutos)>{{ $this->duracaoFormatada($minutos) }}</option>
                             @endforeach
