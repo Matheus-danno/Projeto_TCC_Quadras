@@ -338,6 +338,41 @@ test('entrada é rejeitada quando a sala está cheia', function () {
     expect($sala->participantes()->count())->toBe(1);
 });
 
+test('criador de uma sala com aprovação manual entra automaticamente, sem precisar aprovar a si mesmo', function () {
+    $criador = User::factory()->create();
+    $sala = Sala::factory()->create([
+        'criador_id' => $criador->id,
+        'aprovacao' => \App\Enums\Aprovacao::Manual,
+        'max_participantes' => 5,
+    ]);
+
+    Livewire::actingAs($criador)
+        ->test(Pagamento::class, ['sala' => $sala])
+        ->call('confirmarPagamento')
+        ->assertSet('erro', null)
+        ->assertRedirect(route('salas.confirmacao', $sala));
+
+    expect($sala->participantes()->pluck('users.id')->all())->toBe([$criador->id])
+        ->and($sala->pedidosParticipacao()->count())->toBe(0);
+});
+
+test('jogador que não é o criador precisa de aprovação para entrar em sala com aprovação manual', function () {
+    $criador = User::factory()->create();
+    $jogador = User::factory()->create();
+    $sala = Sala::factory()->create([
+        'criador_id' => $criador->id,
+        'aprovacao' => \App\Enums\Aprovacao::Manual,
+        'max_participantes' => 5,
+    ]);
+
+    Livewire::actingAs($jogador)
+        ->test(Pagamento::class, ['sala' => $sala])
+        ->call('confirmarPagamento');
+
+    expect($sala->participantes()->count())->toBe(0)
+        ->and($sala->pedidosParticipacao()->where('user_id', $jogador->id)->exists())->toBeTrue();
+});
+
 test('página de confirmação mostra a forma de pagamento e o valor pago', function () {
     $criador = User::factory()->create();
     $jogador = User::factory()->create();

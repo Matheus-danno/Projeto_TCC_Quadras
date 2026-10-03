@@ -274,7 +274,7 @@ class Sala extends Model
             return ['sucesso' => false, 'pendente' => false, 'mensagem' => 'Essa sala já está cheia.'];
         }
 
-        if ($this->aprovacao === Aprovacao::Manual) {
+        if ($this->aprovacao === Aprovacao::Manual && $user->id !== $this->criador_id) {
             $pedido = $this->pedidosParticipacao()->where('user_id', $user->id)->first();
 
             if ($pedido?->status === PedidoParticipacaoStatus::Pendente) {
