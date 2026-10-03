@@ -69,6 +69,101 @@ test('usuário autenticado consegue criar uma sala/partida', function () {
         ->and($sala->aprovacao)->toBe(\App\Enums\Aprovacao::Automatica);
 });
 
+test('usuário consegue definir um nome personalizado para a sala ao criá-la', function () {
+    $user = User::factory()->create();
+    $quadra = Quadra::factory()->create(['ativa' => true]);
+    $data = now()->addDay()->toDateString();
+
+    Livewire::actingAs($user)
+        ->test(Criar::class)
+        ->set('nomeSala', 'Racha da Galera de Sexta')
+        ->set('esporte', Esporte::Futebol->value)
+        ->set('maxParticipantes', 10)
+        ->set('quadraId', $quadra->id)
+        ->set('data', $data)
+        ->set('horaInicio', '20:00')
+        ->set('duracaoMinutos', 90)
+        ->set('nivel', NivelHabilidade::Intermediario->value)
+        ->set('nivelFlexibilidade', AceitacaoNivel::Todos->value)
+        ->call('criar')
+        ->assertHasNoErrors();
+
+    expect(Sala::first()->nome)->toBe('Racha da Galera de Sexta');
+});
+
+test('nome da sala continua sendo gerado automaticamente quando o criador não informa um nome', function () {
+    $user = User::factory()->create();
+    $quadra = Quadra::factory()->create(['ativa' => true]);
+    $data = now()->addDay()->toDateString();
+
+    Livewire::actingAs($user)
+        ->test(Criar::class)
+        ->set('esporte', Esporte::Futebol->value)
+        ->set('maxParticipantes', 10)
+        ->set('quadraId', $quadra->id)
+        ->set('data', $data)
+        ->set('horaInicio', '20:00')
+        ->set('duracaoMinutos', 90)
+        ->set('nivel', NivelHabilidade::Intermediario->value)
+        ->set('nivelFlexibilidade', AceitacaoNivel::Todos->value)
+        ->call('criar')
+        ->assertHasNoErrors();
+
+    expect(Sala::first()->nome)->toBe('Futebol - Intermediário');
+});
+
+test('nome personalizado da sala aparece na listagem de encontre um time', function () {
+    $user = User::factory()->create();
+    $quadra = Quadra::factory()->create(['ativa' => true]);
+    $data = now()->addDay()->toDateString();
+
+    Livewire::actingAs($user)
+        ->test(Criar::class)
+        ->set('nomeSala', 'Pelada do Trabalho')
+        ->set('esporte', Esporte::Futebol->value)
+        ->set('maxParticipantes', 10)
+        ->set('quadraId', $quadra->id)
+        ->set('data', $data)
+        ->set('horaInicio', '20:00')
+        ->set('duracaoMinutos', 90)
+        ->set('nivel', NivelHabilidade::Intermediario->value)
+        ->set('nivelFlexibilidade', AceitacaoNivel::Todos->value)
+        ->call('criar')
+        ->assertHasNoErrors();
+
+    Livewire::actingAs($user)
+        ->test(Listagem::class)
+        ->assertSee('Pelada do Trabalho');
+});
+
+test('criador da sala consegue alterar o nome depois de criada', function () {
+    $criador = User::factory()->create();
+    $sala = Sala::factory()->create(['criador_id' => $criador->id, 'nome' => 'Nome Antigo']);
+
+    Livewire::actingAs($criador)
+        ->test(Detalhe::class, ['sala' => $sala])
+        ->call('iniciarEdicaoNome')
+        ->set('novoNome', 'Nome Novo e Fácil de Achar')
+        ->call('salvarNome')
+        ->assertHasNoErrors()
+        ->assertSee('Nome Novo e Fácil de Achar');
+
+    expect($sala->fresh()->nome)->toBe('Nome Novo e Fácil de Achar');
+});
+
+test('apenas o criador da sala pode alterar o nome dela', function () {
+    $criador = User::factory()->create();
+    $outroUsuario = User::factory()->create();
+    $sala = Sala::factory()->create(['criador_id' => $criador->id, 'nome' => 'Nome Original']);
+
+    Livewire::actingAs($outroUsuario)
+        ->test(Detalhe::class, ['sala' => $sala])
+        ->call('iniciarEdicaoNome')
+        ->assertForbidden();
+
+    expect($sala->fresh()->nome)->toBe('Nome Original');
+});
+
 test('partida criada aparece na listagem de encontre um time', function () {
     $user = User::factory()->create();
     $quadra = Quadra::factory()->create(['ativa' => true]);

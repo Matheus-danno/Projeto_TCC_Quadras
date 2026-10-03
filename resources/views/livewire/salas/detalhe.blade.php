@@ -62,7 +62,34 @@
         <div class="card-body p-4">
             <div class="row align-items-start">
                 <div class="col-lg-8">
-                    <h3 class="fw-semibold texto-jogo mb-2">{{ $sala->esporte->label() }}</h3>
+                    @if ($editandoNome)
+                        <div class="mb-2">
+                            <div class="input-group" style="max-width: 420px;">
+                                <input
+                                    type="text"
+                                    class="form-control detalhes-input"
+                                    wire:model="novoNome"
+                                    maxlength="255"
+                                    placeholder="Nome da sala"
+                                >
+                                <button type="button" wire:click="salvarNome" class="btn btn-laranja fw-bold">Salvar</button>
+                                <button type="button" wire:click="cancelarEdicaoNome" class="btn btn-outline-secondary">Cancelar</button>
+                            </div>
+                            @error('novoNome') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+                    @else
+                        <h3 class="fw-semibold texto-jogo mb-1">
+                            {{ $sala->nome }}
+                            @auth
+                                @if (auth()->id() === $sala->criador_id)
+                                    <button type="button" wire:click="iniciarEdicaoNome" class="btn btn-link p-0 ms-1 align-baseline" title="Alterar nome da sala">
+                                        <i class="bi bi-pencil-fill text-orange" style="font-size: 0.85rem;"></i>
+                                    </button>
+                                @endif
+                            @endauth
+                        </h3>
+                    @endif
+                    <p class="text-muted small mb-2">{{ $sala->esporte->label() }}</p>
 
                     <div class="d-flex gap-2 mb-3 flex-wrap">
                         @if ($sala->nivel_desejado)

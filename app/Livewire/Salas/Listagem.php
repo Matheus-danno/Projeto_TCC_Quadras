@@ -13,6 +13,8 @@ use Livewire\Component;
 
 class Listagem extends Component
 {
+    public string $busca = '';
+
     public string $esporte = '';
 
     public string $nivel = '';
@@ -38,6 +40,7 @@ class Listagem extends Component
             ->with(['quadra', 'criador.avaliacoesRecebidas', 'participantes'])
             ->where('privacidade', Privacidade::Publica->value)
             ->where('status', SalaStatus::Aberta->value)
+            ->when($this->busca, fn ($query) => $query->where('nome', 'like', '%'.$this->busca.'%'))
             ->when($this->esporte, fn ($query) => $query->where('esporte', $this->esporte))
             ->when($this->nivel, fn ($query) => $query->where('nivel_desejado', $this->nivel))
             ->when($this->data, fn ($query) => $query->whereDate('data', $this->data))
@@ -80,7 +83,7 @@ class Listagem extends Component
 
     public function limparFiltros(): void
     {
-        $this->reset(['esporte', 'nivel', 'distanciaKm', 'horario', 'data']);
+        $this->reset(['busca', 'esporte', 'nivel', 'distanciaKm', 'horario', 'data']);
 
         unset($this->salas);
     }

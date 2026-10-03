@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Salas;
 
+use App\Models\AtividadeSala;
 use App\Models\PedidoParticipacao;
 use App\Models\Sala;
 use Illuminate\Support\Collection;
@@ -18,9 +19,46 @@ class Detalhe extends Component
 
     public bool $mostrarTodosParticipantes = false;
 
+    public bool $editandoNome = false;
+
+    public string $novoNome = '';
+
     public function mount(Sala $sala): void
     {
         $this->sala = $sala->load(['quadra.fotos', 'criador.avaliacoesRecebidas', 'atividades.user']);
+    }
+
+    public function iniciarEdicaoNome(): void
+    {
+        abort_unless(auth()->id() === $this->sala->criador_id, 403);
+
+        $this->novoNome = $this->sala->nome;
+        $this->editandoNome = true;
+    }
+
+    public function cancelarEdicaoNome(): void
+    {
+        $this->editandoNome = false;
+    }
+
+    public function salvarNome(): void
+    {
+        abort_unless(auth()->id() === $this->sala->criador_id, 403);
+
+        $validated = $this->validate([
+            'novoNome' => ['required', 'string', 'max:255'],
+        ]);
+
+        $this->sala->update(['nome' => trim($validated['novoNome'])]);
+
+        AtividadeSala::create([
+            'sala_id' => $this->sala->id,
+            'user_id' => auth()->id(),
+            'descricao' => 'Nome da sala alterado para "'.$this->sala->nome.'"',
+        ]);
+
+        $this->sala->load('atividades.user');
+        $this->editandoNome = false;
     }
 
     #[Computed]

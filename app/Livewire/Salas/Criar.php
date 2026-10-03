@@ -19,6 +19,8 @@ use Livewire\Component;
 
 class Criar extends Component
 {
+    public string $nomeSala = '';
+
     public string $esporte = '';
 
     public string $data = '';
@@ -145,6 +147,18 @@ class Criar extends Component
     }
 
     /**
+     * Nome padrão sugerido quando o criador não escolhe um nome próprio para a sala.
+     */
+    public function nomeSugerido(): string
+    {
+        if ($this->esporte === '') {
+            return '';
+        }
+
+        return Esporte::from($this->esporte)->label().' - '.NivelHabilidade::from($this->nivel)->label();
+    }
+
+    /**
      * Fim do intervalo (partida e reserva da quadra), a partir do horário de início e da duração.
      */
     private function calcularHoraFim(): string
@@ -210,6 +224,7 @@ class Criar extends Component
         abort_unless(auth()->check(), 403);
 
         $validated = $this->validate([
+            'nomeSala' => ['nullable', 'string', 'max:255'],
             'esporte' => ['required', 'in:'.implode(',', array_column(Esporte::cases(), 'value'))],
             'data' => ['required', 'date', 'after_or_equal:today'],
             'horaInicio' => ['required', 'in:'.implode(',', $this->horariosDisponiveis())],
@@ -238,8 +253,11 @@ class Criar extends Component
         $esporte = Esporte::from($validated['esporte']);
         $nivel = NivelHabilidade::from($validated['nivel']);
         $precoPessoa = $this->precoPessoa();
+        $nomeSala = trim((string) $validated['nomeSala']) !== ''
+            ? trim((string) $validated['nomeSala'])
+            : "{$esporte->label()} - {$nivel->label()}";
 
-        $sala = DB::transaction(function () use ($validated, $quadra, $horaInicio, $horaFim, $esporte, $nivel, $precoPessoa) {
+        $sala = DB::transaction(function () use ($validated, $quadra, $horaInicio, $horaFim, $esporte, $nivel, $precoPessoa, $nomeSala) {
             $reserva = Reserva::create([
                 'quadra_id' => $quadra->id,
                 'user_id' => auth()->id(),
@@ -250,7 +268,7 @@ class Criar extends Component
             ]);
 
             $sala = Sala::create([
-                'nome' => "{$esporte->label()} - {$nivel->label()}",
+                'nome' => $nomeSala,
                 'esporte' => $validated['esporte'],
                 'nivel_desejado' => $validated['nivel'],
                 'aceitacao_niveis_adjacentes' => $validated['nivelFlexibilidade'],

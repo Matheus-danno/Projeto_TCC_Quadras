@@ -26,6 +26,17 @@
             <div class="card-body p-4">
                 <h5 class="fw-semibold texto-jogo mb-3">Informações básicas</h5>
 
+                <label class="detalhes-subtitulo d-block mb-1">Nome da sala</label>
+                <input
+                    type="text"
+                    class="form-control detalhes-input mb-1"
+                    wire:model="nomeSala"
+                    maxlength="255"
+                    placeholder="{{ $this->nomeSugerido() !== '' ? $this->nomeSugerido() : 'Ex: Racha de sexta-feira' }}"
+                >
+                <p class="text-muted small mb-4">Dê um nome fácil de reconhecer para seus colegas encontrarem a sala. Se deixar em branco, usamos "{{ $this->nomeSugerido() !== '' ? $this->nomeSugerido() : 'Esporte - Nível' }}".</p>
+                @error('nomeSala') <div class="text-danger small mb-3">{{ $message }}</div> @enderror
+
                 <p class="detalhes-subtitulo mb-2">Escolha o esporte</p>
                 <div class="row g-3 mb-4">
                     @foreach ($esportes as $opcao)
@@ -277,7 +288,7 @@
             <h5 class="fw-semibold texto-jogo mb-3">Resumo da partida</h5>
             <div class="card border-0 shadow-sm card-arredondado mb-3">
                 <div class="card-body p-4">
-                    <p class="fw-semibold texto-jogo mb-1">{{ \App\Enums\Esporte::from($esporte)->label() }} - {{ \App\Enums\NivelHabilidade::from($nivel)->label() }}</p>
+                    <p class="fw-semibold texto-jogo mb-1">{{ trim($nomeSala) !== '' ? trim($nomeSala) : $this->nomeSugerido() }}</p>
                     <p class="text-muted mb-1">{{ $this->quadraSelecionada?->nome }} - {{ $this->quadraSelecionada?->endereco }}</p>
                     <p class="text-muted mb-1">
                         {{ \Illuminate\Support\Carbon::parse($data)->isToday() ? 'Hoje' : \Illuminate\Support\Carbon::parse($data)->format('d/m/Y') }},

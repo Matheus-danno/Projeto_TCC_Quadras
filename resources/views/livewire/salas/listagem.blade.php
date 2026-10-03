@@ -10,6 +10,11 @@
                     <h6 class="fw-bold mb-4">FILTROS</h6>
 
                     <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">Nome da sala</label>
+                        <input type="text" class="form-control border-secondary-subtle rounded-3" wire:model="busca" placeholder="Buscar pelo nome...">
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label text-secondary small fw-bold">Esporte</label>
                         <select class="form-select border-secondary-subtle rounded-3" wire:model="esporte">
                             <option value="">Todos</option>
@@ -131,7 +136,10 @@
 
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <h5 class="fw-semibold mb-0 texto-jogo">{{ $sala->esporte->label() }} @if ($sala->nivel_desejado) - {{ $sala->nivel_desejado->label() }} @endif</h5>
+                                        <div>
+                                            <h5 class="fw-semibold mb-0 texto-jogo">{{ $sala->nome }}</h5>
+                                            <p class="text-muted small mb-0">{{ $sala->esporte->label() }} @if ($sala->nivel_desejado) - {{ $sala->nivel_desejado->label() }} @endif</p>
+                                        </div>
 
                                         @unless ($sala->destaque)
                                             {!! $avatares !!}
