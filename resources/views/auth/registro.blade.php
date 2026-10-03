@@ -29,7 +29,7 @@
     .cadastro-input, .cadastro-select {
         border-radius: 50rem;
         border: 1px solid #DDE1E5;
-        padding: 0.6rem 1.2rem;
+        padding: 0.6rem 1rem;
         width: 100%;
         font-size: 0.95rem;
     }
@@ -38,20 +38,33 @@
         border-color: #FF8C00;
         box-shadow: 0 0 0 0.15rem rgba(255, 140, 0, 0.15);
     }
+    .cadastro-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding-right: 2.5rem;
+        background-repeat: no-repeat;
+        background-position: right 1.1rem center;
+        background-size: 14px 10px;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23FF8C00' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    }
     .cadastro-sexo {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 4px;
         border: 1px solid #DDE1E5;
         border-radius: 50rem;
-        padding: 0.5rem 1.1rem;
-        flex: 1;
+        padding: 0.5rem 0.55rem;
+        flex: 0 1 auto;
+        min-width: 0;
         font-size: 0.9rem;
         color: #212529;
         cursor: pointer;
     }
-    .cadastro-sexo input {
-        margin: 0;
+    .cadastro-sexo .pill-radio-label {
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: #212529;
     }
     .cadastro-field {
         margin-bottom: 1.4rem;

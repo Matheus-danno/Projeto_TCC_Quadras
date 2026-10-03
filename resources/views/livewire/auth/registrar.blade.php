@@ -42,7 +42,7 @@
         </div>
 
         <div class="row g-3 cadastro-field">
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <label class="cadastro-label">CPF</label>
                 <input
                     type="text"
@@ -54,13 +54,14 @@
                 >
                 @error('cpf') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
             </div>
-            <div class="col-md-6">
+            <div class="col-md-7">
                 <label class="cadastro-label">Sexo</label>
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
                     @foreach ($sexos as $opcao)
-                        <label class="cadastro-sexo">
-                            {{ $opcao->label() }}
+                        <label class="cadastro-sexo pill-radio-opcao">
                             <input type="radio" wire:model="sexo" value="{{ $opcao->value }}">
+                            <span class="pill-radio-dot"></span>
+                            <span class="pill-radio-label">{{ $opcao->label() }}</span>
                         </label>
                     @endforeach
                 </div>
@@ -107,12 +108,12 @@
         </div>
 
         <div class="row g-3 cadastro-field">
-            <div class="col-md-7">
+            <div class="col-md-6">
                 <label class="cadastro-label">E-mail</label>
                 <input type="email" class="cadastro-input" wire:model="email" placeholder="seu@email.com">
                 @error('email') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
             </div>
-            <div class="col-md-5">
+            <div class="col-md-6">
                 <label class="cadastro-label">Telefone</label>
                 <input
                     type="text"
