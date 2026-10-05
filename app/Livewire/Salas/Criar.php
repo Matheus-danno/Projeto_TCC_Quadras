@@ -236,22 +236,26 @@ class Criar extends Component
         return $this->quadraId ? $this->quadras->firstWhere('id', $this->quadraId) : null;
     }
 
-    public function precoPessoa(): ?float
+    public function totalArrecadar(): ?float
     {
-        if (! $this->quadraSelecionada || $this->maxParticipantes <= 0) {
+        if (! $this->quadraSelecionada) {
             return null;
         }
 
         $horas = $this->duracaoMinutos / 60;
 
-        return round(((float) $this->quadraSelecionada->valor_hora * $horas) / $this->maxParticipantes, 2);
+        return round((float) $this->quadraSelecionada->valor_hora * $horas, 2);
     }
 
-    public function totalArrecadar(): ?float
+    public function precoPessoa(): ?float
     {
-        $precoPessoa = $this->precoPessoa();
+        $total = $this->totalArrecadar();
 
-        return $precoPessoa !== null ? round($precoPessoa * $this->maxParticipantes, 2) : null;
+        if ($total === null || $this->totalJogadores <= 0) {
+            return null;
+        }
+
+        return round($total / $this->totalJogadores, 2);
     }
 
     public function criar()

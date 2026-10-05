@@ -175,7 +175,7 @@
                             <div class="caixa-destaque caixa-laranja caixa-resumo-financeiro">
                                 <label class="subtitulo-campo">Total a arrecadar</label>
                                 <p class="fw-bold text-orange caixa-resumo-valor mb-0">R$ {{ number_format($this->totalArrecadar() ?? 0, 2, ',', '.') }}</p>
-                                <span class="small text-muted">({{ $maxParticipantes }} jogadores x {{ number_format($this->precoPessoa() ?? 0, 2, ',', '.') }})</span>
+                                <span class="small text-muted">({{ $totalJogadores }} jogadores x {{ number_format($this->precoPessoa() ?? 0, 2, ',', '.') }})</span>
                             </div>
                         </div>
                     </div>
