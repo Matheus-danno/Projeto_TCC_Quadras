@@ -101,7 +101,7 @@ test('reservasDoDia lista as reservas do dia selecionado, sem misturar outros di
         ->and($reservas->first()->quadra->nome)->toBe('Quadra Teste');
 });
 
-test('horariosDoDia marca como ocupados apenas os horários com reserva da quadra selecionada', function () {
+test('gradeHorarios marca como ocupados apenas os horários com reserva da quadra correspondente', function () {
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
     $outraQuadra = Quadra::factory()->create(['dono_id' => $dono->id]);
@@ -122,17 +122,17 @@ test('horariosDoDia marca como ocupados apenas os horários com reserva da quadr
         'status' => ReservaStatus::Confirmada,
     ]);
 
-    $horarios = Livewire::actingAs($dono)
+    $grade = Livewire::actingAs($dono)
         ->test(Agenda::class)
-        ->set('quadraId', (string) $quadra->id)
         ->call('selecionarDia', now()->toDateString())
         ->instance()
-        ->horariosDoDia;
+        ->gradeHorarios;
 
-    $porInicio = collect($horarios)->keyBy('inicio');
+    $porInicio = collect($grade)->keyBy('inicio');
+    $celulaDaQuadra = fn (string $horario) => collect($porInicio[$horario]['celulas'])->firstWhere('quadraId', $quadra->id);
 
-    expect($porInicio['19:00']['ocupado'])->toBeTrue()
-        ->and($porInicio['10:00']['ocupado'])->toBeFalse();
+    expect($celulaDaQuadra('19:00')['ocupado'])->toBeTrue()
+        ->and($celulaDaQuadra('10:00')['ocupado'])->toBeFalse();
 });
 
 test('mudarMes navega para o mes seguinte e anterior', function () {

@@ -108,13 +108,13 @@ class Configuracoes extends Component
         $this->aceitaCartao = in_array(FormaPagamento::Cartao->value, $metodos, true);
         $this->aceitaPix = in_array(FormaPagamento::Pix->value, $metodos, true);
 
-        $this->notifDiasUteis = $user->notif_dono_dias_uteis;
-        $this->notifCancelamento = $user->notif_dono_cancelamento;
-        $this->notifMensagensClientes = $user->notif_dono_mensagens_clientes;
+        $this->notifDiasUteis = $user->notif_dono_dias_uteis ?? true;
+        $this->notifCancelamento = $user->notif_dono_cancelamento ?? true;
+        $this->notifMensagensClientes = $user->notif_dono_mensagens_clientes ?? true;
 
         $this->pausaMotivo = $user->pausa_motivo ?? '';
         $this->pausaAte = $user->pausa_ate?->toDateString() ?? '';
-        $this->pausaIndeterminada = $user->pausa_indeterminada;
+        $this->pausaIndeterminada = $user->pausa_indeterminada ?? false;
 
         $this->prazoCancelamentoHoras = (string) $user->prazo_cancelamento_horas;
 

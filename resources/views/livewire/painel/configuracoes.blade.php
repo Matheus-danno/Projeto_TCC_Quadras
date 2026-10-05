@@ -17,6 +17,7 @@
                     <div>
                         <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ __('CNPJ') }}</flux:text>
                         <flux:text class="text-zinc-500 dark:text-zinc-400">{{ $this->cnpjFormatado() ?: '—' }}</flux:text>
+                        <flux:text size="sm" class="text-zinc-400 dark:text-zinc-500">{{ __('O CNPJ não pode ser alterado após o cadastro.') }}</flux:text>
                     </div>
                 </div>
 
@@ -41,7 +42,7 @@
             <form wire:submit="salvar" class="flex flex-col gap-6">
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <flux:input wire:model="nomeEstabelecimento" :label="__('Nome do Estabelecimento')" class="rounded-full" />
-                    <flux:input :value="$this->cnpjFormatado()" :label="__('CNPJ')" class="rounded-full" disabled />
+                    <flux:input :value="$this->cnpjFormatado()" :label="__('CNPJ')" :description="__('O CNPJ não pode ser alterado após o cadastro.')" class="rounded-full" disabled />
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
