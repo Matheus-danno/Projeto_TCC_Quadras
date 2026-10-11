@@ -58,6 +58,10 @@
                         <a href="{{ route('login.dono') }}" class="login-botao-dono">
                             <i class="bi bi-shop"></i> Sou dono de quadra
                         </a>
+
+                        <a href="{{ route('login.admin') }}" class="login-link-admin">
+                            Sou administrador
+                        </a>
                     </form>
                 </div>
             </div>

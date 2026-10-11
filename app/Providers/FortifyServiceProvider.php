@@ -64,9 +64,10 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Cada tela de login (cliente em /login, dono em /entrar-dono) só
-     * autentica usuários do papel correspondente — um dono não consegue
-     * entrar pela tela de cliente e vice-versa, mesmo com a senha certa.
+     * Cada tela de login (cliente em /login, dono em /entrar-dono, admin em
+     * /entrar-admin) só autentica usuários do papel correspondente — um dono
+     * não consegue entrar pela tela de cliente e vice-versa, mesmo com a
+     * senha certa. Contas bloqueadas pelo admin não autenticam em nenhuma tela.
      */
     private function configureAuthentication(): void
     {
@@ -77,7 +78,15 @@ class FortifyServiceProvider extends ServiceProvider
                 return null;
             }
 
-            $papelEsperado = $request->input('contexto') === 'dono' ? UserRole::DonoQuadra : UserRole::Jogador;
+            if ($user->estaBloqueado()) {
+                return null;
+            }
+
+            $papelEsperado = match ($request->input('contexto')) {
+                'dono' => UserRole::DonoQuadra,
+                'admin' => UserRole::Admin,
+                default => UserRole::Jogador,
+            };
 
             if ($user->role !== $papelEsperado) {
                 return null;

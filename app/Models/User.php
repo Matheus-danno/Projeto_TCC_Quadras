@@ -60,6 +60,7 @@ class User extends Authenticatable
         'prazo_cancelamento_horas',
         'chave_pix_recebimento',
         'comissao_aceita_em',
+        'bloqueado_em',
     ];
 
     /**
@@ -84,6 +85,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'comissao_aceita_em' => 'datetime',
+            'bloqueado_em' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
             'sexo' => Sexo::class,
@@ -305,5 +307,13 @@ class User extends Authenticatable
     public function membroDesde(): string
     {
         return $this->created_at->format('Y');
+    }
+
+    /**
+     * Se esta conta está bloqueada pelo admin (não pode entrar nem permanecer logada).
+     */
+    public function estaBloqueado(): bool
+    {
+        return $this->bloqueado_em !== null;
     }
 }

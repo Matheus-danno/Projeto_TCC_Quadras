@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Esporte;
 use App\Enums\ReservaStatus;
+use App\Enums\StatusAprovacaoQuadra;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,7 @@ class Quadra extends Model
         'cobertura',
         'amenidades',
         'ativa',
+        'status_aprovacao',
         'descricao',
     ];
 
@@ -52,12 +54,22 @@ class Quadra extends Model
             'cobertura' => 'boolean',
             'amenidades' => 'array',
             'ativa' => 'boolean',
+            'status_aprovacao' => StatusAprovacaoQuadra::class,
         ];
     }
 
     public function dono(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dono_id');
+    }
+
+    /**
+     * Quadras aprovadas pelo admin — as únicas que devem aparecer nas
+     * listagens públicas (pendentes e suspensas ficam fora do ar).
+     */
+    public function scopeAprovadas($query)
+    {
+        return $query->where('status_aprovacao', StatusAprovacaoQuadra::Aprovada);
     }
 
     public function reservas(): HasMany

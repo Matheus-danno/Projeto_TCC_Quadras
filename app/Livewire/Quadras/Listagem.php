@@ -4,6 +4,7 @@ namespace App\Livewire\Quadras;
 
 use App\Enums\Esporte;
 use App\Enums\ReservaStatus;
+use App\Enums\StatusAprovacaoQuadra;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use Illuminate\Support\Collection;
@@ -64,6 +65,7 @@ class Listagem extends Component
     public function quadras(): Collection
     {
         $quadras = Quadra::query()
+            ->aprovadas()
             ->with(['fotos', 'dono'])
             ->when($this->cidade, fn ($query) => $query->where('cidade', $this->cidade))
             ->when($this->bairro, fn ($query) => $query->where('bairro', $this->bairro))
@@ -148,19 +150,19 @@ class Listagem extends Component
     #[Computed]
     public function cidades(): Collection
     {
-        return Quadra::query()->distinct()->orderBy('cidade')->pluck('cidade');
+        return Quadra::query()->aprovadas()->distinct()->orderBy('cidade')->pluck('cidade');
     }
 
     #[Computed]
     public function bairros(): Collection
     {
-        return Quadra::query()->distinct()->orderBy('bairro')->pluck('bairro');
+        return Quadra::query()->aprovadas()->distinct()->orderBy('bairro')->pluck('bairro');
     }
 
     #[Computed]
     public function nomesQuadras(): Collection
     {
-        return Quadra::query()->distinct()->orderBy('nome')->pluck('nome');
+        return Quadra::query()->aprovadas()->distinct()->orderBy('nome')->pluck('nome');
     }
 
     public function selecionarQuadra(int $quadraId): void
@@ -214,6 +216,8 @@ class Listagem extends Component
         ]);
 
         $quadra = Quadra::findOrFail($this->quadraSelecionada);
+
+        abort_unless($quadra->status_aprovacao === StatusAprovacaoQuadra::Aprovada, 404);
 
         if ($quadra->dono?->estaPausado()) {
             $this->addError('horaInicio', 'Esta quadra está temporariamente indisponível para reservas.');

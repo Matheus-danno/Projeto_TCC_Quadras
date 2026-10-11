@@ -47,7 +47,33 @@ class Reserva extends Model
             'status' => ReservaStatus::class,
             'status_pagamento' => StatusPagamento::class,
             'valor' => 'decimal:2',
+            'comissao_percentual' => 'decimal:2',
+            'valor_total_centavos' => 'integer',
+            'comissao_valor_centavos' => 'integer',
+            'valor_proprietario_centavos' => 'integer',
         ];
+    }
+
+    /**
+     * Ao salvar, congela o percentual e os valores de comissão (em centavos)
+     * na primeira vez em que a reserva fica confirmada e paga — momento em
+     * que ela passa a contar para o faturamento. Depois de calculado uma
+     * vez, o snapshot nunca é recalculado, mesmo que o valor da reserva, o
+     * valor/hora da quadra ou a porcentagem de comissão mudem depois.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Reserva $reserva) {
+            if ($reserva->comissao_valor_centavos !== null) {
+                return;
+            }
+
+            if ($reserva->status !== ReservaStatus::Confirmada || $reserva->status_pagamento !== StatusPagamento::Pago) {
+                return;
+            }
+
+            $reserva->aplicarSnapshotComissao();
+        });
     }
 
     public function quadra(): BelongsTo
@@ -58,6 +84,38 @@ class Reserva extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Valor total da reserva, em reais: o lançado manualmente quando existir,
+     * senão o calculado a partir do valor/hora da quadra pela duração.
+     */
+    public function valorEfetivoReais(): float
+    {
+        if ($this->valor !== null) {
+            return (float) $this->valor;
+        }
+
+        $horas = (strtotime($this->hora_fim) - strtotime($this->hora_inicio)) / 3600;
+
+        return (float) $this->quadra->valor_hora * $horas;
+    }
+
+    /**
+     * Calcula e grava o snapshot de comissão (percentual vigente + valores em
+     * centavos) nos atributos da reserva. Não persiste por si só — é chamado
+     * a partir do evento "saving", então o save() em andamento já grava tudo.
+     */
+    public function aplicarSnapshotComissao(): void
+    {
+        $percentual = ComissaoConfiguracao::percentualAtual();
+        $valorCentavos = (int) round($this->valorEfetivoReais() * 100);
+        $comissaoCentavos = (int) round($valorCentavos * $percentual / 100);
+
+        $this->comissao_percentual = $percentual;
+        $this->valor_total_centavos = $valorCentavos;
+        $this->comissao_valor_centavos = $comissaoCentavos;
+        $this->valor_proprietario_centavos = $valorCentavos - $comissaoCentavos;
     }
 
     /**

@@ -11,6 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             Route::middleware('web')->group(base_path('routes/settings.php'));
             Route::middleware('web')->group(base_path('routes/painel.php'));
+            Route::middleware('web')->group(base_path('routes/admin.php'));
         },
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
@@ -18,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+        ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureUserIsNotBlocked::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

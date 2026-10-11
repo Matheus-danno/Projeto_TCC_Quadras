@@ -35,6 +35,9 @@ Route::get('/login', function () {
 Route::get('/entrar-dono', function () {
     return view('auth.login-dono');
 })->middleware('guest')->name('login.dono');
+Route::get('/entrar-admin', function () {
+    return view('auth.login-admin');
+})->middleware('guest')->name('login.admin');
 Route::get('/cadastro-dono', function () {
     return view('auth.cadastro-dono');
 })->middleware('guest')->name('cadastro.dono');

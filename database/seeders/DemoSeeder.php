@@ -5,7 +5,10 @@ namespace Database\Seeders;
 use App\Enums\Esporte;
 use App\Enums\PedidoStatus;
 use App\Enums\ReservaStatus;
+use App\Enums\StatusAprovacaoQuadra;
+use App\Enums\StatusPagamento;
 use App\Enums\UserRole;
+use App\Models\ComissaoConfiguracao;
 use App\Models\ItemPedido;
 use App\Models\Pedido;
 use App\Models\Produto;
@@ -28,11 +31,16 @@ class DemoSeeder extends Seeder
     public function run(): void
     {
         DB::table('participacao_salas')->delete();
+        ItemPedido::query()->delete();
+        Pedido::query()->delete();
+        ComissaoConfiguracao::query()->delete();
         Reserva::query()->delete();
         Sala::query()->delete();
         Quadra::query()->delete();
         Produto::query()->delete();
         User::query()->delete();
+
+        $this->call(AdminSeeder::class);
 
         $dono = User::factory()->create([
             'name' => 'Carlos Andrade',
@@ -199,6 +207,8 @@ class DemoSeeder extends Seeder
             'status' => ReservaStatus::Confirmada,
         ]);
 
+        $this->criarDadosAdminDemo($jogador, $outrosJogadores, $quadras, $quadrasDono2, $quadrasBauru);
+
         $produtos = collect([
             ['nome' => 'Bola de Futebol Society', 'descricao' => 'Bola oficial para gramado sintético.', 'categoria' => 'Acessórios', 'preco' => 89.90, 'estoque' => 25, 'dono_id' => $dono->id],
             ['nome' => 'Camisa Dry-Fit AlugaQuadra', 'descricao' => 'Tecido leve, ideal para dias quentes.', 'categoria' => 'Vestuário', 'preco' => 79.90, 'estoque' => 40, 'dono_id' => $dono->id],
@@ -217,7 +227,72 @@ class DemoSeeder extends Seeder
             ['Jogador', 'jogador@demo.com', 'password'],
             ['Dono de quadra', 'dono@demo.com', 'password'],
             ['Dono de quadra (2)', 'dono2@demo.com', 'password'],
+            ['Administrador', 'admin@demo.com', 'password'],
         ]);
+    }
+
+    /**
+     * Popula dados para a área do admin não nascer vazia na demonstração:
+     * reservas confirmadas e pagas espalhadas pelos últimos ~4 meses (para
+     * o gráfico e os rankings do dashboard), uma reserva paga e depois
+     * cancelada com reembolso (para mostrar o estorno de comissão), uma
+     * quadra pendente de aprovação, uma suspensa e um jogador bloqueado.
+     */
+    private function criarDadosAdminDemo(
+        User $jogador,
+        Collection $outrosJogadores,
+        Collection $quadras,
+        Collection $quadrasDono2,
+        Collection $quadrasBauru,
+    ): void {
+        $quadrasComissao = $quadras->concat($quadrasBauru)->concat($quadrasDono2)->values();
+        $clientes = $outrosJogadores->concat([$jogador])->values();
+
+        $diasAtras = [2, 5, 9, 14, 18, 23, 30, 37, 45, 52, 60, 68, 75, 83, 90, 98, 105, 112, 118, 125];
+        $horarios = ['08:00', '09:00', '18:00', '19:00', '19:00', '20:00', '20:00', '21:00', '10:00', '17:00'];
+
+        foreach ($diasAtras as $indice => $dias) {
+            $quadra = $quadrasComissao[$indice % $quadrasComissao->count()];
+            $horaInicio = $horarios[$indice % count($horarios)];
+            $horaFim = date('H:i', strtotime($horaInicio.' +1 hour'));
+
+            Reserva::create([
+                'quadra_id' => $quadra->id,
+                'user_id' => $clientes->random()->id,
+                'data' => now()->subDays($dias)->toDateString(),
+                'hora_inicio' => $horaInicio.':00',
+                'hora_fim' => $horaFim.':00',
+                'status' => ReservaStatus::Confirmada,
+                'status_pagamento' => StatusPagamento::Pago,
+                'metodo_pagamento' => 'pix',
+                'valor' => $quadra->valor_hora,
+            ]);
+        }
+
+        $reservaComEstorno = Reserva::create([
+            'quadra_id' => $quadras[0]->id,
+            'user_id' => $jogador->id,
+            'data' => now()->subDays(20)->toDateString(),
+            'hora_inicio' => '20:00:00',
+            'hora_fim' => '21:00:00',
+            'status' => ReservaStatus::Confirmada,
+            'status_pagamento' => StatusPagamento::Pago,
+            'metodo_pagamento' => 'pix',
+            'valor' => $quadras[0]->valor_hora,
+        ]);
+
+        $jogador->increment('saldo_creditos', (float) $reservaComEstorno->valor);
+
+        $reservaComEstorno->update([
+            'status' => ReservaStatus::Cancelada,
+            'cancelamento_tipo' => 'credito',
+            'motivo_cancelamento' => 'Chuva forte no horário marcado.',
+        ]);
+
+        $quadrasBauru[4]->update(['status_aprovacao' => StatusAprovacaoQuadra::Pendente]);
+        $quadrasDono2[1]->update(['status_aprovacao' => StatusAprovacaoQuadra::Suspensa]);
+
+        $outrosJogadores->first()->update(['bloqueado_em' => now()->subDays(3)]);
     }
 
     /**

@@ -1406,20 +1406,33 @@ footer{
     display: block;
     text-align: center;
     width: 100%;
-    max-width: 220px;
+    max-width: 190px;
     margin: 1rem auto 0;
     background-color: transparent;
     color: #fff;
-    border: 1.5px solid #fff;
-    border-radius: 12px;
-    padding: 0.45rem;
+    border: 1px solid #fff;
+    border-radius: 10px;
+    padding: 0.3rem;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.78rem;
+    white-space: nowrap;
     text-decoration: none;
 }
 .login-botao-dono:hover {
     background-color: rgba(255, 255, 255, 0.12);
     color: #fff;
+}
+.login-link-admin {
+    display: block;
+    text-align: center;
+    margin: 0.9rem auto 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.8rem;
+    text-decoration: none;
+}
+.login-link-admin:hover {
+    color: #fff;
+    text-decoration: underline;
 }
 .login-erro {
     color: #fff;
