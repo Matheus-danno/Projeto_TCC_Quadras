@@ -3,8 +3,10 @@
 namespace App\Livewire\Admin;
 
 use App\Enums\ReservaStatus;
+use App\Enums\StatusCadastro;
 use App\Enums\StatusPagamento;
 use App\Enums\UserRole;
+use App\Models\CadastroHistorico;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\User;
@@ -296,6 +298,63 @@ class Dashboard extends Component
             ->latest('created_at')
             ->limit(10)
             ->get();
+    }
+
+    /**
+     * Cadastros (proprietários + quadras) aguardando decisão agora, e o
+     * tempo médio histórico entre o envio e a decisão (aprovado/rejeitado).
+     *
+     * @return array{total: int, tempoMedioAnalise: ?string}
+     */
+    #[Computed]
+    public function cadastrosPendentes(): array
+    {
+        $statusFila = [StatusCadastro::Pendente, StatusCadastro::EmAnalise];
+
+        $totalProprietarios = User::query()->where('role', UserRole::DonoQuadra)->whereIn('status_cadastro', $statusFila)->count();
+        $totalQuadras = Quadra::query()->whereIn('status_cadastro', $statusFila)->count();
+
+        return [
+            'total' => $totalProprietarios + $totalQuadras,
+            'tempoMedioAnalise' => $this->tempoMedioAnalise(),
+        ];
+    }
+
+    /**
+     * Tempo médio, em todo o histórico, entre um cadastro ser enviado (ou
+     * reenviado) e receber uma decisão final (aprovado ou rejeitado).
+     */
+    private function tempoMedioAnalise(): ?string
+    {
+        $eventos = CadastroHistorico::query()
+            ->whereIn('evento', ['enviado', 'reenviado', 'aprovado', 'rejeitado'])
+            ->orderBy('created_at')
+            ->get(['avaliavel_type', 'avaliavel_id', 'evento', 'created_at']);
+
+        $duracoesHoras = [];
+
+        foreach ($eventos->groupBy(fn (CadastroHistorico $e) => $e->avaliavel_type.'-'.$e->avaliavel_id) as $grupo) {
+            $inicio = null;
+
+            foreach ($grupo as $evento) {
+                if (in_array($evento->evento, ['enviado', 'reenviado'], true)) {
+                    $inicio = $evento->created_at;
+                } elseif (in_array($evento->evento, ['aprovado', 'rejeitado'], true) && $inicio) {
+                    $duracoesHoras[] = $inicio->diffInMinutes($evento->created_at) / 60;
+                    $inicio = null;
+                }
+            }
+        }
+
+        if ($duracoesHoras === []) {
+            return null;
+        }
+
+        $mediaHoras = array_sum($duracoesHoras) / count($duracoesHoras);
+
+        return $mediaHoras < 1
+            ? round($mediaHoras * 60).' min'
+            : number_format($mediaHoras, 1, ',', '.').' h';
     }
 
     public function render()

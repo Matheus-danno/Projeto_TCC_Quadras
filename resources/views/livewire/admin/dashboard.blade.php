@@ -83,6 +83,23 @@
         </flux:card>
     </div>
 
+    <a href="{{ route('admin.aprovacoes') }}" wire:navigate class="block">
+        <flux:card class="flex flex-col gap-1 rounded-2xl p-5 transition hover:bg-zinc-50">
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <flux:text class="text-zinc-400">{{ __('Cadastros pendentes de aprovação') }}</flux:text>
+                    <flux:heading size="xl" class="{{ $this->cadastrosPendentes['total'] > 0 ? 'text-orange-600' : '' }}">
+                        {{ $this->cadastrosPendentes['total'] }}
+                    </flux:heading>
+                    <flux:text class="text-xs text-zinc-400">
+                        {{ $this->cadastrosPendentes['tempoMedioAnalise'] ? __('tempo médio de análise: :tempo', ['tempo' => $this->cadastrosPendentes['tempoMedioAnalise']]) : __('ainda sem histórico de decisões') }}
+                    </flux:text>
+                </div>
+                <flux:icon.inbox class="size-8 text-orange-400" />
+            </div>
+        </flux:card>
+    </a>
+
     <flux:card class="flex flex-col gap-4 rounded-2xl">
         <flux:heading size="lg">{{ __('Comissão ao longo do tempo') }}</flux:heading>
 

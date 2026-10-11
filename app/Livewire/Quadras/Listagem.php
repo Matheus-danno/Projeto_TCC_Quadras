@@ -4,7 +4,7 @@ namespace App\Livewire\Quadras;
 
 use App\Enums\Esporte;
 use App\Enums\ReservaStatus;
-use App\Enums\StatusAprovacaoQuadra;
+use App\Enums\StatusCadastro;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use Illuminate\Support\Collection;
@@ -217,7 +217,7 @@ class Listagem extends Component
 
         $quadra = Quadra::findOrFail($this->quadraSelecionada);
 
-        abort_unless($quadra->status_aprovacao === StatusAprovacaoQuadra::Aprovada, 404);
+        abort_unless($quadra->status_cadastro === StatusCadastro::Aprovado, 404);
 
         if ($quadra->dono?->estaPausado()) {
             $this->addError('horaInicio', 'Esta quadra está temporariamente indisponível para reservas.');

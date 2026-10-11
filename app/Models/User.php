@@ -5,11 +5,14 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\NivelHabilidade;
 use App\Enums\Sexo;
+use App\Enums\StatusCadastro;
+use App\Enums\TipoPessoa;
 use App\Enums\UserRole;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
@@ -61,6 +64,10 @@ class User extends Authenticatable
         'chave_pix_recebimento',
         'comissao_aceita_em',
         'bloqueado_em',
+        'status_cadastro',
+        'titular_recebimento_nome',
+        'titular_recebimento_documento',
+        'checklist_aprovacao',
     ];
 
     /**
@@ -105,6 +112,8 @@ class User extends Authenticatable
             'pausa_ativa' => 'boolean',
             'pausa_ate' => 'date',
             'pausa_indeterminada' => 'boolean',
+            'status_cadastro' => StatusCadastro::class,
+            'checklist_aprovacao' => 'array',
         ];
     }
 
@@ -315,5 +324,66 @@ class User extends Authenticatable
     public function estaBloqueado(): bool
     {
         return $this->bloqueado_em !== null;
+    }
+
+    /**
+     * Documentos enviados por este usuário (identidade, titularidade de recebimento).
+     */
+    public function documentos(): MorphMany
+    {
+        return $this->morphMany(Documento::class, 'documentavel');
+    }
+
+    /**
+     * Histórico de envios/reenvios e decisões do fluxo de aprovação deste cadastro.
+     */
+    public function historicoCadastro(): MorphMany
+    {
+        return $this->morphMany(CadastroHistorico::class, 'avaliavel')->latest();
+    }
+
+    /**
+     * Se este proprietário está liberado para operar (quadras dele podem ser aprovadas).
+     */
+    public function cadastroAprovado(): bool
+    {
+        return $this->status_cadastro === StatusCadastro::Aprovado;
+    }
+
+    /**
+     * Pessoa física (CPF) ou jurídica (CNPJ), deduzido de qual documento foi informado.
+     */
+    public function tipoPessoa(): ?TipoPessoa
+    {
+        return match (true) {
+            filled($this->cnpj) => TipoPessoa::Juridica,
+            filled($this->cpf) => TipoPessoa::Fisica,
+            default => null,
+        };
+    }
+
+    /**
+     * CPF ou CNPJ deste usuário, o que estiver preenchido.
+     */
+    public function documentoPrincipal(): ?string
+    {
+        return $this->cnpj ?: $this->cpf;
+    }
+
+    /**
+     * Se o nome/documento informado como titular do recebimento bate com o
+     * CPF/CNPJ do próprio proprietário — checagem simples de titularidade,
+     * sem integração real com banco/Pix.
+     */
+    public function titularidadeRecebimentoConfere(): bool
+    {
+        if (! $this->titular_recebimento_documento || ! $this->documentoPrincipal()) {
+            return false;
+        }
+
+        $titular = preg_replace('/\D/', '', $this->titular_recebimento_documento);
+        $proprio = preg_replace('/\D/', '', $this->documentoPrincipal());
+
+        return $titular === $proprio;
     }
 }

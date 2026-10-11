@@ -2,6 +2,8 @@
 
 use App\Enums\Esporte;
 use App\Enums\ReservaStatus;
+use App\Enums\TipoDocumento;
+use App\Enums\TipoPiso;
 use App\Livewire\Painel\Quadras\Formulario;
 use App\Models\Quadra;
 use App\Models\QuadraFoto;
@@ -16,6 +18,20 @@ function fakeNominatim(?array $resultado): void
 {
     Http::fake([
         config('services.nominatim.url').'*' => Http::response($resultado === null ? [] : [$resultado]),
+    ]);
+}
+
+/**
+ * Já deixa a quadra com um comprovante de imóvel cadastrado, pra editar pelo
+ * Formulario sem precisar simular upload de arquivo (sem GD neste ambiente).
+ */
+function anexarComprovanteImovel(Quadra $quadra): void
+{
+    $quadra->documentos()->create([
+        'tipo' => TipoDocumento::ComprovanteImovel,
+        'caminho' => "documentos/quadras/{$quadra->id}/comprovante.pdf",
+        'nome_original' => 'comprovante.pdf',
+        'tamanho_bytes' => 1024,
     ]);
 }
 
@@ -41,6 +57,7 @@ test('rota painel.quadras.editar renderiza o formulário preenchido', function (
 
 test('dono consegue cadastrar uma nova quadra com foto de capa', function () {
     Storage::fake('public');
+    Storage::fake('local');
     fakeNominatim(['lat' => '-8.0476', 'lon' => '-34.8770']);
 
     $dono = User::factory()->donoQuadra()->create();
@@ -53,11 +70,13 @@ test('dono consegue cadastrar uma nova quadra com foto de capa', function () {
         ->set('cidade', 'Recife')
         ->set('cep', '50000-000')
         ->set('esporte', Esporte::Futsal->value)
+        ->set('tipoPiso', TipoPiso::Sintetico->value)
         ->set('valor_hora', '80.00')
         ->set('capacidade_maxima', '10')
         ->set('cobertura', true)
         ->set('descricao', 'Quadra de teste')
-        ->set('novasFotos', [UploadedFile::fake()->image('quadra.jpg')])
+        ->set('novasFotos', [UploadedFile::fake()->image('quadra.jpg'), UploadedFile::fake()->image('quadra2.jpg'), UploadedFile::fake()->image('quadra3.jpg')])
+        ->set('comprovanteImovel', UploadedFile::fake()->create('comprovante.pdf', 100))
         ->call('salvar')
         ->assertHasNoErrors();
 
@@ -71,7 +90,7 @@ test('dono consegue cadastrar uma nova quadra com foto de capa', function () {
         ->and($quadra->cobertura)->toBeTrue()
         ->and($quadra->capacidade_maxima)->toBe(10)
         ->and($quadra->cep)->toBe('50000-000')
-        ->and($quadra->fotos)->toHaveCount(1)
+        ->and($quadra->fotos)->toHaveCount(3)
         ->and($quadra->fotoCapa()->capa)->toBeTrue()
         ->and((float) $quadra->latitude)->toBe(-8.0476)
         ->and((float) $quadra->longitude)->toBe(-34.8770);
@@ -80,6 +99,8 @@ test('dono consegue cadastrar uma nova quadra com foto de capa', function () {
 });
 
 test('quando o endereço não é geocodificável a quadra é salva mesmo assim, sem coordenadas', function () {
+    Storage::fake('public');
+    Storage::fake('local');
     fakeNominatim(null);
 
     $dono = User::factory()->donoQuadra()->create();
@@ -92,9 +113,12 @@ test('quando o endereço não é geocodificável a quadra é salva mesmo assim, 
         ->set('cidade', 'Cidade Inexistente')
         ->set('cep', '00000-000')
         ->set('esporte', Esporte::Futsal->value)
+        ->set('tipoPiso', TipoPiso::Sintetico->value)
         ->set('valor_hora', '80.00')
         ->set('capacidade_maxima', '10')
         ->set('descricao', 'Quadra de teste')
+        ->set('novasFotos', [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg'), UploadedFile::fake()->image('c.jpg')])
+        ->set('comprovanteImovel', UploadedFile::fake()->create('comprovante.pdf', 100))
         ->call('salvar')
         ->assertHasNoErrors();
 
@@ -112,7 +136,7 @@ test('cadastro de quadra exige campos obrigatórios e valor_hora numérico', fun
         ->test(Formulario::class)
         ->set('valor_hora', '-10')
         ->call('salvar')
-        ->assertHasErrors(['nome', 'endereco', 'cidade', 'bairro', 'cep', 'esporte', 'valor_hora', 'capacidade_maxima', 'descricao']);
+        ->assertHasErrors(['nome', 'endereco', 'cidade', 'bairro', 'cep', 'esporte', 'tipoPiso', 'valor_hora', 'capacidade_maxima', 'descricao', 'comprovanteImovel']);
 
     expect(Quadra::count())->toBe(0);
 });
@@ -122,6 +146,11 @@ test('dono edita a própria quadra', function () {
 
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'nome' => 'Nome Antigo']);
+
+    for ($i = 0; $i < 3; $i++) {
+        QuadraFoto::create(['quadra_id' => $quadra->id, 'caminho' => "quadras/{$quadra->id}/foto{$i}.jpg", 'capa' => $i === 0, 'ordem' => $i]);
+    }
+    anexarComprovanteImovel($quadra);
 
     Livewire::actingAs($dono)
         ->test(Formulario::class, ['quadra' => $quadra])
@@ -178,6 +207,7 @@ test('dono não pode ultrapassar o limite de 8 fotos', function () {
     for ($i = 0; $i < 8; $i++) {
         QuadraFoto::create(['quadra_id' => $quadra->id, 'caminho' => "quadras/1/foto{$i}.jpg", 'capa' => $i === 0, 'ordem' => $i]);
     }
+    anexarComprovanteImovel($quadra);
 
     Livewire::actingAs($dono)
         ->test(Formulario::class, ['quadra' => $quadra])

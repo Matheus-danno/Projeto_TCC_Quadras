@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Enums\Esporte;
+use App\Enums\StatusCadastro;
+use App\Enums\TipoPiso;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -31,7 +33,21 @@ class QuadraFactory extends Factory
             'valor_hora' => fake()->randomFloat(2, 40, 200),
             'capacidade_maxima' => fake()->numberBetween(4, 60),
             'cobertura' => fake()->boolean(),
+            'tipo_piso' => fake()->randomElement(TipoPiso::cases())->value,
             'descricao' => fake()->sentence(),
+            'status_cadastro' => StatusCadastro::Aprovado,
         ];
+    }
+
+    /**
+     * Indica que a quadra ainda não foi aprovada (estado real de uma quadra
+     * recém-cadastrada, antes da fábrica assumir o padrão "aprovado" por
+     * conveniência dos outros testes).
+     */
+    public function pendente(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status_cadastro' => StatusCadastro::Pendente,
+        ]);
     }
 }

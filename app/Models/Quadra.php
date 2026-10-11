@@ -4,12 +4,14 @@ namespace App\Models;
 
 use App\Enums\Esporte;
 use App\Enums\ReservaStatus;
-use App\Enums\StatusAprovacaoQuadra;
+use App\Enums\StatusCadastro;
+use App\Enums\TipoPiso;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Quadra extends Model
 {
@@ -39,7 +41,8 @@ class Quadra extends Model
         'cobertura',
         'amenidades',
         'ativa',
-        'status_aprovacao',
+        'status_cadastro',
+        'tipo_piso',
         'descricao',
     ];
 
@@ -54,13 +57,61 @@ class Quadra extends Model
             'cobertura' => 'boolean',
             'amenidades' => 'array',
             'ativa' => 'boolean',
-            'status_aprovacao' => StatusAprovacaoQuadra::class,
+            'status_cadastro' => StatusCadastro::class,
+            'tipo_piso' => TipoPiso::class,
+            'checklist_aprovacao' => 'array',
         ];
     }
+
+    /**
+     * Campos considerados sensíveis: alterá-los numa quadra já aprovada
+     * derruba o status de volta para "em análise". Preço, horários,
+     * descrição, fotos etc. são alterações simples e não entram aqui.
+     *
+     * @var list<string>
+     */
+    public const CAMPOS_SENSIVEIS = ['endereco', 'bairro', 'cidade', 'cep', 'dono_id'];
 
     public function dono(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dono_id');
+    }
+
+    /**
+     * Documentos enviados para esta quadra (comprovante de uso do imóvel).
+     */
+    public function documentos(): MorphMany
+    {
+        return $this->morphMany(Documento::class, 'documentavel');
+    }
+
+    /**
+     * Histórico de envios/reenvios e decisões do fluxo de aprovação desta quadra.
+     */
+    public function historicoCadastro(): MorphMany
+    {
+        return $this->morphMany(CadastroHistorico::class, 'avaliavel')->latest();
+    }
+
+    /**
+     * Se algum dos campos sensíveis (endereço, dono) mudaria com os dados
+     * informados — usado para decidir se uma edição precisa voltar pra análise.
+     *
+     * @param  array<string, mixed>  $dadosNovos
+     */
+    public function camposSensiveisAlterados(array $dadosNovos): bool
+    {
+        foreach (self::CAMPOS_SENSIVEIS as $campo) {
+            if (! array_key_exists($campo, $dadosNovos)) {
+                continue;
+            }
+
+            if ((string) $this->getOriginal($campo) !== (string) $dadosNovos[$campo]) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -69,7 +120,7 @@ class Quadra extends Model
      */
     public function scopeAprovadas($query)
     {
-        return $query->where('status_aprovacao', StatusAprovacaoQuadra::Aprovada);
+        return $query->where('status_cadastro', StatusCadastro::Aprovado);
     }
 
     public function reservas(): HasMany

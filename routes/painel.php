@@ -13,6 +13,10 @@ Route::middleware(['auth', 'role:'.UserRole::DonoQuadra->value])
             return view('painel');
         })->name('dashboard');
 
+        Route::get('/cadastro', function () {
+            return view('painel-cadastro-status');
+        })->name('cadastro.status');
+
         Route::get('/quadras', function () {
             return view('painel-quadras');
         })->name('quadras');

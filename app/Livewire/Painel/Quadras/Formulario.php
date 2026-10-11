@@ -3,12 +3,18 @@
 namespace App\Livewire\Painel\Quadras;
 
 use App\Enums\Esporte;
+use App\Enums\StatusCadastro;
+use App\Enums\TipoDocumento;
+use App\Enums\TipoPiso;
+use App\Models\Documento;
 use App\Models\Quadra;
 use App\Models\QuadraFoto;
+use App\Services\Aprovacao\CadastroAprovacaoService;
 use App\Services\Geocoding\NominatimClient;
 use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 class Formulario extends Component
@@ -37,6 +43,8 @@ class Formulario extends Component
 
     public string $esporte = '';
 
+    public string $tipoPiso = '';
+
     public string $valor_hora = '';
 
     public string $capacidade_maxima = '';
@@ -45,8 +53,10 @@ class Formulario extends Component
 
     public string $descricao = '';
 
-    /** @var array<int, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<int, TemporaryUploadedFile> */
     public array $novasFotos = [];
+
+    public ?TemporaryUploadedFile $comprovanteImovel = null;
 
     public ?string $bloqueioExclusao = null;
 
@@ -62,6 +72,7 @@ class Formulario extends Component
             $this->cidade = $quadra->cidade;
             $this->cep = $quadra->cep ?? '';
             $this->esporte = $quadra->esporte->value;
+            $this->tipoPiso = $quadra->tipo_piso?->value ?? '';
             $this->valor_hora = (string) $quadra->valor_hora;
             $this->capacidade_maxima = $quadra->capacidade_maxima ? (string) $quadra->capacidade_maxima : '';
             $this->cobertura = $quadra->cobertura;
@@ -78,12 +89,28 @@ class Formulario extends Component
             'cidade' => ['required', 'string', 'max:255'],
             'cep' => ['required', 'string', 'max:9'],
             'esporte' => ['required', 'in:'.implode(',', array_column(Esporte::cases(), 'value'))],
+            'tipoPiso' => ['required', 'in:'.implode(',', array_column(TipoPiso::cases(), 'value'))],
             'valor_hora' => ['required', 'numeric', 'min:0.01'],
             'capacidade_maxima' => ['required', 'integer', 'min:1'],
             'cobertura' => ['boolean'],
             'descricao' => ['required', 'string', 'max:1000'],
             'novasFotos' => ['array', 'max:8'],
             'novasFotos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'comprovanteImovel' => [
+                $this->quadra?->exists && $this->quadra->documentos()->where('tipo', TipoDocumento::ComprovanteImovel)->exists() ? 'nullable' : 'required',
+                'file',
+                'mimes:jpg,jpeg,png,pdf',
+                'max:10240',
+            ],
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'comprovanteImovel.required' => 'Envie um comprovante de que você pode explorar o local (escritura, contrato de locação ou similar).',
+            'comprovanteImovel.mimes' => 'O comprovante precisa ser JPG, PNG ou PDF.',
+            'comprovanteImovel.max' => 'O comprovante pode ter no máximo 10 MB.',
         ];
     }
 
@@ -95,6 +122,11 @@ class Formulario extends Component
     public function totalFotos(): int
     {
         return $this->fotosExistentes()->count() + count($this->novasFotos);
+    }
+
+    public function comprovanteAtual(): ?Documento
+    {
+        return $this->quadra?->documentos()->where('tipo', TipoDocumento::ComprovanteImovel)->latest()->first();
     }
 
     public function removerFotoExistente(int $fotoId): void
@@ -115,12 +147,18 @@ class Formulario extends Component
         $this->novasFotos = array_values($this->novasFotos);
     }
 
-    public function salvar(): void
+    public function salvar(CadastroAprovacaoService $aprovacaoService): void
     {
         $validated = $this->validate();
 
         if (($this->fotosExistentes()->count() + count($this->novasFotos)) > 8) {
             $this->addError('novasFotos', __('Você pode ter no máximo 8 fotos por quadra.'));
+
+            return;
+        }
+
+        if ($this->totalFotos() < 3) {
+            $this->addError('novasFotos', __('Envie pelo menos 3 fotos da quadra.'));
 
             return;
         }
@@ -132,6 +170,7 @@ class Formulario extends Component
             'cidade' => $validated['cidade'],
             'cep' => $validated['cep'],
             'esporte' => $validated['esporte'],
+            'tipo_piso' => $validated['tipoPiso'],
             'valor_hora' => $validated['valor_hora'],
             'capacidade_maxima' => $validated['capacidade_maxima'],
             'cobertura' => $this->cobertura,
@@ -151,6 +190,10 @@ class Formulario extends Component
             );
         }
 
+        $ehNova = ! $this->quadra;
+        $statusAnterior = $this->quadra?->status_cadastro;
+        $camposSensiveisMudaram = $this->quadra?->camposSensiveisAlterados($dados) ?? false;
+
         if ($this->quadra) {
             $this->authorize('update', $this->quadra);
 
@@ -159,6 +202,7 @@ class Formulario extends Component
             $this->quadra = Quadra::create([
                 ...$dados,
                 'dono_id' => auth()->id(),
+                'status_cadastro' => StatusCadastro::Pendente,
             ]);
         }
 
@@ -172,8 +216,35 @@ class Formulario extends Component
             ]);
         }
 
+        if ($this->comprovanteImovel) {
+            $this->quadra->documentos()->where('tipo', TipoDocumento::ComprovanteImovel)->get()
+                ->each(function (Documento $documento) {
+                    Storage::disk('local')->delete($documento->caminho);
+                    $documento->delete();
+                });
+
+            $caminho = $this->comprovanteImovel->store('documentos/quadras/'.$this->quadra->id, 'local');
+
+            $this->quadra->documentos()->create([
+                'tipo' => TipoDocumento::ComprovanteImovel,
+                'caminho' => $caminho,
+                'nome_original' => $this->comprovanteImovel->getClientOriginalName(),
+                'tamanho_bytes' => $this->comprovanteImovel->getSize(),
+            ]);
+        }
+
         $this->novasFotos = [];
+        $this->comprovanteImovel = null;
         $this->reordenarFotos($this->quadra);
+
+        if ($ehNova) {
+            $aprovacaoService->registrarEnvio($this->quadra);
+        } elseif ($statusAnterior === StatusCadastro::Aprovado && $camposSensiveisMudaram) {
+            $aprovacaoService->voltarParaAnalisePorEdicaoSensivel($this->quadra);
+            $this->toast(__('Dados sensíveis alterados: a quadra voltou para análise até o admin revisar.'), variant: 'warning');
+        } elseif ($statusAnterior?->podeReenviar()) {
+            $aprovacaoService->reenviar($this->quadra);
+        }
 
         $this->redirect(route('painel.quadras.show', $this->quadra), navigate: true);
     }
@@ -223,6 +294,7 @@ class Formulario extends Component
     {
         return view('livewire.painel.quadras.formulario', [
             'esportes' => Esporte::cases(),
+            'tiposPiso' => TipoPiso::cases(),
         ]);
     }
 }

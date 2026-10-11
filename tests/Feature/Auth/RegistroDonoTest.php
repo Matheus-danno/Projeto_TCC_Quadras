@@ -1,13 +1,16 @@
 <?php
 
+use App\Enums\StatusCadastro;
 use App\Enums\UserRole;
 use App\Livewire\Auth\RegistrarDono;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 
 function dadosValidosDeCadastroDono(array $sobrescrever = []): array
 {
     return array_merge([
+        'tipoPessoa' => 'juridica',
         'nomeEstabelecimento' => 'Arena Sports Bauru',
         'cnpj' => '12.345.678/0001-95',
         'telefone' => '(14) 99711-2233',
@@ -19,6 +22,10 @@ function dadosValidosDeCadastroDono(array $sobrescrever = []): array
         'password' => 'SenhaForte123',
         'password_confirmation' => 'SenhaForte123',
         'aceitaComissao' => true,
+        'documentoIdentidade' => UploadedFile::fake()->create('rg.pdf', 100),
+        'chavePixRecebimento' => 'joao.silva@example.com',
+        'titularNome' => 'João Silva',
+        'titularDocumento' => '12.345.678/0001-95',
     ], $sobrescrever);
 }
 
@@ -45,6 +52,8 @@ test('cadastro de estabelecimento cria dono de quadra e loga automaticamente', f
     expect(auth()->check())->toBeTrue();
     expect(auth()->id())->toBe($user->id);
     expect($user->comissao_aceita_em)->not->toBeNull();
+    expect($user->status_cadastro)->toBe(StatusCadastro::Pendente);
+    expect($user->documentos()->where('tipo', 'documento_identidade')->exists())->toBeTrue();
 });
 
 test('rejeita cadastro sem aceitar o termo de comissão de 5%', function () {

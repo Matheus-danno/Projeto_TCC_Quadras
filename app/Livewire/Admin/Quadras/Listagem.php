@@ -3,7 +3,7 @@
 namespace App\Livewire\Admin\Quadras;
 
 use App\Enums\ReservaStatus;
-use App\Enums\StatusAprovacaoQuadra;
+use App\Enums\StatusCadastro;
 use App\Enums\StatusPagamento;
 use App\Models\Quadra;
 use Flux\Concerns\InteractsWithComponents;
@@ -38,7 +38,7 @@ class Listagem extends Component
                 $query->where(fn ($q) => $q->where('nome', 'like', $termo)
                     ->orWhereHas('dono', fn ($q) => $q->where('name', 'like', $termo)));
             })
-            ->when($this->filtroStatus, fn (Builder $query) => $query->where('status_aprovacao', $this->filtroStatus))
+            ->when($this->filtroStatus, fn (Builder $query) => $query->where('status_cadastro', $this->filtroStatus))
             ->orderBy('nome')
             ->paginate(10);
     }
@@ -54,20 +54,33 @@ class Listagem extends Component
             ->sum('valor_total_centavos') / 100.0;
     }
 
-    public function aprovar(int $quadraId): void
+    /**
+     * Suspender/reativar é moderação pós-aprovação — pendentes, em análise,
+     * com ajustes solicitados ou rejeitadas passam pela Fila de aprovações,
+     * não por aqui.
+     */
+    public function suspender(int $quadraId): void
     {
-        Quadra::findOrFail($quadraId)->update(['status_aprovacao' => StatusAprovacaoQuadra::Aprovada]);
+        $quadra = Quadra::findOrFail($quadraId);
 
-        $this->toast(__('Quadra aprovada.'), variant: 'success');
+        abort_unless($quadra->status_cadastro === StatusCadastro::Aprovado, 422);
+
+        $quadra->update(['status_cadastro' => StatusCadastro::Suspenso]);
+
+        $this->toast(__('Quadra suspensa.'), variant: 'success');
 
         unset($this->quadras);
     }
 
-    public function suspender(int $quadraId): void
+    public function reativar(int $quadraId): void
     {
-        Quadra::findOrFail($quadraId)->update(['status_aprovacao' => StatusAprovacaoQuadra::Suspensa]);
+        $quadra = Quadra::findOrFail($quadraId);
 
-        $this->toast(__('Quadra suspensa.'), variant: 'success');
+        abort_unless($quadra->status_cadastro === StatusCadastro::Suspenso, 422);
+
+        $quadra->update(['status_cadastro' => StatusCadastro::Aprovado]);
+
+        $this->toast(__('Quadra reativada.'), variant: 'success');
 
         unset($this->quadras);
     }
@@ -75,7 +88,7 @@ class Listagem extends Component
     public function render()
     {
         return view('livewire.admin.quadras.listagem', [
-            'statusDisponiveis' => StatusAprovacaoQuadra::cases(),
+            'statusDisponiveis' => StatusCadastro::cases(),
         ]);
     }
 }

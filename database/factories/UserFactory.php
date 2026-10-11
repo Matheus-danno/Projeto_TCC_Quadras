@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\Sexo;
+use App\Enums\StatusCadastro;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -43,6 +44,7 @@ class UserFactory extends Factory
             'cidade' => fake()->city(),
             'estado' => fake()->randomElement(['SP', 'RJ', 'MG', 'PE', 'BA', 'PR', 'RS']),
             'telefone' => fake()->numerify('###########'),
+            'status_cadastro' => StatusCadastro::Aprovado,
         ];
     }
 
@@ -63,6 +65,16 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => UserRole::Admin,
+        ]);
+    }
+
+    /**
+     * Estado de cadastro deste usuário no fluxo de aprovação.
+     */
+    public function statusCadastro(StatusCadastro $status): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status_cadastro' => $status,
         ]);
     }
 

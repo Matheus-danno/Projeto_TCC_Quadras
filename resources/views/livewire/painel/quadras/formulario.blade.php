@@ -1,12 +1,29 @@
 <div class="flex w-full flex-col gap-6">
-    <div>
-        <flux:heading size="xl" class="text-3xl! sm:text-4xl!">
-            {{ $quadra ? __('Editar Quadra') : __('Cadastrar Nova Quadra') }}
-        </flux:heading>
-        <flux:text class="mt-1 text-base text-zinc-400">
-            {{ $quadra ? $quadra->nome : __('Preencha as informações abaixo para cadastrar sua quadra na plataforma.') }}
-        </flux:text>
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <flux:heading size="xl" class="text-3xl! sm:text-4xl!">
+                {{ $quadra ? __('Editar Quadra') : __('Cadastrar Nova Quadra') }}
+            </flux:heading>
+            <flux:text class="mt-1 text-base text-zinc-400">
+                {{ $quadra ? $quadra->nome : __('Preencha as informações abaixo para cadastrar sua quadra na plataforma. O cadastro passa por análise antes de ficar visível para os jogadores.') }}
+            </flux:text>
+        </div>
+
+        @if ($quadra)
+            <flux:badge size="sm" color="{{ $quadra->status_cadastro->cor() }}">{{ $quadra->status_cadastro->label() }}</flux:badge>
+        @endif
     </div>
+
+    @if ($quadra && in_array($quadra->status_cadastro, [App\Enums\StatusCadastro::AjustesSolicitados, App\Enums\StatusCadastro::Rejeitado], true))
+        @php $ultimoMotivo = $quadra->historicoCadastro()->whereNotNull('motivo')->first(); @endphp
+        @if ($ultimoMotivo)
+            <flux:callout variant="warning" icon="exclamation-triangle">
+                <flux:callout.heading>{{ $quadra->status_cadastro === App\Enums\StatusCadastro::Rejeitado ? __('Cadastro rejeitado') : __('Ajustes solicitados pelo admin') }}</flux:callout.heading>
+                <flux:callout.text>{{ $ultimoMotivo->motivo }}</flux:callout.text>
+                <flux:callout.text class="mt-1 text-xs">{{ __('Salvar essas alterações reenvia o cadastro para análise.') }}</flux:callout.text>
+            </flux:callout>
+        @endif
+    @endif
 
     <form wire:submit="salvar" class="flex flex-col gap-6">
         <flux:card class="rounded-2xl">
@@ -91,6 +108,13 @@
                     </flux:select>
                 </div>
 
+                <flux:select wire:model="tipoPiso" :label="__('Tipo de Piso')" class="rounded-xl" required>
+                    <flux:select.option value="">{{ __('Selecione') }}</flux:select.option>
+                    @foreach ($tiposPiso as $opcao)
+                        <flux:select.option value="{{ $opcao->value }}">{{ $opcao->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <flux:input wire:model="valor_hora" :label="__('Valor por Hora (R$)')" class="rounded-xl" type="number" step="0.01" min="0" placeholder="50,00" required />
                     <flux:input wire:model="capacidade_maxima" :label="__('Capacidade Máxima')" class="rounded-xl" type="number" min="1" placeholder="Nº de jogadores" required />
@@ -107,6 +131,26 @@
 
                 <flux:textarea wire:model="descricao" :label="__('Descrição / Comodidades')" class="rounded-xl" rows="3" placeholder="Ex: Quadra de Areia | Descoberta | Bar | Banheiro | Vestiário" required />
             </div>
+        </flux:card>
+
+        <flux:card class="rounded-2xl">
+            <flux:heading size="lg">{{ __('Comprovante do imóvel') }}</flux:heading>
+            <flux:text class="mb-4 text-zinc-400">
+                {{ __('Escritura, contrato de locação ou documento similar que comprove que você pode explorar este local. JPG, PNG ou PDF, até 10 MB.') }}
+            </flux:text>
+
+            @if ($this->comprovanteAtual())
+                <div class="mb-3 flex items-center justify-between gap-2 rounded-xl bg-zinc-50 px-4 py-2">
+                    <a href="{{ $this->comprovanteAtual()->url() }}" target="_blank" class="flex items-center gap-2 text-sm font-medium text-orange-600 hover:underline">
+                        <flux:icon.document class="size-4" />
+                        {{ $this->comprovanteAtual()->nome_original }}
+                    </a>
+                    <flux:text class="text-xs text-zinc-400">{{ __('Envie um novo arquivo abaixo para substituir.') }}</flux:text>
+                </div>
+            @endif
+
+            <flux:input type="file" wire:model="comprovanteImovel" accept=".jpg,.jpeg,.png,.pdf" class="rounded-xl" />
+            @error('comprovanteImovel') <flux:text class="mt-2 text-red-600">{{ $message }}</flux:text> @enderror
         </flux:card>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

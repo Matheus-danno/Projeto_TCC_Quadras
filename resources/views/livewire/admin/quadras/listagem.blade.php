@@ -1,7 +1,7 @@
 <div class="flex w-full flex-col gap-6">
     <div>
         <flux:heading size="xl" class="text-3xl! sm:text-4xl!">{{ __('Quadras') }}</flux:heading>
-        <flux:text class="mt-1 text-base text-zinc-400">{{ __('Aprove quadras novas, suspenda ou reative quadras já cadastradas.') }}</flux:text>
+        <flux:text class="mt-1 text-base text-zinc-400">{{ __('Todas as quadras cadastradas. Aprovações, ajustes e rejeições ficam na Fila de aprovações.') }}</flux:text>
     </div>
 
     <flux:card class="flex flex-col gap-4 rounded-2xl p-0">
@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <div wire:loading.class="opacity-60" wire:target="busca,filtroStatus,aprovar,suspender">
+        <div wire:loading.class="opacity-60" wire:target="busca,filtroStatus,suspender,reativar">
             @if ($this->quadras->isEmpty())
                 <div class="flex flex-col items-center gap-2 px-6 py-16 text-center">
                     <flux:icon.building-office-2 class="size-8 text-zinc-300" />
@@ -44,19 +44,19 @@
                                 <flux:table.cell class="text-zinc-500">{{ $quadra->dono?->name ?? '—' }}</flux:table.cell>
                                 <flux:table.cell class="text-zinc-500">R$ {{ number_format($this->receitaGerada($quadra), 2, ',', '.') }}</flux:table.cell>
                                 <flux:table.cell>
-                                    <flux:badge size="sm" color="{{ $quadra->status_aprovacao->cor() }}">{{ $quadra->status_aprovacao->label() }}</flux:badge>
+                                    <flux:badge size="sm" color="{{ $quadra->status_cadastro->cor() }}">{{ $quadra->status_cadastro->label() }}</flux:badge>
                                     @if (! $quadra->ativa)
                                         <flux:badge size="sm" color="zinc">{{ __('Inativa (dono)') }}</flux:badge>
                                     @endif
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <div class="flex gap-2">
-                                        @if ($quadra->status_aprovacao === App\Enums\StatusAprovacaoQuadra::Pendente)
-                                            <flux:button size="sm" variant="primary" color="orange" class="rounded-full" wire:click="aprovar({{ $quadra->id }})">
-                                                {{ __('Aprovar') }}
+                                        @if (in_array($quadra->status_cadastro, [App\Enums\StatusCadastro::Pendente, App\Enums\StatusCadastro::EmAnalise, App\Enums\StatusCadastro::AjustesSolicitados, App\Enums\StatusCadastro::Rejeitado], true))
+                                            <flux:button size="sm" variant="outline" class="rounded-full" :href="route('admin.aprovacoes.quadra', $quadra)" wire:navigate>
+                                                {{ __('Analisar') }}
                                             </flux:button>
-                                        @elseif ($quadra->status_aprovacao === App\Enums\StatusAprovacaoQuadra::Suspensa)
-                                            <flux:button size="sm" variant="primary" color="orange" class="rounded-full" wire:click="aprovar({{ $quadra->id }})">
+                                        @elseif ($quadra->status_cadastro === App\Enums\StatusCadastro::Suspenso)
+                                            <flux:button size="sm" variant="primary" color="orange" class="rounded-full" wire:click="reativar({{ $quadra->id }})">
                                                 {{ __('Reativar') }}
                                             </flux:button>
                                         @else

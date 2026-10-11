@@ -5,9 +5,11 @@ namespace Database\Seeders;
 use App\Enums\Esporte;
 use App\Enums\PedidoStatus;
 use App\Enums\ReservaStatus;
-use App\Enums\StatusAprovacaoQuadra;
+use App\Enums\StatusCadastro;
 use App\Enums\StatusPagamento;
+use App\Enums\TipoDocumento;
 use App\Enums\UserRole;
+use App\Models\CadastroHistorico;
 use App\Models\ComissaoConfiguracao;
 use App\Models\ItemPedido;
 use App\Models\Pedido;
@@ -19,6 +21,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -31,6 +34,8 @@ class DemoSeeder extends Seeder
     public function run(): void
     {
         DB::table('participacao_salas')->delete();
+        DB::table('documentos')->delete();
+        DB::table('cadastro_historicos')->delete();
         ItemPedido::query()->delete();
         Pedido::query()->delete();
         ComissaoConfiguracao::query()->delete();
@@ -83,6 +88,7 @@ class DemoSeeder extends Seeder
             'valor_hora' => $dados['valor_hora'],
             'cobertura' => $dados['cobertura'],
             'descricao' => $dados['descricao'],
+            'status_cadastro' => StatusCadastro::Aprovado,
         ]));
 
         $quadrasDono2 = collect([
@@ -102,6 +108,7 @@ class DemoSeeder extends Seeder
             'valor_hora' => $dados['valor_hora'],
             'cobertura' => $dados['cobertura'],
             'descricao' => $dados['descricao'],
+            'status_cadastro' => StatusCadastro::Aprovado,
         ]));
 
         // Quadras em Bauru/SP, para testar a busca por geolocalização a partir daí.
@@ -125,6 +132,7 @@ class DemoSeeder extends Seeder
             'valor_hora' => $dados['valor_hora'],
             'cobertura' => $dados['cobertura'],
             'descricao' => $dados['descricao'],
+            'status_cadastro' => StatusCadastro::Aprovado,
         ]));
 
         Sala::create([
@@ -208,6 +216,7 @@ class DemoSeeder extends Seeder
         ]);
 
         $this->criarDadosAdminDemo($jogador, $outrosJogadores, $quadras, $quadrasDono2, $quadrasBauru);
+        $this->criarDadosAprovacaoDemo($dono);
 
         $produtos = collect([
             ['nome' => 'Bola de Futebol Society', 'descricao' => 'Bola oficial para gramado sintético.', 'categoria' => 'Acessórios', 'preco' => 89.90, 'estoque' => 25, 'dono_id' => $dono->id],
@@ -289,10 +298,148 @@ class DemoSeeder extends Seeder
             'motivo_cancelamento' => 'Chuva forte no horário marcado.',
         ]);
 
-        $quadrasBauru[4]->update(['status_aprovacao' => StatusAprovacaoQuadra::Pendente]);
-        $quadrasDono2[1]->update(['status_aprovacao' => StatusAprovacaoQuadra::Suspensa]);
+        $quadrasBauru[4]->update(['status_cadastro' => StatusCadastro::Pendente]);
+        $quadrasDono2[1]->update(['status_cadastro' => StatusCadastro::Suspenso]);
 
         $outrosJogadores->first()->update(['bloqueado_em' => now()->subDays(3)]);
+    }
+
+    /**
+     * Cria proprietários e quadras em cada status do fluxo de aprovação
+     * (pendente, em análise, ajustes solicitados, aprovado e rejeitado),
+     * com documento de identidade/comprovante e histórico de exemplo, para
+     * testar a Fila de aprovações do admin e a tela de status do dono.
+     */
+    private function criarDadosAprovacaoDemo(User $donoAprovado): void
+    {
+        $admin = User::where('email', 'admin@demo.com')->first();
+
+        $criarDono = function (string $nome, string $email, StatusCadastro $status, int $diasDesdeCadastro) {
+            $dono = User::factory()->create([
+                'name' => $nome,
+                'nome_estabelecimento' => $nome.' Esportes',
+                'email' => $email,
+                'role' => UserRole::DonoQuadra,
+                'cnpj' => fake()->unique()->numerify('##############'),
+                'cpf' => null,
+                'status_cadastro' => $status,
+                'chave_pix_recebimento' => $email,
+                'titular_recebimento_nome' => $nome,
+                'titular_recebimento_documento' => null,
+                'comissao_aceita_em' => now(),
+            ]);
+
+            $dono->forceFill(['created_at' => now()->subDays($diasDesdeCadastro)])->save();
+
+            return $dono;
+        };
+
+        $anexarDocumento = function (User|Quadra $dono, TipoDocumento $tipo, string $nomeArquivo) {
+            $caminho = 'documentos/demo/'.Str::uuid().'-'.$nomeArquivo;
+            Storage::disk('local')->put($caminho, "Documento de demonstração ({$tipo->label()}).");
+
+            $dono->documentos()->create([
+                'tipo' => $tipo,
+                'caminho' => $caminho,
+                'nome_original' => $nomeArquivo,
+                'tamanho_bytes' => Storage::disk('local')->size($caminho),
+            ]);
+        };
+
+        $registrarEvento = function (User|Quadra $entidade, string $evento, ?StatusCadastro $statusAnterior, StatusCadastro $statusNovo, ?string $motivo, ?User $admin, int $diasAtras) {
+            CadastroHistorico::create([
+                'avaliavel_type' => $entidade::class,
+                'avaliavel_id' => $entidade->id,
+                'evento' => $evento,
+                'status_anterior' => $statusAnterior?->value,
+                'status_novo' => $statusNovo->value,
+                'motivo' => $motivo,
+                'admin_id' => $admin?->id,
+                'created_at' => now()->subDays($diasAtras),
+                'updated_at' => now()->subDays($diasAtras),
+            ]);
+        };
+
+        // Pendente: cadastro novo, nunca foi aberto por um admin.
+        $donoPendente = $criarDono('Roberto Mendes', 'dono.pendente@demo.com', StatusCadastro::Pendente, 2);
+        $anexarDocumento($donoPendente, TipoDocumento::DocumentoIdentidade, 'rg-roberto.jpg');
+        $registrarEvento($donoPendente, 'enviado', null, StatusCadastro::Pendente, null, null, 2);
+
+        $quadraDoPendente = Quadra::factory()->pendente()->create([
+            'dono_id' => $donoPendente->id,
+            'nome' => 'Arena Roberto Mendes',
+            'cidade' => 'Recife',
+        ]);
+        $anexarDocumento($quadraDoPendente, TipoDocumento::ComprovanteImovel, 'contrato-locacao.pdf');
+        $registrarEvento($quadraDoPendente, 'enviado', null, StatusCadastro::Pendente, null, null, 2);
+
+        // Em análise: um admin já abriu e está olhando.
+        $donoEmAnalise = $criarDono('Patrícia Gomes', 'dono.analise@demo.com', StatusCadastro::EmAnalise, 5);
+        $anexarDocumento($donoEmAnalise, TipoDocumento::DocumentoIdentidade, 'cnh-patricia.jpg');
+        $registrarEvento($donoEmAnalise, 'enviado', null, StatusCadastro::Pendente, null, null, 5);
+        $registrarEvento($donoEmAnalise, 'em_analise', StatusCadastro::Pendente, StatusCadastro::EmAnalise, null, $admin, 1);
+
+        $quadraEmAnalise = Quadra::factory()->pendente()->create([
+            'dono_id' => $donoAprovado->id,
+            'nome' => 'Quadra Nova em Análise',
+            'status_cadastro' => StatusCadastro::EmAnalise,
+        ]);
+        $anexarDocumento($quadraEmAnalise, TipoDocumento::ComprovanteImovel, 'escritura-quadra-nova.pdf');
+        $registrarEvento($quadraEmAnalise, 'enviado', null, StatusCadastro::Pendente, null, null, 1);
+        $registrarEvento($quadraEmAnalise, 'em_analise', StatusCadastro::Pendente, StatusCadastro::EmAnalise, null, $admin, 0);
+
+        // Ajustes solicitados: já recebeu uma decisão, aguardando reenvio do dono.
+        $donoAjustes = $criarDono('Marcos Teixeira', 'dono.ajustes@demo.com', StatusCadastro::AjustesSolicitados, 8);
+        $anexarDocumento($donoAjustes, TipoDocumento::DocumentoIdentidade, 'rg-marcos.jpg');
+        $registrarEvento($donoAjustes, 'enviado', null, StatusCadastro::Pendente, null, null, 8);
+        $registrarEvento($donoAjustes, 'em_analise', StatusCadastro::Pendente, StatusCadastro::EmAnalise, null, $admin, 4);
+        $registrarEvento($donoAjustes, 'ajustes_solicitados', StatusCadastro::EmAnalise, StatusCadastro::AjustesSolicitados, 'O documento de identidade está ilegível. Envie uma foto mais nítida, com todos os cantos visíveis.', $admin, 3);
+        $donoAjustes->forceFill(['updated_at' => now()->subDays(3)])->save();
+
+        $quadraAjustes = Quadra::factory()->pendente()->create([
+            'dono_id' => $donoAprovado->id,
+            'nome' => 'Quadra com Ajustes Pendentes',
+            'status_cadastro' => StatusCadastro::AjustesSolicitados,
+        ]);
+        $anexarDocumento($quadraAjustes, TipoDocumento::ComprovanteImovel, 'contrato-quadra-ajustes.pdf');
+        $registrarEvento($quadraAjustes, 'enviado', null, StatusCadastro::Pendente, null, null, 3);
+        $registrarEvento($quadraAjustes, 'ajustes_solicitados', StatusCadastro::Pendente, StatusCadastro::AjustesSolicitados, 'As fotos enviadas não mostram bem a condição do piso. Envie fotos mais claras, com boa iluminação.', $admin, 2);
+        $quadraAjustes->forceFill(['updated_at' => now()->subDays(2)])->save();
+
+        // Rejeitado.
+        $donoRejeitado = $criarDono('Juliana Prado', 'dono.rejeitado@demo.com', StatusCadastro::Rejeitado, 10);
+        $anexarDocumento($donoRejeitado, TipoDocumento::DocumentoIdentidade, 'rg-juliana.jpg');
+        $registrarEvento($donoRejeitado, 'enviado', null, StatusCadastro::Pendente, null, null, 10);
+        $registrarEvento($donoRejeitado, 'em_analise', StatusCadastro::Pendente, StatusCadastro::EmAnalise, null, $admin, 7);
+        $registrarEvento($donoRejeitado, 'rejeitado', StatusCadastro::EmAnalise, StatusCadastro::Rejeitado, 'O CNPJ informado não corresponde a uma empresa ativa na Receita Federal.', $admin, 6);
+        $donoRejeitado->forceFill(['updated_at' => now()->subDays(6)])->save();
+
+        $quadraRejeitada = Quadra::factory()->pendente()->create([
+            'dono_id' => $donoAprovado->id,
+            'nome' => 'Quadra Rejeitada',
+            'status_cadastro' => StatusCadastro::Rejeitado,
+        ]);
+        $anexarDocumento($quadraRejeitada, TipoDocumento::ComprovanteImovel, 'comprovante-vencido.pdf');
+        $registrarEvento($quadraRejeitada, 'enviado', null, StatusCadastro::Pendente, null, null, 4);
+        $registrarEvento($quadraRejeitada, 'rejeitado', StatusCadastro::Pendente, StatusCadastro::Rejeitado, 'O comprovante de uso do imóvel está vencido. Envie um documento válido.', $admin, 2);
+        $quadraRejeitada->forceFill(['updated_at' => now()->subDays(2)])->save();
+
+        // Aprovado pelo fluxo completo (além dos donos antigos, migrados direto
+        // como aprovados) — enriquece o "tempo médio de análise" do dashboard.
+        $donoAprovadoPeloFluxo = $criarDono('Eduardo Ramos', 'dono.fluxo-completo@demo.com', StatusCadastro::Aprovado, 7);
+        $anexarDocumento($donoAprovadoPeloFluxo, TipoDocumento::DocumentoIdentidade, 'rg-eduardo.jpg');
+        $registrarEvento($donoAprovadoPeloFluxo, 'enviado', null, StatusCadastro::Pendente, null, null, 7);
+        $registrarEvento($donoAprovadoPeloFluxo, 'em_analise', StatusCadastro::Pendente, StatusCadastro::EmAnalise, null, $admin, 6);
+        $registrarEvento($donoAprovadoPeloFluxo, 'aprovado', StatusCadastro::EmAnalise, StatusCadastro::Aprovado, null, $admin, 5);
+        $donoAprovadoPeloFluxo->forceFill(['updated_at' => now()->subDays(5)])->save();
+
+        $this->command?->table(['Cadastro (proprietário)', 'E-mail', 'Status'], [
+            ['Roberto Mendes', 'dono.pendente@demo.com', 'Pendente'],
+            ['Patrícia Gomes', 'dono.analise@demo.com', 'Em análise'],
+            ['Marcos Teixeira', 'dono.ajustes@demo.com', 'Ajustes solicitados'],
+            ['Juliana Prado', 'dono.rejeitado@demo.com', 'Rejeitado'],
+            ['Eduardo Ramos', 'dono.fluxo-completo@demo.com', 'Aprovado (via fluxo)'],
+        ]);
     }
 
     /**

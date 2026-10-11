@@ -3,22 +3,35 @@
 namespace App\Livewire\Auth;
 
 use App\Concerns\PasswordValidationRules;
+use App\Enums\StatusCadastro;
+use App\Enums\TipoDocumento;
+use App\Enums\TipoPessoa;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Rules\CnpjValido;
+use App\Rules\CpfValido;
+use App\Services\Aprovacao\CadastroAprovacaoService;
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 class RegistrarDono extends Component
 {
     use PasswordValidationRules;
+    use WithFileUploads;
+
+    public string $tipoPessoa = 'juridica';
 
     public string $nomeEstabelecimento = '';
 
     public string $cnpj = '';
+
+    public string $cpf = '';
 
     public string $telefone = '';
 
@@ -38,6 +51,14 @@ class RegistrarDono extends Component
 
     public bool $aceitaComissao = false;
 
+    public ?TemporaryUploadedFile $documentoIdentidade = null;
+
+    public string $chavePixRecebimento = '';
+
+    public string $titularNome = '';
+
+    public string $titularDocumento = '';
+
     /**
      * Siglas de UF válidas, usadas tanto no formulário (blade) quanto aqui.
      *
@@ -52,14 +73,35 @@ class RegistrarDono extends Component
     protected function rules(): array
     {
         return [
+            'tipoPessoa' => ['required', Rule::in(array_column(TipoPessoa::cases(), 'value'))],
             'nomeEstabelecimento' => ['required', 'string', 'min:3', 'max:255'],
             'cnpj' => [
-                'required',
+                Rule::requiredIf($this->tipoPessoa === TipoPessoa::Juridica->value),
+                'nullable',
                 'string',
                 new CnpjValido,
                 function (string $attribute, mixed $value, Closure $fail) {
+                    if ($this->tipoPessoa !== TipoPessoa::Juridica->value) {
+                        return;
+                    }
+
                     if (User::where('cnpj', preg_replace('/\D/', '', $value))->exists()) {
                         $fail('Esse CNPJ já está cadastrado.');
+                    }
+                },
+            ],
+            'cpf' => [
+                Rule::requiredIf($this->tipoPessoa === TipoPessoa::Fisica->value),
+                'nullable',
+                'string',
+                new CpfValido,
+                function (string $attribute, mixed $value, Closure $fail) {
+                    if ($this->tipoPessoa !== TipoPessoa::Fisica->value) {
+                        return;
+                    }
+
+                    if (User::where('cpf', preg_replace('/\D/', '', $value))->exists()) {
+                        $fail('Esse CPF já está cadastrado.');
                     }
                 },
             ],
@@ -81,6 +123,10 @@ class RegistrarDono extends Component
             'estado' => ['required', 'string', Rule::in(self::UFS)],
             'password' => $this->passwordRules(),
             'aceitaComissao' => ['accepted'],
+            'documentoIdentidade' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+            'chavePixRecebimento' => ['required', 'string', 'max:255'],
+            'titularNome' => ['required', 'string', 'min:3', 'max:255'],
+            'titularDocumento' => ['required', 'string'],
         ];
     }
 
@@ -89,34 +135,67 @@ class RegistrarDono extends Component
         return [
             'aceitaComissao.accepted' => 'Você precisa aceitar o termo de comissão para continuar.',
             'estado.in' => 'Selecione um estado (UF) válido.',
+            'documentoIdentidade.required' => 'Envie uma foto ou PDF do seu documento de identidade.',
+            'documentoIdentidade.mimes' => 'O documento precisa ser JPG, PNG ou PDF.',
+            'documentoIdentidade.max' => 'O documento pode ter no máximo 10 MB.',
+            'titularDocumento.required' => 'Informe o CPF/CNPJ do titular da chave Pix ou conta.',
         ];
     }
 
-    public function registrar()
+    public function updatedTipoPessoa(): void
+    {
+        $this->resetErrorBag(['cnpj', 'cpf']);
+    }
+
+    public function registrar(CadastroAprovacaoService $aprovacaoService)
     {
         $validated = $this->validate();
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'nome_estabelecimento' => $validated['nomeEstabelecimento'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => UserRole::DonoQuadra,
-            'cnpj' => preg_replace('/\D/', '', $validated['cnpj']),
-            'endereco' => $validated['endereco'],
-            'cidade' => $validated['cidade'],
-            'estado' => strtoupper($validated['estado']),
-            'telefone' => preg_replace('/\D/', '', $validated['telefone']),
-            'comissao_aceita_em' => now(),
-        ]);
+        $tipoPessoa = TipoPessoa::from($validated['tipoPessoa']);
+
+        $user = DB::transaction(function () use ($validated, $tipoPessoa) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'nome_estabelecimento' => $validated['nomeEstabelecimento'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => UserRole::DonoQuadra,
+                'cnpj' => $tipoPessoa === TipoPessoa::Juridica ? preg_replace('/\D/', '', $validated['cnpj']) : null,
+                'cpf' => $tipoPessoa === TipoPessoa::Fisica ? preg_replace('/\D/', '', $validated['cpf']) : null,
+                'endereco' => $validated['endereco'],
+                'cidade' => $validated['cidade'],
+                'estado' => strtoupper($validated['estado']),
+                'telefone' => preg_replace('/\D/', '', $validated['telefone']),
+                'comissao_aceita_em' => now(),
+                'status_cadastro' => StatusCadastro::Pendente,
+                'chave_pix_recebimento' => $validated['chavePixRecebimento'],
+                'titular_recebimento_nome' => $validated['titularNome'],
+                'titular_recebimento_documento' => preg_replace('/\D/', '', $validated['titularDocumento']),
+            ]);
+
+            $caminho = $this->documentoIdentidade->store('documentos/users/'.$user->id, 'local');
+
+            $user->documentos()->create([
+                'tipo' => TipoDocumento::DocumentoIdentidade,
+                'caminho' => $caminho,
+                'nome_original' => $this->documentoIdentidade->getClientOriginalName(),
+                'tamanho_bytes' => $this->documentoIdentidade->getSize(),
+            ]);
+
+            return $user;
+        });
+
+        $aprovacaoService->registrarEnvio($user);
 
         Auth::login($user);
 
-        return $this->redirect(route('painel.dashboard'), navigate: false);
+        return $this->redirect(route('painel.cadastro.status'), navigate: false);
     }
 
     public function render()
     {
-        return view('livewire.auth.registrar-dono');
+        return view('livewire.auth.registrar-dono', [
+            'tiposPessoa' => TipoPessoa::cases(),
+        ]);
     }
 }

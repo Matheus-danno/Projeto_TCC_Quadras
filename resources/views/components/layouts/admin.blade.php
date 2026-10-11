@@ -1,5 +1,11 @@
 @props(['title' => null])
 
+@php
+    $statusFilaAprovacoes = [\App\Enums\StatusCadastro::Pendente, \App\Enums\StatusCadastro::EmAnalise];
+    $totalPendenteAprovacao = \App\Models\User::where('role', \App\Enums\UserRole::DonoQuadra)->whereIn('status_cadastro', $statusFilaAprovacoes)->count()
+        + \App\Models\Quadra::whereIn('status_cadastro', $statusFilaAprovacoes)->count();
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -19,6 +25,16 @@
                 <flux:sidebar.nav>
                     <flux:sidebar.item :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" icon="squares-2x2" wire:navigate>
                         {{ __('Dashboard') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        :href="route('admin.aprovacoes')"
+                        :current="request()->routeIs('admin.aprovacoes*')"
+                        icon="inbox"
+                        :badge="$totalPendenteAprovacao > 0 ? $totalPendenteAprovacao : null"
+                        badge:color="orange"
+                        wire:navigate
+                    >
+                        {{ __('Aprovações') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item :href="route('admin.financeiro')" :current="request()->routeIs('admin.financeiro*')" icon="banknotes" wire:navigate>
                         {{ __('Financeiro') }}

@@ -53,6 +53,11 @@
                     <x-painel-nav-item :href="route('painel.dashboard')" :current="request()->routeIs('painel.dashboard')">
                         {{ __('Visão Geral') }}
                     </x-painel-nav-item>
+                    @if (auth()->user()->status_cadastro !== \App\Enums\StatusCadastro::Aprovado)
+                        <x-painel-nav-item :href="route('painel.cadastro.status')" :current="request()->routeIs('painel.cadastro.status')">
+                            {{ __('Meu Cadastro') }}
+                        </x-painel-nav-item>
+                    @endif
                     <x-painel-nav-item :href="route('painel.quadras')" :current="request()->routeIs('painel.quadras')">
                         {{ __('Minhas Quadras') }}
                     </x-painel-nav-item>
@@ -79,6 +84,15 @@
         </div>
 
         <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            @if (! request()->routeIs('painel.cadastro.status') && auth()->user()->status_cadastro !== \App\Enums\StatusCadastro::Aprovado)
+                <a href="{{ route('painel.cadastro.status') }}" wire:navigate class="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm hover:bg-orange-100">
+                    <span class="font-medium text-orange-700">
+                        {{ __('Seu cadastro está em :status. Quadras só operam depois de aprovadas.', ['status' => auth()->user()->status_cadastro->label()]) }}
+                    </span>
+                    <span class="font-semibold text-orange-700">{{ __('Ver status →') }}</span>
+                </a>
+            @endif
+
             {{ $slot }}
         </main>
 
