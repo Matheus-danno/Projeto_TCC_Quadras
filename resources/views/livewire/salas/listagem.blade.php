@@ -188,9 +188,9 @@
                                                     <span class="ms-1"><i class="bi bi-star-fill text-warning"></i> {{ number_format($sala->criador->notaMedia(), 1, ',', '.') }}</span>
                                                 @endif
                                             </div>
-                                            @if ($sala->distanciaKm ?? null)
+                                            @if (($sala->distanciaKm ?? null) !== null)
                                                 <p class="text-danger small mb-3 mt-1">
-                                                    <i class="bi bi-signpost-2"></i> {{ $sala->distanciaKm }} km de distância de você
+                                                    <i class="bi bi-signpost-2"></i> {{ $sala->distanciaKm < 0.1 ? 'Menos de 100 m' : number_format($sala->distanciaKm, 1, ',', '.').' km' }} de distância de você
                                                 </p>
                                             @endif
                                         </div>

@@ -109,9 +109,9 @@
                             </div>
 
                             <div class="mt-3">
-                                <p class="text-muted quadra-listagem-texto-sec {{ ($quadra->distanciaKm ?? null) ? 'mb-1' : 'mb-3' }}"><i class="bi bi-geo-alt"></i> {{ $quadra->endereco }} - {{ $quadra->bairro }}, {{ $quadra->cidade }}</p>
-                                @if ($quadra->distanciaKm ?? null)
-                                    <p class="text-danger quadra-listagem-texto-sec mb-3"><i class="bi bi-signpost-2"></i> {{ $quadra->distanciaKm }} km de distância de você</p>
+                                <p class="text-muted quadra-listagem-texto-sec {{ ($quadra->distanciaKm ?? null) !== null ? 'mb-1' : 'mb-3' }}"><i class="bi bi-geo-alt"></i> {{ $quadra->endereco }} - {{ $quadra->bairro }}, {{ $quadra->cidade }}</p>
+                                @if (($quadra->distanciaKm ?? null) !== null)
+                                    <p class="text-danger quadra-listagem-texto-sec mb-3"><i class="bi bi-signpost-2"></i> {{ $quadra->distanciaKm < 0.1 ? 'Menos de 100 m' : number_format($quadra->distanciaKm, 1, ',', '.').' km' }} de distância de você</p>
                                 @endif
 
                                 @if ($quadraSelecionada === $quadra->id)
