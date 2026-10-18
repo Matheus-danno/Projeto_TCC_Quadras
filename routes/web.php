@@ -100,6 +100,11 @@ Route::get('/loja/pedido/{pedido}', function (Pedido $pedido) {
 
     return view('loja-pedido-confirmacao', ['pedidos' => $pedidos]);
 })->middleware('auth')->name('loja.pedido.confirmacao');
+Route::get('/loja/pedido/{pedido}/nota', function (Pedido $pedido) {
+    abort_unless(in_array(auth()->id(), [$pedido->user_id, $pedido->dono_id], true), 403);
+
+    return view('loja-pedido-nota', ['pedido' => $pedido->load('itens.produto', 'dono', 'user')]);
+})->middleware('auth')->name('loja.pedido.nota');
 Route::get('/criar-sala', function () {
     return view('criar_sala');
 })->name('criar_sala');

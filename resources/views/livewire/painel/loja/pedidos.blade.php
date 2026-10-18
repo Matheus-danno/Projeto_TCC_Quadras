@@ -40,7 +40,7 @@
                     <flux:table.column>{{ __('Cliente') }}</flux:table.column>
                     <flux:table.column>{{ __('Itens') }}</flux:table.column>
                     <flux:table.column>{{ __('Total') }}</flux:table.column>
-                    <flux:table.column>{{ __('Comissão (5%)') }}</flux:table.column>
+                    <flux:table.column>{{ __('Comissão') }}</flux:table.column>
                     <flux:table.column>{{ __('Você recebe') }}</flux:table.column>
                     <flux:table.column>{{ __('Status') }}</flux:table.column>
                     <flux:table.column>{{ __('Ações') }}</flux:table.column>
@@ -55,7 +55,7 @@
                                 {{ $pedido->itens->map(fn ($item) => $item->quantidade.'x '.$item->produto->nome)->join(', ') }}
                             </flux:table.cell>
                             <flux:table.cell class="font-medium text-zinc-900">R$ {{ number_format($pedido->total, 2, ',', '.') }}</flux:table.cell>
-                            <flux:table.cell class="text-red-500">- R$ {{ number_format($pedido->comissao_valor, 2, ',', '.') }}</flux:table.cell>
+                            <flux:table.cell class="text-red-500">- R$ {{ number_format($pedido->comissao_valor, 2, ',', '.') }} <span class="text-zinc-400">({{ rtrim(rtrim(number_format($pedido->comissao_percentual, 2, ',', '.'), '0'), ',') }}%)</span></flux:table.cell>
                             <flux:table.cell class="font-semibold text-green-600">R$ {{ number_format($pedido->valorLiquido(), 2, ',', '.') }}</flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge color="{{ $pedido->status->corBadge() }}" size="sm">
@@ -63,8 +63,8 @@
                                 </flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
-                                @if ($pedido->status === App\Enums\PedidoStatus::Aguardando)
-                                    <div class="flex flex-col gap-1">
+                                <div class="flex flex-col gap-1">
+                                    @if ($pedido->status === App\Enums\PedidoStatus::Aguardando)
                                         <button
                                             type="button"
                                             class="text-xs font-semibold text-green-600 hover:underline"
@@ -79,8 +79,11 @@
                                         >
                                             {{ __('Cancelar Pedido') }}
                                         </button>
-                                    </div>
-                                @endif
+                                    @endif
+                                    <a href="{{ route('loja.pedido.nota', $pedido) }}" target="_blank" class="text-xs font-medium text-zinc-500 hover:text-orange-600 hover:underline">
+                                        {{ __('Ver nota') }}
+                                    </a>
+                                </div>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach

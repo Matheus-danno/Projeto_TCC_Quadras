@@ -130,6 +130,19 @@ class User extends Authenticatable
     }
 
     /**
+     * CNPJ formatado (00.000.000/0000-00), ou o valor cru se não tiver o
+     * tamanho esperado. Usado nas telas do dono e em notas/recibos de compra.
+     */
+    public function cnpjFormatado(): string
+    {
+        if (! $this->cnpj || strlen($this->cnpj) !== 14) {
+            return $this->cnpj ?? '';
+        }
+
+        return substr($this->cnpj, 0, 2).'.'.substr($this->cnpj, 2, 3).'.'.substr($this->cnpj, 5, 3).'/'.substr($this->cnpj, 8, 4).'-'.substr($this->cnpj, 12, 2);
+    }
+
+    /**
      * URL da foto de perfil: a enviada pelo usuário ou, na ausência dela,
      * um avatar gerado a partir do e-mail.
      */

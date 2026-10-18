@@ -59,10 +59,14 @@
                     @endforeach
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="fw-bold">Total</span>
                     <span class="fw-bold fs-4 text-laranja-loja">R$ {{ number_format($pedido->total, 2, ',', '.') }}</span>
                 </div>
+
+                <a href="{{ route('loja.pedido.nota', $pedido) }}" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-receipt me-1"></i> Ver nota de compra
+                </a>
             </div>
         </div>
     @endforeach
