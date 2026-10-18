@@ -51,15 +51,15 @@
                                 </flux:table.cell>
                                 <flux:table.cell>
                                     <div class="flex gap-2">
-                                        @if (in_array($quadra->status_cadastro, [App\Enums\StatusCadastro::Pendente, App\Enums\StatusCadastro::EmAnalise, App\Enums\StatusCadastro::AjustesSolicitados, App\Enums\StatusCadastro::Rejeitado], true))
-                                            <flux:button size="sm" variant="outline" class="rounded-full" :href="route('admin.aprovacoes.quadra', $quadra)" wire:navigate>
-                                                {{ __('Analisar') }}
-                                            </flux:button>
-                                        @elseif ($quadra->status_cadastro === App\Enums\StatusCadastro::Suspenso)
+                                        <flux:button size="sm" variant="outline" class="rounded-full" :href="route('admin.aprovacoes.quadra', $quadra)" wire:navigate>
+                                            {{ __('Analisar') }}
+                                        </flux:button>
+
+                                        @if ($quadra->status_cadastro === App\Enums\StatusCadastro::Suspenso)
                                             <flux:button size="sm" variant="primary" color="orange" class="rounded-full" wire:click="reativar({{ $quadra->id }})">
                                                 {{ __('Reativar') }}
                                             </flux:button>
-                                        @else
+                                        @elseif ($quadra->status_cadastro === App\Enums\StatusCadastro::Aprovado)
                                             <flux:button size="sm" variant="outline" class="rounded-full !border-red-300 !text-red-600 hover:!bg-red-50" wire:click="suspender({{ $quadra->id }})">
                                                 {{ __('Suspender') }}
                                             </flux:button>
