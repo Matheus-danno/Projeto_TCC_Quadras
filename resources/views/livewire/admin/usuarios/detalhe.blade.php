@@ -30,9 +30,7 @@
     </div>
 
     <flux:card class="flex flex-col gap-4 rounded-2xl p-0">
-        <flux:heading size="lg" class="p-6 pb-0">
-            {{ $usuario->role === App\Enums\UserRole::DonoQuadra ? __('Reservas recebidas nas quadras') : __('Histórico de reservas') }}
-        </flux:heading>
+        <flux:heading size="lg" class="p-6 pb-0">{{ __('Reservas recebidas nas quadras') }}</flux:heading>
 
         @if ($this->reservas->isEmpty())
             <div class="flex flex-col items-center gap-2 px-6 py-16 text-center">

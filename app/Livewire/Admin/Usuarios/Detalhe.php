@@ -18,23 +18,26 @@ class Detalhe extends Component
 
     public function mount(User $usuario): void
     {
-        abort_if($usuario->role === UserRole::Admin, 404);
+        abort_unless($usuario->role === UserRole::DonoQuadra, 404);
 
         $this->usuario = $usuario;
     }
 
     /**
-     * Reservas feitas pelo usuário (como cliente) ou recebidas nas quadras
-     * dele (quando é dono), da mais recente para a mais antiga.
+     * Reservas recebidas nas quadras do dono, da mais recente para a mais
+     * antiga. Jogadores não têm página própria aqui — o histórico deles fica
+     * visível pro dono da quadra em Configurações.
      */
     #[Computed]
     public function reservas(): Collection
     {
-        $query = $this->usuario->role === UserRole::DonoQuadra
-            ? Reserva::query()->whereHas('quadra', fn ($q) => $q->where('dono_id', $this->usuario->id))
-            : Reserva::query()->where('user_id', $this->usuario->id);
-
-        return $query->with('quadra')->orderByDesc('data')->orderByDesc('hora_inicio')->limit(50)->get();
+        return Reserva::query()
+            ->whereHas('quadra', fn ($q) => $q->where('dono_id', $this->usuario->id))
+            ->with('quadra')
+            ->orderByDesc('data')
+            ->orderByDesc('hora_inicio')
+            ->limit(50)
+            ->get();
     }
 
     public function bloquear(): void

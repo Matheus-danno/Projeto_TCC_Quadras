@@ -16,26 +16,28 @@ class Listagem extends Component
 
     public string $busca = '';
 
-    public string $filtroPapel = '';
-
     public function updating($property): void
     {
-        if (in_array($property, ['busca', 'filtroPapel'], true)) {
+        if ($property === 'busca') {
             $this->resetPage();
         }
     }
 
+    /**
+     * Jogadores não aparecem aqui: não há ação útil pro admin tomar sobre
+     * eles em massa, e o histórico de reservas deles já fica visível pro
+     * próprio dono da quadra em Configurações.
+     */
     #[Computed]
     public function usuarios()
     {
         return User::query()
-            ->where('role', '!=', UserRole::Admin)
+            ->where('role', UserRole::DonoQuadra)
             ->when($this->busca, function (Builder $query) {
                 $termo = '%'.$this->busca.'%';
 
                 $query->where(fn ($q) => $q->where('name', 'like', $termo)->orWhere('email', 'like', $termo));
             })
-            ->when($this->filtroPapel, fn (Builder $query) => $query->where('role', $this->filtroPapel))
             ->orderBy('name')
             ->paginate(10);
     }
@@ -64,8 +66,6 @@ class Listagem extends Component
 
     public function render()
     {
-        return view('livewire.admin.usuarios.listagem', [
-            'papeisDisponiveis' => [UserRole::Jogador, UserRole::DonoQuadra],
-        ]);
+        return view('livewire.admin.usuarios.listagem');
     }
 }

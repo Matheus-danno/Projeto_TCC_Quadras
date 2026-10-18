@@ -5,7 +5,10 @@ namespace App\Livewire\Painel;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Enums\FormaPagamento;
+use App\Enums\UserRole;
 use App\Models\ExcecaoData;
+use App\Models\Reserva;
+use App\Models\User;
 use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
@@ -84,6 +87,8 @@ class Configuracoes extends Component
 
     public string $prazoCancelamentoHoras = '5';
 
+    public ?int $clienteSelecionadoId = null;
+
     public function mount(DisableTwoFactorAuthentication $disableTwoFactorAuthentication): void
     {
         $user = auth()->user();
@@ -160,6 +165,70 @@ class Configuracoes extends Component
     public function excecoes(): Collection
     {
         return auth()->user()->excecoesData()->orderBy('data')->get();
+    }
+
+    /**
+     * Jogadores que já alugaram alguma quadra deste dono, com o total de
+     * reservas e a última feita — pra ele ver quem são os clientes dele sem
+     * precisar do admin (que agora só lista donos em Usuários).
+     */
+    #[Computed]
+    public function clientes(): Collection
+    {
+        $donoId = auth()->id();
+
+        return User::query()
+            ->where('role', UserRole::Jogador)
+            ->whereHas('reservas', fn ($q) => $q->whereHas('quadra', fn ($q2) => $q2->where('dono_id', $donoId)))
+            ->withCount(['reservas as total_reservas' => fn ($q) => $q->whereHas('quadra', fn ($q2) => $q2->where('dono_id', $donoId))])
+            ->get()
+            ->map(function (User $jogador) use ($donoId) {
+                $jogador->ultima_reserva = $jogador->reservas()
+                    ->whereHas('quadra', fn ($q) => $q->where('dono_id', $donoId))
+                    ->orderByDesc('data')
+                    ->orderByDesc('hora_inicio')
+                    ->first();
+
+                return $jogador;
+            })
+            ->sortByDesc(fn (User $jogador) => $jogador->ultima_reserva?->data)
+            ->values();
+    }
+
+    public function verHistoricoCliente(int $clienteId): void
+    {
+        $this->clienteSelecionadoId = $clienteId;
+
+        $this->modal('historico-cliente')->show();
+    }
+
+    #[Computed]
+    public function clienteSelecionado(): ?User
+    {
+        return $this->clienteSelecionadoId
+            ? $this->clientes->firstWhere('id', $this->clienteSelecionadoId)
+            : null;
+    }
+
+    /**
+     * Histórico de reservas do cliente selecionado, restrito às quadras
+     * deste dono (não é pra vazar reservas feitas em quadras de terceiros).
+     */
+    #[Computed]
+    public function historicoCliente(): Collection
+    {
+        if (! $this->clienteSelecionadoId) {
+            return new Collection();
+        }
+
+        return Reserva::query()
+            ->where('user_id', $this->clienteSelecionadoId)
+            ->whereHas('quadra', fn ($q) => $q->where('dono_id', auth()->id()))
+            ->with('quadra')
+            ->orderByDesc('data')
+            ->orderByDesc('hora_inicio')
+            ->limit(50)
+            ->get();
     }
 
     public function editarEstabelecimento(): void

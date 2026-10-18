@@ -62,6 +62,52 @@
         @endif
     </flux:card>
 
+    <flux:card class="flex flex-col gap-4 rounded-2xl p-0">
+        <div class="p-6 pb-0">
+            <flux:heading size="lg">{{ __('Clientes') }}</flux:heading>
+            <flux:text class="text-zinc-400">{{ __('Jogadores que já alugaram alguma das suas quadras.') }}</flux:text>
+        </div>
+
+        @if ($this->clientes->isEmpty())
+            <div class="flex flex-col items-center gap-2 px-6 py-16 text-center">
+                <flux:icon.users class="size-8 text-zinc-300" />
+                <flux:heading size="lg">{{ __('Nenhum cliente ainda') }}</flux:heading>
+                <flux:text>{{ __('Quando alguém alugar uma das suas quadras, aparece aqui.') }}</flux:text>
+            </div>
+        @else
+            <flux:table>
+                <flux:table.columns>
+                    <flux:table.column class="ps-6!">{{ __('Nome') }}</flux:table.column>
+                    <flux:table.column>{{ __('Contato') }}</flux:table.column>
+                    <flux:table.column>{{ __('Reservas') }}</flux:table.column>
+                    <flux:table.column>{{ __('Última reserva') }}</flux:table.column>
+                    <flux:table.column></flux:table.column>
+                </flux:table.columns>
+
+                <flux:table.rows>
+                    @foreach ($this->clientes as $cliente)
+                        <flux:table.row wire:key="cliente-{{ $cliente->id }}">
+                            <flux:table.cell class="ps-6! font-medium text-zinc-900">{{ $cliente->name }}</flux:table.cell>
+                            <flux:table.cell class="text-zinc-500">
+                                {{ $cliente->email }}
+                                @if ($cliente->telefone)
+                                    <span class="block text-xs text-zinc-400">{{ $cliente->telefone }}</span>
+                                @endif
+                            </flux:table.cell>
+                            <flux:table.cell class="text-zinc-500">{{ $cliente->total_reservas }}</flux:table.cell>
+                            <flux:table.cell class="text-zinc-500">{{ $cliente->ultima_reserva?->data?->format('d/m/Y') ?? '—' }}</flux:table.cell>
+                            <flux:table.cell>
+                                <flux:button size="sm" variant="outline" class="rounded-full" wire:click="verHistoricoCliente({{ $cliente->id }})">
+                                    {{ __('Ver histórico') }}
+                                </flux:button>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforeach
+                </flux:table.rows>
+            </flux:table>
+        @endif
+    </flux:card>
+
     <flux:card class="rounded-2xl">
         <flux:heading size="lg" class="mb-4">{{ __('Segurança') }}</flux:heading>
 
@@ -304,6 +350,47 @@
     </flux:card>
 
     <livewire:pages::settings.delete-user-modal />
+
+    <flux:modal name="historico-cliente" class="w-full md:w-[32rem]">
+        <flux:accent color="orange" class="flex flex-col gap-4">
+            <div>
+                <flux:heading size="lg">{{ $this->clienteSelecionado?->name }}</flux:heading>
+                <flux:text class="text-zinc-400">{{ __('Histórico de reservas nas suas quadras') }}</flux:text>
+            </div>
+
+            @if ($this->historicoCliente->isEmpty())
+                <flux:text class="text-zinc-500">{{ __('Nenhuma reserva encontrada.') }}</flux:text>
+            @else
+                <div class="flex flex-col divide-y divide-zinc-100 overflow-hidden rounded-xl border border-zinc-100 dark:divide-zinc-700 dark:border-zinc-700">
+                    @foreach ($this->historicoCliente as $reserva)
+                        <div class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm" wire:key="historico-cliente-reserva-{{ $reserva->id }}">
+                            <div>
+                                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $reserva->quadra->nome }}</span>
+                                <span class="block text-xs text-zinc-400">{{ $reserva->data->format('d/m/Y') }} {{ substr($reserva->hora_inicio, 0, 5) }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span class="text-zinc-500">R$ {{ number_format($reserva->valorEfetivoReais(), 2, ',', '.') }}</span>
+                                <flux:badge size="sm" color="{{ match ($reserva->status) {
+                                    App\Enums\ReservaStatus::Confirmada => 'green',
+                                    App\Enums\ReservaStatus::Cancelada => 'red',
+                                    default => 'orange',
+                                } }}">{{ $reserva->status->label() }}</flux:badge>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="flex justify-end">
+                <flux:modal.close>
+                    <flux:button variant="outline" class="rounded-full !border-orange-300 !text-orange-600 hover:!bg-orange-50 dark:!border-orange-400/30 dark:!text-orange-400 dark:hover:!bg-orange-400/10">
+                        {{ __('Fechar') }}
+                    </flux:button>
+                </flux:modal.close>
+            </div>
+        </flux:accent>
+    </flux:modal>
 
     <flux:modal name="adicionar-excecao" class="w-full md:w-96">
         <flux:accent color="orange">
