@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Enums\Esporte;
+use App\Enums\FormaPagamento;
 use App\Enums\StatusCadastro;
 use App\Enums\TipoPiso;
-use App\Enums\UserRole;
 use App\Models\Quadra;
 use App\Models\QuadraFoto;
 use App\Models\User;
@@ -13,11 +13,19 @@ use Illuminate\Database\Seeder;
 
 /**
  * Cadastra quadras que existem de verdade em Bauru, Agudos e Piratininga
- * (SP), com nome, endereço e coordenadas reais (geocodificados via
- * Nominatim/OpenStreetMap). Cada quadra tem seu próprio dono, nomeado a
- * partir do próprio estabelecimento (não temos o nome do proprietário
- * real de cada um). Fotos são placeholders gerados localmente — não
- * reproduzimos fotos de terceiros encontradas na internet.
+ * (SP), com nome, endereço, telefone e horário reais (geocodificados via
+ * Nominatim/OpenStreetMap, telefones e horários de fontes públicas como
+ * diretórios de empresas e redes sociais dos próprios estabelecimentos).
+ *
+ * Cada quadra tem seu próprio dono, nomeado a partir do estabelecimento —
+ * de propósito não usamos nomes de pessoas físicas reais que apareçam
+ * ligadas a esses negócios (ex.: responsável citado em algum diretório),
+ * pra não criar uma conta fake em nome de alguém real. Fotos são
+ * placeholders gerados localmente — não reproduzimos fotos de terceiros
+ * encontradas na internet. CNPJ é gerado (não é o CNPJ real da empresa).
+ *
+ * Idempotente: pode rodar de novo a qualquer momento pra adicionar novas
+ * quadras ou atualizar dados de uma já cadastrada (updateOrCreate).
  *
  * php artisan db:seed --class=RealQuadrasSeeder
  */
@@ -29,6 +37,7 @@ class RealQuadrasSeeder extends Seeder
             [
                 'estabelecimento' => 'Aloha Arena Beach',
                 'email' => 'aloha.arena@demo.com',
+                'telefone' => '14996366682',
                 'nome' => 'Aloha Arena Beach',
                 'endereco' => 'Rua Jacy Stevaux Vilaça, 104',
                 'bairro' => 'Jardim Contorno',
@@ -42,10 +51,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 4,
                 'cobertura' => true,
                 'descricao' => 'Arena de beach tennis no Jardim Contorno, em Bauru.',
+                'horario' => self::horario('07:00', '22:00', '07:00', '22:00', true, '07:00', '20:00'),
             ],
             [
                 'estabelecimento' => 'Aranda Beach Tennis',
                 'email' => 'aranda.beach@demo.com',
+                'telefone' => '14998419793',
                 'nome' => 'Aranda Beach Tennis',
                 'endereco' => 'Rua Severino Lins, 99',
                 'bairro' => 'Vila Aviação',
@@ -59,10 +70,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 4,
                 'cobertura' => true,
                 'descricao' => 'Complexo com várias quadras de beach tennis, restaurante e loja especializada.',
+                'horario' => self::horario('07:00', '22:00', '07:00', '22:00', true, '07:00', '20:00'),
             ],
             [
                 'estabelecimento' => 'Bate Bola Aluguel de Campo Society',
                 'email' => 'batebola.society@demo.com',
+                'telefone' => '14996607776',
                 'nome' => 'Bate Bola Campo Society',
                 'endereco' => 'Rua Duque de Caxias, 26-80',
                 'bairro' => 'Jardim Parque Paulistano',
@@ -76,10 +89,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 14,
                 'cobertura' => false,
                 'descricao' => 'Campo society para aluguel avulso, perto do Viaduto da Rondon.',
+                'horario' => self::horario('08:00', '23:00', '08:00', '23:00', true, '08:00', '22:00'),
             ],
             [
                 'estabelecimento' => 'Ginásio Dr. Vicente Evaristo Damante',
                 'email' => 'ginasio.agudos@demo.com',
+                'telefone' => '1432620633',
                 'nome' => 'Ginásio Dr. Vicente Evaristo Damante',
                 'endereco' => 'Vila Professor Simões',
                 'bairro' => 'Vila Professor Simões',
@@ -92,11 +107,13 @@ class RealQuadrasSeeder extends Seeder
                 'valor_hora' => 70,
                 'capacidade_maxima' => 10,
                 'cobertura' => true,
-                'descricao' => 'Ginásio poliesportivo municipal coberto, reinaugurado após reforma.',
+                'descricao' => 'Ginásio poliesportivo municipal coberto, reinaugurado após reforma. Agendamento centralizado pela Prefeitura de Agudos.',
+                'horario' => self::horario('07:00', '23:00', '07:00', '23:00', true, '07:00', '23:00'),
             ],
             [
                 'estabelecimento' => 'Estádio Municipal Achilles Sormani',
                 'email' => 'estadio.agudos@demo.com',
+                'telefone' => '1432620633',
                 'nome' => 'Campo da Simão (Estádio Achilles Sormani)',
                 'endereco' => 'Centro',
                 'bairro' => 'Centro',
@@ -109,11 +126,13 @@ class RealQuadrasSeeder extends Seeder
                 'valor_hora' => 80,
                 'capacidade_maxima' => 22,
                 'cobertura' => false,
-                'descricao' => 'Campo de futebol municipal usado para partidas e treinos na cidade.',
+                'descricao' => 'Campo de futebol municipal usado para partidas e treinos na cidade. Agendamento centralizado pela Prefeitura de Agudos.',
+                'horario' => self::horario('07:00', '23:00', '07:00', '23:00', true, '07:00', '23:00'),
             ],
             [
                 'estabelecimento' => 'Piratininga Tênis Clube',
                 'email' => 'piratininga.tenis@demo.com',
+                'telefone' => '1432652717',
                 'nome' => 'Piratininga Tênis Clube',
                 'endereco' => 'Rua Dona Jamile Maluf, 59',
                 'bairro' => 'Centro',
@@ -127,10 +146,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 4,
                 'cobertura' => false,
                 'descricao' => 'Clube com quadra de tênis no centro de Piratininga.',
+                'horario' => self::horario('08:00', '21:00', '08:00', '21:00', true, '08:00', '18:00'),
             ],
             [
                 'estabelecimento' => 'Ginásio José Cocito',
                 'email' => 'ginasio.piratininga@demo.com',
+                'telefone' => '1432659530',
                 'nome' => 'Ginásio José Cocito',
                 'endereco' => 'Rua Jerônymo Ferreira',
                 'bairro' => 'Centro',
@@ -143,11 +164,13 @@ class RealQuadrasSeeder extends Seeder
                 'valor_hora' => 60,
                 'capacidade_maxima' => 10,
                 'cobertura' => true,
-                'descricao' => 'Ginásio poliesportivo municipal no centro da cidade.',
+                'descricao' => 'Ginásio poliesportivo municipal no centro da cidade. Agendamento pela Prefeitura de Piratininga.',
+                'horario' => self::horario('07:00', '22:00', '07:00', '22:00', true, '07:00', '22:00'),
             ],
             [
                 'estabelecimento' => 'Arena A7 Futebol Society',
                 'email' => 'arenaa7@demo.com',
+                'telefone' => null,
                 'nome' => 'Arena A7 Futebol Society',
                 'endereco' => 'Rua Bernardino de Campos, 18-51',
                 'bairro' => 'Jardim Jussara',
@@ -161,10 +184,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 14,
                 'cobertura' => false,
                 'descricao' => 'Campo society com grama sintética no Jardim Jussara.',
+                'horario' => self::horario('08:00', '23:00', '08:00', '23:00', true, '08:00', '22:00'),
             ],
             [
                 'estabelecimento' => 'Campo Society Arena da Val',
                 'email' => 'arenadaval@demo.com',
+                'telefone' => null,
                 'nome' => 'Campo Society Arena da Val',
                 'endereco' => 'Rua São Sebastião, 120',
                 'bairro' => 'Jardim da Grama',
@@ -178,10 +203,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 14,
                 'cobertura' => false,
                 'descricao' => 'Campo society no Jardim da Grama.',
+                'horario' => self::horario('08:00', '23:00', '08:00', '23:00', true, '08:00', '22:00'),
             ],
             [
                 'estabelecimento' => 'Arena Denão',
                 'email' => 'arenadenao@demo.com',
+                'telefone' => '14996708701',
                 'nome' => 'Arena Denão',
                 'endereco' => 'Rua Engenheiro Saint Martin, 21-65',
                 'bairro' => 'Vila Universitária',
@@ -195,10 +222,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 14,
                 'cobertura' => false,
                 'descricao' => 'Campo society reformado na Vila Universitária, com futmesa no local.',
+                'horario' => self::horario('08:00', '23:00', '08:00', '23:00', true, '08:00', '22:00'),
             ],
             [
                 'estabelecimento' => 'Quadra Monumental',
                 'email' => 'quadramonumental@demo.com',
+                'telefone' => null,
                 'nome' => 'Quadra Monumental',
                 'endereco' => 'Jardim Independência',
                 'bairro' => 'Jardim Independência',
@@ -212,15 +241,17 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 10,
                 'cobertura' => false,
                 'descricao' => 'Quadra de bairro no Jardim Independência. Endereço exato (rua/número) não disponível nas fontes consultadas — coordenada aproximada do bairro.',
+                'horario' => self::horario('08:00', '22:00', '08:00', '22:00', true, '08:00', '20:00'),
             ],
             [
                 'estabelecimento' => 'Indoor Beach Tennis',
                 'email' => 'indoorbeachtennis@demo.com',
+                'telefone' => '14996631752',
                 'nome' => 'Indoor Beach Tennis',
-                'endereco' => 'Rua Professora Prosperina de Queirós, Quadra 2',
-                'bairro' => 'Jardim Pagani',
+                'endereco' => 'Rua Professora Prosperina de Queirós, 2-158',
+                'bairro' => 'Novo Jardim Pagani',
                 'cidade' => 'Bauru',
-                'cep' => '17024-200',
+                'cep' => '17024-300',
                 'latitude' => -22.2955468,
                 'longitude' => -49.0666662,
                 'esporte' => Esporte::BeachTennis,
@@ -229,10 +260,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 4,
                 'cobertura' => true,
                 'descricao' => 'Quadras de beach tennis cobertas no Jardim Pagani.',
+                'horario' => self::horario('08:00', '23:00', '08:00', '23:00', true, '08:00', '23:00'),
             ],
             [
                 'estabelecimento' => 'Beach Bauru',
                 'email' => 'beachbauru@demo.com',
+                'telefone' => '14997171500',
                 'nome' => 'Beach Bauru',
                 'endereco' => 'Rua Wilson Pedro Speridião, 1-126',
                 'bairro' => 'Quinta Ranieri',
@@ -246,12 +279,14 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 4,
                 'cobertura' => false,
                 'descricao' => 'Arena de beach tennis na Quinta Ranieri.',
+                'horario' => self::horario('08:00', '22:00', '08:00', '22:00', true, '08:00', '20:00'),
             ],
             [
                 'estabelecimento' => 'Dalli Beach Sports',
                 'email' => 'dallibeach@demo.com',
+                'telefone' => '14991351064',
                 'nome' => 'Dalli Beach Sports',
-                'endereco' => 'Rua Professor Antônio Réis Filho, 4-73',
+                'endereco' => 'Rua Professor Antônio Réis Filho, 4-93',
                 'bairro' => 'Vila Aviação',
                 'cidade' => 'Bauru',
                 'cep' => '17018-600',
@@ -262,16 +297,18 @@ class RealQuadrasSeeder extends Seeder
                 'valor_hora' => 88,
                 'capacidade_maxima' => 4,
                 'cobertura' => false,
-                'descricao' => 'Quadras de beach tennis na Vila Aviação.',
+                'descricao' => 'Quadras de beach tennis na Vila Aviação, com treinamento especializado.',
+                'horario' => self::horario('08:00', '22:00', '08:00', '22:00', true, '08:00', '20:00'),
             ],
             [
                 'estabelecimento' => 'Miles Beach Club',
                 'email' => 'milesbeach@demo.com',
+                'telefone' => '14997708050',
                 'nome' => 'Miles Beach Club',
                 'endereco' => 'Rua Venezuela, 13-09',
                 'bairro' => 'Jardim Terra Branca',
                 'cidade' => 'Bauru',
-                'cep' => '17054-151',
+                'cep' => '17052-690',
                 'latitude' => -22.3480052,
                 'longitude' => -49.0904359,
                 'esporte' => Esporte::BeachTennis,
@@ -280,15 +317,17 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 4,
                 'cobertura' => false,
                 'descricao' => 'Clube de beach tennis no Jardim Terra Branca.',
+                'horario' => self::horario('08:00', '21:00', '08:00', '21:00', true, '08:00', '21:00'),
             ],
             [
                 'estabelecimento' => 'Saka Arena Beach',
                 'email' => 'sakaarena@demo.com',
+                'telefone' => '14998101880',
                 'nome' => 'Saka Arena Beach',
                 'endereco' => 'Rua Paraguai, 2-19',
                 'bairro' => 'Jardim Terra Branca',
                 'cidade' => 'Bauru',
-                'cep' => '17054-151',
+                'cep' => '17054-160',
                 'latitude' => -22.3474,
                 'longitude' => -49.0909,
                 'esporte' => Esporte::VoleiPraia,
@@ -297,12 +336,14 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 8,
                 'cobertura' => false,
                 'descricao' => 'Quadras de areia para vôlei e futevôlei no Jardim Terra Branca.',
+                'horario' => self::horario('08:00', '22:00', '08:00', '22:00', true, '08:00', '20:00'),
             ],
             [
                 'estabelecimento' => 'Saquarema Beach Club',
                 'email' => 'saquaremabeach@demo.com',
+                'telefone' => '14999066043',
                 'nome' => 'Saquarema Beach Club',
-                'endereco' => 'Rua Correia Júnior',
+                'endereco' => 'Rua Correia Júnior, 357',
                 'bairro' => 'Jardim Parque Paulistano',
                 'cidade' => 'Bauru',
                 'cep' => '17050-330',
@@ -312,12 +353,14 @@ class RealQuadrasSeeder extends Seeder
                 'tipo_piso' => TipoPiso::Areia,
                 'valor_hora' => 78,
                 'capacidade_maxima' => 8,
-                'cobertura' => false,
-                'descricao' => 'Clube de vôlei de areia. Número do imóvel não disponível nas fontes consultadas — coordenada aproximada do CEP.',
+                'cobertura' => true,
+                'descricao' => 'Clube de vôlei de areia indoor, com 3 quadras cobertas, aulas e eventos.',
+                'horario' => self::horario('08:00', '22:00', '08:00', '22:00', true, '08:00', '20:00'),
             ],
             [
                 'estabelecimento' => 'Praia Bauru',
                 'email' => 'praiabauru@demo.com',
+                'telefone' => '14982018003',
                 'nome' => 'Praia Bauru',
                 'endereco' => 'Rua Pernambuco, 3-17',
                 'bairro' => 'Vila Coralina',
@@ -331,10 +374,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 8,
                 'cobertura' => false,
                 'descricao' => 'Espaço de vôlei de areia e futevôlei na Vila Coralina.',
+                'horario' => self::horario('08:00', '22:00', '08:00', '22:00', true, '08:00', '20:00'),
             ],
             [
                 'estabelecimento' => 'O Bom da Bola',
                 'email' => 'obomdabola@demo.com',
+                'telefone' => '1430149048',
                 'nome' => 'O Bom da Bola',
                 'endereco' => 'Rua Silveira Martins, 8-45',
                 'bairro' => 'Vila Souto',
@@ -348,10 +393,12 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 14,
                 'cobertura' => false,
                 'descricao' => 'Campo society na Vila Souto.',
+                'horario' => self::horario('08:00', '23:00', '08:00', '23:00', true, '08:00', '22:00'),
             ],
             [
                 'estabelecimento' => 'Bauru Tennis Club',
                 'email' => 'bauru.tennisclub@demo.com',
+                'telefone' => '1432350500',
                 'nome' => 'Bauru Tennis Club',
                 'endereco' => 'Avenida José V. Aiello, 5-176',
                 'bairro' => 'Vila Serrão',
@@ -365,24 +412,37 @@ class RealQuadrasSeeder extends Seeder
                 'capacidade_maxima' => 4,
                 'cobertura' => false,
                 'descricao' => 'Clube de tênis na Vila Serrão.',
+                'horario' => self::horario('07:00', '21:00', '08:00', '18:00', false, '08:00', '12:00'),
             ],
         ]);
 
         $quadras->each(function (array $dados) {
-            $dono = User::firstOrCreate(
-                ['email' => $dados['email']],
-                User::factory()->donoQuadra()->make([
-                    'name' => $dados['estabelecimento'],
-                    'nome_estabelecimento' => $dados['estabelecimento'],
+            $perfil = [
+                'name' => $dados['estabelecimento'],
+                'nome_estabelecimento' => $dados['estabelecimento'],
+                'telefone' => $dados['telefone'],
+                'endereco' => $dados['endereco'],
+                'cep' => $dados['cep'],
+                'cidade' => $dados['cidade'],
+                'estado' => 'SP',
+                'horario_funcionamento' => $dados['horario'],
+                'metodos_pagamento_aceitos' => [FormaPagamento::Cartao->value, FormaPagamento::Pix->value],
+            ];
+
+            $dono = User::firstWhere('email', $dados['email']);
+
+            if ($dono) {
+                // CNPJ é gerado só na criação — não muda em reexecuções do seeder.
+                $dono->update($perfil);
+            } else {
+                $dono = User::factory()->donoQuadra()->create($perfil + [
                     'email' => $dados['email'],
                     'cnpj' => fake()->unique()->numerify('##############'),
-                    'cidade' => $dados['cidade'],
-                    'estado' => 'SP',
                     'status_cadastro' => StatusCadastro::Aprovado,
-                ])->getAttributes()
-            );
+                ]);
+            }
 
-            $quadra = Quadra::firstOrCreate(
+            $quadra = Quadra::updateOrCreate(
                 ['dono_id' => $dono->id, 'nome' => $dados['nome']],
                 [
                     'endereco' => $dados['endereco'],
@@ -401,7 +461,7 @@ class RealQuadrasSeeder extends Seeder
                 ]
             );
 
-            if ($quadra->wasRecentlyCreated) {
+            if ($quadra->fotos()->doesntExist()) {
                 QuadraFoto::create([
                     'quadra_id' => $quadra->id,
                     'caminho' => "quadras/{$quadra->id}/capa.jpg",
@@ -411,6 +471,25 @@ class RealQuadrasSeeder extends Seeder
             }
         });
 
-        $this->command?->info('Quadras reais de Bauru, Agudos e Piratininga cadastradas.');
+        $this->command?->info('Quadras reais de Bauru, Agudos e Piratininga cadastradas/atualizadas.');
+    }
+
+    /**
+     * @return array<string, array{aberto: bool, inicio: string, fim: string}>
+     */
+    private static function horario(
+        string $diasUteisInicio,
+        string $diasUteisFim,
+        string $sabadoInicio,
+        string $sabadoFim,
+        bool $domingoAberto,
+        string $domingoInicio,
+        string $domingoFim,
+    ): array {
+        return [
+            'dias_uteis' => ['aberto' => true, 'inicio' => $diasUteisInicio, 'fim' => $diasUteisFim],
+            'sabado' => ['aberto' => true, 'inicio' => $sabadoInicio, 'fim' => $sabadoFim],
+            'domingo' => ['aberto' => $domingoAberto, 'inicio' => $domingoInicio, 'fim' => $domingoFim],
+        ];
     }
 }
