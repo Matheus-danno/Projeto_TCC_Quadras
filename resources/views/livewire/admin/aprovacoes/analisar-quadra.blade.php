@@ -71,9 +71,43 @@
                 @else
                     <div class="flex flex-wrap gap-3">
                         @foreach ($this->fotos as $foto)
-                            <a href="{{ $foto->url() }}" target="_blank" wire:key="foto-analise-{{ $foto->id }}">
-                                <img src="{{ $foto->url() }}" alt="" class="h-28 w-28 rounded-xl object-cover">
-                            </a>
+                            <div class="relative h-28 w-28 shrink-0" wire:key="foto-analise-{{ $foto->id }}">
+                                <a href="{{ $foto->url() }}" target="_blank">
+                                    <img
+                                        src="{{ $foto->url() }}"
+                                        alt=""
+                                        class="h-28 w-28 rounded-xl object-cover {{ match ($foto->status_moderacao) {
+                                            App\Enums\StatusModeracaoFoto::Aceita => 'ring-2 ring-green-500',
+                                            App\Enums\StatusModeracaoFoto::Recusada => 'opacity-40 ring-2 ring-red-500',
+                                            default => '',
+                                        } }}"
+                                    >
+                                </a>
+
+                                <button
+                                    type="button"
+                                    wire:click="aceitarFoto({{ $foto->id }})"
+                                    class="absolute top-1 left-1 flex size-6 items-center justify-center rounded-full {{ $foto->status_moderacao === App\Enums\StatusModeracaoFoto::Aceita ? 'bg-green-600' : 'bg-black/60 hover:bg-green-600' }} text-white"
+                                    aria-label="{{ __('Aceitar foto') }}"
+                                >
+                                    <flux:icon.check class="size-3.5" />
+                                </button>
+
+                                <button
+                                    type="button"
+                                    wire:click="abrirRecusaFoto({{ $foto->id }})"
+                                    class="absolute top-1 right-1 flex size-6 items-center justify-center rounded-full {{ $foto->status_moderacao === App\Enums\StatusModeracaoFoto::Recusada ? 'bg-red-600' : 'bg-black/60 hover:bg-red-600' }} text-white"
+                                    aria-label="{{ __('Recusar foto') }}"
+                                >
+                                    <flux:icon.x-mark class="size-3.5" />
+                                </button>
+
+                                @if ($foto->status_moderacao === App\Enums\StatusModeracaoFoto::Recusada && $foto->motivo_recusa)
+                                    <flux:tooltip :content="$foto->motivo_recusa">
+                                        <flux:icon.information-circle class="absolute right-1 bottom-1 size-5 rounded-full bg-white text-red-600" />
+                                    </flux:tooltip>
+                                @endif
+                            </div>
                         @endforeach
                     </div>
                 @endif
@@ -184,6 +218,22 @@
                     <flux:button type="button" variant="outline" class="w-full rounded-full">{{ __('Cancelar') }}</flux:button>
                 </flux:modal.close>
                 <flux:button type="submit" variant="primary" color="orange" class="w-full rounded-full">{{ __('Confirmar') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <flux:modal name="recusar-foto" class="w-full md:w-96">
+        <form wire:submit="confirmarRecusaFoto" class="flex flex-col gap-4">
+            <flux:heading size="lg">{{ __('Recusar esta foto?') }}</flux:heading>
+            <flux:text class="text-zinc-500">{{ __('Explique o motivo para o dono saber o que corrigir nessa foto específica. Ele será avisado por notificação e e-mail.') }}</flux:text>
+
+            <flux:textarea wire:model="motivoRecusaFoto" :label="__('Motivo da recusa')" rows="4" required />
+
+            <div class="flex gap-2">
+                <flux:modal.close>
+                    <flux:button type="button" variant="outline" class="w-full rounded-full">{{ __('Cancelar') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary" color="red" class="w-full rounded-full">{{ __('Recusar e avisar dono') }}</flux:button>
             </div>
         </form>
     </flux:modal>

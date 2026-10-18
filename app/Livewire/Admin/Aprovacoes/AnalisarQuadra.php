@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Admin\Aprovacoes;
 
+use App\Enums\StatusModeracaoFoto;
 use App\Models\Quadra;
+use App\Notifications\FotoRecusada;
 use App\Services\Aprovacao\CadastroAprovacaoService;
 use Closure;
 use Flux\Concerns\InteractsWithComponents;
@@ -21,6 +23,10 @@ class AnalisarQuadra extends Component
     public string $acao = '';
 
     public string $motivo = '';
+
+    public ?int $fotoRecusarId = null;
+
+    public string $motivoRecusaFoto = '';
 
     /**
      * @var array<string, string>
@@ -69,6 +75,52 @@ class AnalisarQuadra extends Component
     public function fotos(): Collection
     {
         return $this->quadra->fotos()->get();
+    }
+
+    public function aceitarFoto(int $fotoId): void
+    {
+        $this->quadra->fotos()->whereKey($fotoId)->update([
+            'status_moderacao' => StatusModeracaoFoto::Aceita,
+            'motivo_recusa' => null,
+        ]);
+        unset($this->fotos);
+    }
+
+    public function abrirRecusaFoto(int $fotoId): void
+    {
+        $this->fotoRecusarId = $fotoId;
+        $this->motivoRecusaFoto = '';
+        $this->resetErrorBag('motivoRecusaFoto');
+
+        $this->modal('recusar-foto')->show();
+    }
+
+    public function confirmarRecusaFoto(): void
+    {
+        $validated = $this->validate([
+            'motivoRecusaFoto' => ['required', 'string', 'min:5', 'max:1000'],
+        ]);
+
+        $foto = $this->quadra->fotos()->whereKey($this->fotoRecusarId)->first();
+
+        if (! $foto) {
+            $this->modal('recusar-foto')->close();
+
+            return;
+        }
+
+        $foto->update([
+            'status_moderacao' => StatusModeracaoFoto::Recusada,
+            'motivo_recusa' => $validated['motivoRecusaFoto'],
+        ]);
+
+        $foto->setRelation('quadra', $this->quadra);
+        $this->quadra->dono?->notify(new FotoRecusada($foto, $validated['motivoRecusaFoto']));
+
+        unset($this->fotos);
+
+        $this->modal('recusar-foto')->close();
+        $this->toast(__('Foto recusada e dono avisado.'), variant: 'success');
     }
 
     #[Computed]

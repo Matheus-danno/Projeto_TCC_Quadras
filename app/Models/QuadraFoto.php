@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StatusModeracaoFoto;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +14,8 @@ class QuadraFoto extends Model
         'caminho',
         'capa',
         'ordem',
+        'status_moderacao',
+        'motivo_recusa',
     ];
 
     protected function casts(): array
@@ -20,6 +23,7 @@ class QuadraFoto extends Model
         return [
             'capa' => 'boolean',
             'ordem' => 'integer',
+            'status_moderacao' => StatusModeracaoFoto::class,
         ];
     }
 
