@@ -1,4 +1,11 @@
 <div>
+    @if ($erroEstoque)
+        <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>{{ $erroEstoque }}</span>
+        </div>
+    @endif
+
     @if ($this->itens->isEmpty())
         <div class="text-center py-5">
             <i class="bi bi-cart-x text-secondary" style="font-size: 2.5rem;"></i>
