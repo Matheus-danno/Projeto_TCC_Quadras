@@ -5,11 +5,14 @@ namespace Database\Seeders;
 use App\Enums\Esporte;
 use App\Enums\FormaPagamento;
 use App\Enums\StatusCadastro;
+use App\Enums\TipoDocumento;
 use App\Enums\TipoPiso;
 use App\Models\Quadra;
 use App\Models\QuadraFoto;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Cadastra quadras que existem de verdade em Bauru, Agudos e Piratininga
@@ -545,9 +548,32 @@ class RealQuadrasSeeder extends Seeder
                     'ordem' => 0,
                 ]);
             }
+
+            // Sem isso, o formulário de edição do dono exige um comprovante
+            // antes de salvar qualquer coisa (até só uma foto nova) — a
+            // validação falha, nada é persistido e a foto "some" ao recarregar.
+            $this->anexarDocumentoSeNecessario($quadra, TipoDocumento::ComprovanteImovel, 'comprovante-imovel.txt');
+            $this->anexarDocumentoSeNecessario($dono, TipoDocumento::DocumentoIdentidade, 'documento-identidade.txt');
         });
 
         $this->command?->info('Quadras reais de Bauru, Agudos e Piratininga cadastradas/atualizadas.');
+    }
+
+    private function anexarDocumentoSeNecessario(User|Quadra $entidade, TipoDocumento $tipo, string $nomeArquivo): void
+    {
+        if ($entidade->documentos()->where('tipo', $tipo)->exists()) {
+            return;
+        }
+
+        $caminho = 'documentos/reais/'.Str::uuid().'-'.$nomeArquivo;
+        Storage::disk('local')->put($caminho, "Documento de demonstração ({$tipo->label()}) — quadra real cadastrada pelo RealQuadrasSeeder.");
+
+        $entidade->documentos()->create([
+            'tipo' => $tipo,
+            'caminho' => $caminho,
+            'nome_original' => $nomeArquivo,
+            'tamanho_bytes' => Storage::disk('local')->size($caminho),
+        ]);
     }
 
     /**
