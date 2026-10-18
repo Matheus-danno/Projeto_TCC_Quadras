@@ -16,22 +16,36 @@ class Mensagens extends Component
     public string $busca = '';
 
     /**
-     * Conversas de jogadores com as quadras deste dono, da mais recente para a mais antiga.
+     * Escopo comum: conversas em que o usuário autenticado é o dono, seja da
+     * quadra alugada ou da loja do pedido feito.
+     */
+    private function escopoDoDono()
+    {
+        return Conversa::query()
+            ->where(function ($query) {
+                $query->whereHas('quadra', fn ($query) => $query->where('dono_id', Auth::id()))
+                    ->orWhereHas('pedido', fn ($query) => $query->where('dono_id', Auth::id()));
+            });
+    }
+
+    /**
+     * Conversas de jogadores com as quadras ou a loja deste dono, da mais
+     * recente para a mais antiga.
      */
     #[Computed]
     public function conversas()
     {
-        return Conversa::query()
-            ->whereHas('quadra', fn ($query) => $query->where('dono_id', Auth::id()))
+        return $this->escopoDoDono()
             ->when($this->busca, function ($query) {
                 $termo = '%'.$this->busca.'%';
 
                 $query->where(function ($query) use ($termo) {
                     $query->whereHas('jogador', fn ($query) => $query->where('name', 'like', $termo))
-                        ->orWhereHas('quadra', fn ($query) => $query->where('nome', 'like', $termo));
+                        ->orWhereHas('quadra', fn ($query) => $query->where('nome', 'like', $termo))
+                        ->orWhereHas('pedido.itens.produto', fn ($query) => $query->where('nome', 'like', $termo));
                 });
             })
-            ->with(['quadra', 'jogador', 'mensagens'])
+            ->with(['quadra', 'pedido.itens.produto', 'jogador', 'mensagens'])
             ->get()
             ->sortByDesc(fn (Conversa $conversa) => $conversa->ultimaMensagem()?->created_at)
             ->values();
@@ -48,21 +62,24 @@ class Mensagens extends Component
             return null;
         }
 
-        $conversa = Conversa::query()
-            ->whereHas('quadra', fn ($query) => $query->where('dono_id', Auth::id()))
-            ->with(['quadra', 'jogador', 'mensagens.user'])
+        $conversa = $this->escopoDoDono()
+            ->with(['quadra', 'pedido.itens.produto', 'jogador', 'mensagens.user'])
             ->find($this->conversaSelecionada);
 
-        $conversa?->marcarComoLidaPara(Auth::id());
+        if ($conversa === null) {
+            $this->conversaSelecionada = null;
+
+            return null;
+        }
+
+        $conversa->marcarComoLidaPara(Auth::id());
 
         return $conversa;
     }
 
     public function selecionarConversa(int $conversaId): void
     {
-        $conversa = Conversa::query()
-            ->whereHas('quadra', fn ($query) => $query->where('dono_id', Auth::id()))
-            ->findOrFail($conversaId);
+        $conversa = $this->escopoDoDono()->findOrFail($conversaId);
 
         $this->conversaSelecionada = $conversa->id;
         $this->novaMensagem = '';
@@ -78,9 +95,7 @@ class Mensagens extends Component
 
     public function enviarMensagem(): void
     {
-        $conversa = Conversa::query()
-            ->whereHas('quadra', fn ($query) => $query->where('dono_id', Auth::id()))
-            ->findOrFail($this->conversaSelecionada);
+        $conversa = $this->escopoDoDono()->findOrFail($this->conversaSelecionada);
 
         $validated = $this->validate([
             'novaMensagem' => ['required', 'string', 'max:500'],

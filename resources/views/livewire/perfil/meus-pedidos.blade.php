@@ -53,9 +53,14 @@
                         <span class="fw-bold fs-5" style="color: #FF8C00;">R$ {{ number_format($pedido->total, 2, ',', '.') }}</span>
                     </div>
 
-                    <a href="{{ route('loja.pedido.nota', $pedido) }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-receipt me-1"></i> Ver nota de compra
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('loja.pedido.nota', $pedido) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-receipt me-1"></i> Ver nota de compra
+                        </a>
+                        <a href="{{ route('perfil') }}#mensagens" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-chat-dots me-1"></i> Falar com o vendedor
+                        </a>
+                    </div>
                 </div>
             </div>
         @empty

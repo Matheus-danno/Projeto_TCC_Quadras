@@ -83,6 +83,9 @@
                                     <a href="{{ route('loja.pedido.nota', $pedido) }}" target="_blank" class="text-xs font-medium text-zinc-500 hover:text-orange-600 hover:underline">
                                         {{ __('Ver nota') }}
                                     </a>
+                                    <a href="{{ route('painel.mensagens') }}" class="text-xs font-medium text-zinc-500 hover:text-orange-600 hover:underline">
+                                        {{ __('Falar com o comprador') }}
+                                    </a>
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>

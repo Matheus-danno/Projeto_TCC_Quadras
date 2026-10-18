@@ -14,12 +14,18 @@ class Conversa extends Model
 
     protected $fillable = [
         'quadra_id',
+        'pedido_id',
         'jogador_id',
     ];
 
     public function quadra(): BelongsTo
     {
         return $this->belongsTo(Quadra::class);
+    }
+
+    public function pedido(): BelongsTo
+    {
+        return $this->belongsTo(Pedido::class);
     }
 
     public function jogador(): BelongsTo
@@ -33,11 +39,27 @@ class Conversa extends Model
     }
 
     /**
-     * Dono da quadra alugada, com quem o jogador está conversando.
+     * Dono com quem o jogador está conversando: dono da quadra alugada, ou
+     * dono da loja de quem comprou um produto.
      */
     public function dono(): ?User
     {
-        return $this->quadra->dono;
+        return $this->quadra?->dono ?? $this->pedido?->dono;
+    }
+
+    /**
+     * Título exibido no topo da conversa: nome da quadra alugada, ou um
+     * resumo dos produtos do pedido feito na loja.
+     */
+    public function tituloContexto(): string
+    {
+        if ($this->quadra) {
+            return $this->quadra->nome;
+        }
+
+        return 'Pedido '.$this->pedido->numero_retirada.' · '.$this->pedido->itens
+            ->map(fn (ItemPedido $item) => $item->produto->nome)
+            ->join(', ');
     }
 
     public function ultimaMensagem(): ?MensagemConversa

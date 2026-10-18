@@ -70,7 +70,7 @@
                 <i class="bi bi-door-open me-1"></i> Minhas Salas
             </button>
         </li>
-        @if (auth()->user()->salasCriadas()->exists())
+        @if (auth()->user()->salasCriadas()->exists() || auth()->user()->pedidos()->exists())
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="mensagens-tab" data-bs-toggle="tab" data-bs-target="#mensagens" type="button" role="tab">
                     <i class="bi bi-chat-dots me-1"></i> Mensagens
@@ -129,7 +129,7 @@
             </div>
         </div>
 
-        @if (auth()->user()->salasCriadas()->exists())
+        @if (auth()->user()->salasCriadas()->exists() || auth()->user()->pedidos()->exists())
             <div class="tab-pane fade" id="mensagens" role="tabpanel">
                 <div class="card border-0 shadow-sm" style="border-radius: 20px;">
                     <div class="card-body p-4">

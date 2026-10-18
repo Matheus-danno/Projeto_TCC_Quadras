@@ -1,7 +1,7 @@
 <div class="flex w-full flex-col gap-6">
     <div>
         <flux:heading size="xl" class="text-3xl! sm:text-4xl!">{{ __('Mensagens') }}</flux:heading>
-        <flux:text class="mt-1 text-base text-zinc-400">{{ __('Converse com jogadores que alugaram suas quadras.') }}</flux:text>
+        <flux:text class="mt-1 text-base text-zinc-400">{{ __('Converse com jogadores que alugaram suas quadras ou compraram na sua loja.') }}</flux:text>
     </div>
 
     @if ($conversaSelecionada === null)
@@ -29,7 +29,14 @@
                     >
                         <div>
                             <p class="font-semibold text-zinc-900">{{ $conversa->jogador->name }}</p>
-                            <p class="text-sm text-zinc-500">{{ $conversa->quadra->nome }}</p>
+                            <p class="text-sm text-zinc-500">
+                                @if ($conversa->pedido_id)
+                                    <flux:icon.shopping-bag class="inline size-3" />
+                                @else
+                                    <flux:icon.map-pin class="inline size-3" />
+                                @endif
+                                {{ $conversa->tituloContexto() }}
+                            </p>
                             @if ($ultima = $conversa->ultimaMensagem())
                                 <p class="mt-1 text-sm {{ $naoLidas > 0 ? 'font-medium text-zinc-700' : 'text-zinc-400' }}">{{ Str::limit($ultima->texto, 60) }} · {{ $ultima->tempoDecorrido() }} atrás</p>
                             @endif
@@ -53,7 +60,7 @@
 
             <flux:card class="rounded-2xl">
                 <flux:heading size="lg">{{ $conversa->jogador->name }}</flux:heading>
-                <flux:text class="mb-4 text-zinc-400">{{ $conversa->quadra->nome }}</flux:text>
+                <flux:text class="mb-4 text-zinc-400">{{ $conversa->tituloContexto() }}</flux:text>
 
                 <div class="mb-4 flex max-h-80 flex-col gap-3 overflow-y-auto" wire:poll.5s x-init="$el.scrollTop = $el.scrollHeight">
                     @forelse ($conversa->mensagens as $mensagem)
