@@ -296,7 +296,7 @@ class Criar extends Component
             ? trim((string) $validated['nomeSala'])
             : "{$esporte->label()} - {$nivel->label()}";
 
-        $sala = DB::transaction(function () use ($validated, $quadra, $horaInicio, $horaFim, $esporte, $nivel, $precoPessoa, $nomeSala) {
+        $sala = DB::transaction(function () use ($validated, $quadra, $horaInicio, $horaFim, $precoPessoa, $nomeSala) {
             $reserva = Reserva::create([
                 'quadra_id' => $quadra->id,
                 'user_id' => auth()->id(),

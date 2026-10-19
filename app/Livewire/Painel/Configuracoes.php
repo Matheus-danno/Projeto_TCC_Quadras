@@ -214,7 +214,7 @@ class Configuracoes extends Component
     public function historicoCliente(): Collection
     {
         if (! $this->clienteSelecionadoId) {
-            return new Collection();
+            return new Collection;
         }
 
         return Reserva::query()
