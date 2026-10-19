@@ -87,6 +87,7 @@ enquanto programa.
 |---|--------|---------|-------|--------|
 | 0 | Salvaguarda do repositório | commits organizados do backlog, normalização CRLF→LF, remover `NUL` e `database.sqlite` órfão, branch de trabalho | ~1h | 1 · seg |
 | 1 | ✅ **Conexão com PostgreSQL** | **FEITO** — `docker-compose.yml`, `.env`/`.env.example`, `phpunit.xml`, CI, `docs/banco-de-dados.md`. Falta só: você validar na sua máquina + entrar no README (Sessão 5) | — | 1 · ter |
+| 1.1 | Validação local + DBeaver (sem Docker) | PostgreSQL 16 nativo na WSL instalado, `.env` em pgsql, migrations+seed rodados, conexão DBeaver testada, persistência validada ponta a ponta | ~1h35 (2 blocos, 1 dia) | 1 · ter/qua |
 | 2 | Localização pt-BR | locale/timezone/faker + Carbon em português, traduções de validação, ajustar testes | ~45min | 1 · qua |
 | 3 | Integridade de reservas | transação + `lockForUpdate` + **exclusion constraint do PostgreSQL** contra sobreposição, testes | ~2h | 1 · qui |
 | 4 | Integridade de salas e loja | lock na entrada em sala, rollback + aviso no checkout, testes | ~1h30 | 1 · sex |
@@ -185,13 +186,156 @@ Validação feita:
 - Suíte completa → **178 testes passando** contra `aluga_quadra_test`.
 - `php artisan db:show` → PostgreSQL 16.15, conexão `pgsql`.
 
-**Pendências desta sessão (rápidas, faça você):**
-1. Rode você mesmo na sua máquina para confirmar o ambiente:
-   `docker compose up -d && php artisan migrate:fresh --seed --seeder=DemoSeeder && php artisan test`.
-2. Se você já tinha um `.env` com dados importantes, revise à mão o bloco `DB_*`.
-3. O `README.md` (Sessão 5) precisa documentar o `docker compose up -d` no setup.
-4. Se a porta 5432 estiver ocupada por outro Postgres, mude a porta publicada no
-   `docker-compose.yml` e o `DB_PORT` no `.env`/`phpunit.xml`.
+**Pendências desta sessão:** movidas e detalhadas na Sessão 1.1 abaixo, que também
+cobre a conexão via DBeaver.
+
+---
+
+## [ ] Sessão 1.1 — Validação local do PostgreSQL (sem Docker) + DBeaver
+
+Diagnóstico feito em **05/10/2026**, revisado para **não usar Docker** (decisão do
+autor, para economizar tempo de instalação/boot do Docker Desktop): o código da
+Sessão 1 está todo pronto e commitado, mas nunca foi validado **nesta máquina**. O
+`.env` local ainda está com `DB_CONNECTION=sqlite`. Em vez de Docker Desktop, o
+PostgreSQL 16 vai ser instalado **nativamente dentro da distro WSL** (onde o PHP/
+Composer/artisan já rodam — ver item K do diagnóstico). O `docker-compose.yml`
+continua no repositório (é usado pelo CI e fica como alternativa documentada), mas
+deixa de ser o caminho usado nesta máquina.
+
+### Cronograma (cabe em 1 dia, dividido em 2 blocos)
+
+| Quando | Tarefa | Quem faz | Duração |
+|---|---|---|---|
+| Hoje (05/10) | Instalar o PostgreSQL 16 nativo na WSL (sem Docker) e criar role/bancos | Você, manual (terminal WSL) | ~20 min |
+| Hoje (05/10) | **Prompt 1** — confirmar o Postgres, corrigir `.env`, migrar, semear, testar | Claude Code | ~20 min |
+| Hoje (05/10) | Instalar o DBeaver (Windows) e criar a conexão com o Postgres da WSL | Você, manual | ~15 min |
+| Amanhã (06/10) | **Prompt 2** — validar persistência ponta a ponta pelos fluxos da aplicação | Claude Code | ~40 min |
+
+### Passo manual 1 — instalar o PostgreSQL nativo na WSL (sem Docker)
+
+Abra um terminal da **distro Ubuntu (WSL)** — não PowerShell, não Git Bash do
+Windows — pois é lá que o `php artisan` do projeto roda.
+
+1. Instalar o pacote:
+   ```bash
+   sudo apt update
+   sudo apt install -y postgresql postgresql-contrib
+   ```
+2. Garantir que o serviço está de pé (a maioria das distros WSL não usa systemd por
+   padrão):
+   ```bash
+   sudo service postgresql start
+   sudo service postgresql status
+   ```
+   Se `systemctl` funcionar no seu WSL (`wsl.conf` com `systemd=true`), pode usar
+   `sudo systemctl enable --now postgresql` para já subir sozinho a cada boot do WSL.
+3. Conferir a versão (precisa ser a 16.x, igual ao CI e ao `docker-compose.yml`
+   antigo):
+   ```bash
+   psql --version
+   ```
+   Se o `apt` padrão da distro trouxer outra versão major, adicione o repositório
+   oficial `apt.postgresql.org` e instale `postgresql-16` explicitamente antes de
+   seguir.
+4. Criar o role e os dois bancos, com as mesmas credenciais que já estão em
+   `.env.example` (para não precisar tocar em mais nada):
+   ```bash
+   sudo -u postgres psql -c "CREATE ROLE aluga WITH LOGIN PASSWORD 'secret' CREATEDB;"
+   sudo -u postgres createdb -O aluga aluga_quadra
+   sudo -u postgres createdb -O aluga aluga_quadra_test
+   ```
+5. Testar a conexão local:
+   ```bash
+   PGPASSWORD=secret psql -h 127.0.0.1 -U aluga -d aluga_quadra -c '\conninfo'
+   ```
+   O pacote padrão do Ubuntu já escuta em `127.0.0.1:5432` por padrão — não precisa
+   editar `postgresql.conf` nem `pg_hba.conf` para acesso local.
+
+### Prompt 1 — confirmar o banco nativo e validar (cole numa conversa nova do Claude Code)
+
+```
+Continuando o AlugaQuadra (Laravel 12 + Livewire 4, PostgreSQL). Decisão tomada: não
+usar Docker nesta máquina para economizar tempo. O PostgreSQL 16 acabou de ser
+instalado nativamente dentro da distro WSL (apt install postgresql), com o role
+"aluga"/senha "secret" e os bancos aluga_quadra e aluga_quadra_test já criados
+manualmente. O .env local ainda está com DB_CONNECTION=sqlite (nunca foi trocado) e o
+banco nunca foi validado aqui. O docker-compose.yml continua no repo (uso do CI / 
+alternativa), mas não deve ser necessário localmente a partir de agora.
+
+Faça:
+1. Confirme que o Postgres nativo responde: `pg_isready -h 127.0.0.1 -p 5432` e
+   `psql -h 127.0.0.1 -U aluga -d aluga_quadra -c '\q'` (com PGPASSWORD=secret).
+2. Ajuste o bloco DB_* do .env (não o .env.example, que já está certo) para:
+   DB_CONNECTION=pgsql, DB_HOST=127.0.0.1, DB_PORT=5432, DB_DATABASE=aluga_quadra,
+   DB_USERNAME=aluga, DB_PASSWORD=secret. Preserve as demais variáveis do .env atual
+   (APP_KEY, etc).
+3. Rode `php artisan migrate:fresh --seed --seeder=DemoSeeder` e confirme que todas as
+   migrations aplicam sem erro.
+4. Rode `php artisan db:show` e cole a saída confirmando a conexão pgsql.
+5. Rode a suíte completa (`php artisan test`) e confirme que está tudo verde contra
+   aluga_quadra_test.
+6. Se a porta 5432 já estiver em uso por outro Postgres na máquina, documente a porta
+   escolhida e ajuste DB_PORT no .env e no phpunit.xml.
+7. Atualize docs/banco-de-dados.md: troque a seção "Subir / parar" para refletir que o
+   caminho local agora é o PostgreSQL nativo da WSL (comandos `sudo service postgresql
+   start/stop`, sem `docker compose`), mantendo uma nota curta de que o
+   docker-compose.yml continua existindo e é usado pelo CI / como alternativa para
+   quem preferir Docker.
+8. Não altere lógica de negócio nem migrations existentes nesta sessão — só o que for
+   preciso para o banco subir e os testes passarem.
+
+No fim: pg_isready confirmando o banco nativo, php artisan db:show confirmando pgsql,
+migrations aplicadas, suíte completa verde, docs/banco-de-dados.md atualizado.
+```
+
+### Passo manual 2 — conectar pelo DBeaver
+
+1. Instale o DBeaver Community (dbeaver.io) no Windows.
+2. Nova conexão > PostgreSQL. Host `127.0.0.1`, porta `5432` (ou a que você escolheu
+   acima), banco `aluga_quadra`, usuário `aluga`, senha `secret` — credenciais de dev.
+   O WSL2 encaminha automaticamente `127.0.0.1` do Windows para a distro, então o
+   DBeaver (rodando no Windows) enxerga o Postgres nativo da WSL sem configuração
+   extra. Se não conectar, confira no PowerShell `wsl hostname -I` para pegar o IP da
+   distro e use-o como alternativa ao `127.0.0.1`.
+3. "Test Connection" — se pedir, deixe o DBeaver baixar o driver PostgreSQL sozinho.
+4. Abra o schema `public` e confirme que as tabelas do domínio aparecem (`users`,
+   `quadras`, `quadra_fotos`, `reservas`, `salas`, `participacao_salas`, `produtos`,
+   `pedidos`, `itens_pedido`, etc.) e que `users` já tem as contas do `DemoSeeder`.
+5. Opcional: crie uma segunda conexão para `aluga_quadra_test` (mesmas credenciais,
+   outro banco) para inspecionar o estado durante os testes.
+
+### Prompt 2 — validar persistência ponta a ponta (cole numa conversa nova)
+
+```
+Continuando o AlugaQuadra. O PostgreSQL nativo (instalado na WSL, sem Docker) já está
+rodando localmente e as migrations/seed já foram aplicadas. Quero uma validação ponta
+a ponta de que TODA informação da aplicação está realmente sendo persistida no
+PostgreSQL, não só as tabelas vazias do seed.
+
+Faça:
+1. Suba a aplicação (`php artisan serve` e `npm run dev` se precisar de assets) e,
+   usando as contas de docs/banco-de-dados.md, percorra manualmente (ou me diga os
+   passos para eu percorrer) os fluxos principais: cadastro de jogador, cadastro de
+   dono, reserva de quadra, criação de sala, entrada em sala com pagamento simulado,
+   compra na loja, cancelamento de reserva se já existir.
+2. Depois de cada fluxo, rode uma consulta (via `php artisan tinker`) confirmando que a
+   linha nova aparece na tabela correta do banco aluga_quadra — liste os comandos
+   equivalentes que eu posso repetir no DBeaver (aba SQL Editor) para conferir o mesmo.
+3. Confirme que nenhuma gravação está indo para storage/*.sqlite ou outra conexão —
+   grep por `connection(` e por menções a sqlite no código da aplicação, fora de
+   testes/documentação.
+4. Escreva um resumo curto em docs/banco-de-dados.md (seção nova "Validação local") com
+   a data de hoje, o que foi testado e o resultado, e deixe claro que a validação foi
+   feita contra o PostgreSQL nativo (sem Docker).
+5. Não precisa adicionar testes automatizados novos aqui — isso já é coberto pela
+   suíte existente. O objetivo é confirmar visualmente/manualmente que os dados batem
+   entre app e banco.
+
+No fim: lista dos fluxos testados com confirmação de que cada um gravou no Postgres,
+e a seção nova em docs/banco-de-dados.md.
+```
+
+Depois das duas sessões, marque esta Sessão 1.1 como concluída e siga para a Sessão 2.
 
 ---
 
@@ -697,4 +841,26 @@ cronograma da monografia.
 
 (Use esta seção para anotar, durante as sessões, o que ficou pendente ou quebrado.)
 
+- **05/10/2026 — Sessão 1.1, Prompt 1 concluído.** PostgreSQL 16 nativo instalado na
+  WSL (sem Docker), role/bancos criados, `.env` ajustado, 47 migrations + seed OK,
+  `php artisan test` **359/359 verde**. No caminho, achamos e corrigimos o `.env`
+  local que ainda tinha `APP_LOCALE=en`/`APP_FAKER_LOCALE=en_US` — isso fazia o
+  Faker gerar CEPs em formato americano que não cabiam em `quadras.cep varchar(9)`
+  (invisível no SQLite, que não aplica limite de tamanho). Corrigido sincronizando o
+  `.env` com o `.env.example` (`pt_BR`). Isso adianta o `.env` da Sessão 2, mas a
+  tradução de `validation.php`/`auth.php`/`passwords.php` e o
+  `CarbonImmutable::setLocale()` no `AppServiceProvider` **continuam pendentes** —
+  não pular a Sessão 2 por causa disso.
+  **Pegadinha descoberta e corrigida:** um container Docker da Sessão 1 original
+  (`aluga_quadra_pg`) estava rodando havia 5 semanas sem ninguém saber, ocupando a
+  porta 5432 — o diagnóstico "Docker não está instalado" estava errado. Isso fez o
+  pacote `postgresql` nativo subir sozinho na porta 5433, e as primeiras rodadas de
+  migration/seed/teste/DBeaver foram todas (sem querer) para o container Docker, não
+  para o nativo. Resolvido: `docker stop aluga_quadra_pg` (parado, não removido —
+  dados antigos preservados no volume) + porta do nativo corrigida para 5432 em
+  `postgresql.conf`. Revalidado depois: nativo de verdade (`x86_64-pc-linux-gnu`,
+  sem Alpine/musl), 359/359 testes verdes. Ver detalhes em
+  `docs/banco-de-dados.md`. DBeaver reconectado e confirmado contra o nativo
+  (152ms, `x86_64-pc-linux-gnu`), 28 tabelas visíveis em `public`. Falta rodar o
+  Prompt 2 (validação ponta a ponta pelos fluxos da aplicação).
 -
