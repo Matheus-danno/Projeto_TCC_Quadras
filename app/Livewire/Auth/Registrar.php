@@ -27,7 +27,13 @@ class Registrar extends Component
 
     public string $sexo = '';
 
-    public string $endereco = '';
+    public string $logradouro = '';
+
+    public string $numero = '';
+
+    public string $complemento = '';
+
+    public string $bairro = '';
 
     public string $cep = '';
 
@@ -79,7 +85,10 @@ class Registrar extends Component
             'mesNascimento' => ['required', 'integer', 'min:1', 'max:12'],
             'anoNascimento' => ['required', 'integer', 'min:1900', 'max:'.now()->format('Y')],
             'sexo' => ['required', 'in:masculino,feminino'],
-            'endereco' => ['required', 'string', 'max:255'],
+            'logradouro' => ['required', 'string', 'max:255'],
+            'numero' => ['nullable', 'string', 'max:20'],
+            'complemento' => ['nullable', 'string', 'max:255'],
+            'bairro' => ['required', 'string', 'max:255'],
             'cep' => ['required', 'string'],
             'cidade' => ['required', 'string', 'max:255'],
             'estado' => ['required', 'string', 'size:2'],
@@ -122,11 +131,17 @@ class Registrar extends Component
             'cpf' => $cpfDigitos,
             'data_nascimento' => $dataNascimento,
             'sexo' => $validated['sexo'],
-            'endereco' => $validated['endereco'],
+            'telefone' => preg_replace('/\D/', '', $validated['telefone']),
+        ]);
+
+        $user->endereco()->create([
+            'logradouro' => $validated['logradouro'],
+            'numero' => $validated['numero'],
+            'complemento' => $validated['complemento'],
+            'bairro' => $validated['bairro'],
             'cep' => $cepDigitos,
             'cidade' => $validated['cidade'],
             'estado' => strtoupper($validated['estado']),
-            'telefone' => preg_replace('/\D/', '', $validated['telefone']),
         ]);
 
         Auth::login($user);

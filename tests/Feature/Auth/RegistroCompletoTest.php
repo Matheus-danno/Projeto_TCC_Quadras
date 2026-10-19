@@ -14,7 +14,10 @@ function dadosValidosDeCadastro(array $sobrescrever = []): array
         'mesNascimento' => '6',
         'anoNascimento' => '1998',
         'sexo' => 'feminino',
-        'endereco' => 'Rua das Acácias, 45 - Centro',
+        'logradouro' => 'Rua das Acácias',
+        'numero' => '45',
+        'complemento' => '',
+        'bairro' => 'Centro',
         'cep' => '50000-000',
         'cidade' => 'Recife',
         'estado' => 'PE',
@@ -40,9 +43,12 @@ test('cadastro completo cria usuário com todos os dados e loga automaticamente'
         ->and($user->cpf)->toBe('12345678909')
         ->and($user->data_nascimento->format('Y-m-d'))->toBe('1998-06-15')
         ->and($user->sexo->value)->toBe('feminino')
-        ->and($user->cidade)->toBe('Recife')
-        ->and($user->estado)->toBe('PE')
-        ->and($user->cep)->toBe('50000000')
+        ->and($user->endereco->logradouro)->toBe('Rua das Acácias')
+        ->and($user->endereco->numero)->toBe('45')
+        ->and($user->endereco->bairro)->toBe('Centro')
+        ->and($user->endereco->cidade)->toBe('Recife')
+        ->and($user->endereco->estado)->toBe('PE')
+        ->and($user->endereco->cep)->toBe('50000000')
         ->and($user->telefone)->toBe('81988887777');
 
     expect(auth()->check())->toBeTrue();

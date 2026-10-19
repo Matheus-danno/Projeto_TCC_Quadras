@@ -46,7 +46,7 @@
                     @if ($pedido->dono->cnpj)
                         <p class="text-muted small mb-0">CNPJ {{ $pedido->dono->cnpjFormatado() }}</p>
                     @endif
-                    <p class="text-muted small mb-0">{{ $pedido->dono->endereco }}, {{ $pedido->dono->cidade }} - {{ $pedido->dono->estado }}</p>
+                    <p class="text-muted small mb-0">{{ $pedido->dono->endereco?->linha() }}, {{ $pedido->dono->endereco?->cidade }} - {{ $pedido->dono->endereco?->estado }}</p>
                 </div>
                 <div class="col-sm-6">
                     <p class="text-uppercase text-muted small fw-bold mb-1" style="letter-spacing: 0.05em;">Comprador</p>

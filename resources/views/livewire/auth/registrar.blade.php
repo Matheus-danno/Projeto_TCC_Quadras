@@ -71,10 +71,31 @@
 
         <div class="row g-3 cadastro-field">
             <div class="col-md-8">
-                <label class="cadastro-label">Endereço</label>
-                <input type="text" class="cadastro-input" wire:model="endereco" placeholder="Rua, Nº - Bairro">
-                @error('endereco') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                <label class="cadastro-label">Logradouro</label>
+                <input type="text" class="cadastro-input" wire:model="logradouro" placeholder="Rua, avenida...">
+                @error('logradouro') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
             </div>
+            <div class="col-md-4">
+                <label class="cadastro-label">Número</label>
+                <input type="text" class="cadastro-input" wire:model="numero" placeholder="Nº">
+                @error('numero') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <div class="row g-3 cadastro-field">
+            <div class="col-md-6">
+                <label class="cadastro-label">Bairro</label>
+                <input type="text" class="cadastro-input" wire:model="bairro" placeholder="Seu bairro">
+                @error('bairro') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-md-6">
+                <label class="cadastro-label">Complemento</label>
+                <input type="text" class="cadastro-input" wire:model="complemento" placeholder="Apto, bloco... (opcional)">
+                @error('complemento') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <div class="row g-3 cadastro-field">
             <div class="col-md-4">
                 <label class="cadastro-label">CEP</label>
                 <input
@@ -87,10 +108,7 @@
                 >
                 @error('cep') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
             </div>
-        </div>
-
-        <div class="row g-3 cadastro-field">
-            <div class="col-md-8">
+            <div class="col-md-4">
                 <label class="cadastro-label">Cidade</label>
                 <input type="text" class="cadastro-input" wire:model="cidade" placeholder="Sua cidade">
                 @error('cidade') <div class="text-danger small mt-1">{{ $message }}</div> @enderror

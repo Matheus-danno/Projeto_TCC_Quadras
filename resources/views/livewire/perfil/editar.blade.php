@@ -80,10 +80,30 @@
                     @error('sexo') <span class="text-danger small">{{ $message }}</span> @enderror
                 </div>
 
-                <div>
-                    <label class="form-label fw-bold small">Endereço</label>
-                    <input type="text" wire:model="endereco" class="form-control border-orange" required>
-                    @error('endereco') <span class="text-danger small">{{ $message }}</span> @enderror
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold small">Logradouro</label>
+                        <input type="text" wire:model="logradouro" class="form-control border-orange" required>
+                        @error('logradouro') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">Número</label>
+                        <input type="text" wire:model="numero" class="form-control border-orange">
+                        @error('numero') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Bairro</label>
+                        <input type="text" wire:model="bairro" class="form-control border-orange" required>
+                        @error('bairro') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Complemento</label>
+                        <input type="text" wire:model="complemento" class="form-control border-orange" placeholder="Apto, bloco... (opcional)">
+                        @error('complemento') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
                 </div>
 
                 <div class="row g-3">

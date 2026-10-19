@@ -16,7 +16,10 @@ function dadosValidosDeCadastroDono(array $sobrescrever = []): array
         'telefone' => '(14) 99711-2233',
         'name' => 'João Silva',
         'email' => 'joao.silva@example.com',
-        'endereco' => 'Rua Correia Júnior, 357 - Centro',
+        'logradouro' => 'Rua Correia Júnior',
+        'numero' => '357',
+        'complemento' => '',
+        'bairro' => 'Centro',
         'cidade' => 'Bauru',
         'estado' => 'SP',
         'password' => 'SenhaForte123',
@@ -45,8 +48,11 @@ test('cadastro de estabelecimento cria dono de quadra e loga automaticamente', f
         ->and($user->nome_estabelecimento)->toBe('Arena Sports Bauru')
         ->and($user->cnpj)->toBe('12345678000195')
         ->and($user->role)->toBe(UserRole::DonoQuadra)
-        ->and($user->cidade)->toBe('Bauru')
-        ->and($user->estado)->toBe('SP')
+        ->and($user->endereco->logradouro)->toBe('Rua Correia Júnior')
+        ->and($user->endereco->numero)->toBe('357')
+        ->and($user->endereco->bairro)->toBe('Centro')
+        ->and($user->endereco->cidade)->toBe('Bauru')
+        ->and($user->endereco->estado)->toBe('SP')
         ->and($user->telefone)->toBe('14997112233');
 
     expect(auth()->check())->toBeTrue();

@@ -33,7 +33,7 @@
 
                 <p class="text-muted small mb-3">
                     <i class="bi bi-geo-alt me-1"></i>
-                    {{ $pedido->dono->endereco }}, {{ $pedido->dono->cidade }} - {{ $pedido->dono->estado }}
+                    {{ $pedido->dono->endereco?->linha() }}, {{ $pedido->dono->endereco?->cidade }} - {{ $pedido->dono->endereco?->estado }}
                 </p>
 
                 <div class="rounded-4 p-3 mb-3 text-center" style="background: #FFF4E5;">

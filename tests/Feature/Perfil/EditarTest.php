@@ -26,18 +26,23 @@ test('formulário vem preenchido com todos os dados cadastrados no registro', fu
         'cpf' => '12345678901',
         'data_nascimento' => '1990-05-20',
         'sexo' => 'masculino',
-        'endereco' => 'Rua das Flores, 100',
+        'telefone' => '14991234567',
+    ]);
+
+    $user->endereco->update([
+        'logradouro' => 'Rua das Flores',
+        'numero' => '100',
         'cep' => '17010000',
         'cidade' => 'Bauru',
         'estado' => 'SP',
-        'telefone' => '14991234567',
     ]);
 
     Livewire::actingAs($user)
         ->test(Editar::class)
         ->assertSet('dataNascimento', '1990-05-20')
         ->assertSet('sexo', 'masculino')
-        ->assertSet('endereco', 'Rua das Flores, 100')
+        ->assertSet('logradouro', 'Rua das Flores')
+        ->assertSet('numero', '100')
         ->assertSet('cep', '17010-000')
         ->assertSet('cidade', 'Bauru')
         ->assertSet('estado', 'SP')
@@ -52,7 +57,9 @@ test('usuário consegue atualizar endereço, contato e dados pessoais', function
         ->test(Editar::class)
         ->set('dataNascimento', '1995-03-10')
         ->set('sexo', 'feminino')
-        ->set('endereco', 'Av. Nova, 200')
+        ->set('logradouro', 'Av. Nova')
+        ->set('numero', '200')
+        ->set('bairro', 'Centro')
         ->set('cep', '17012-345')
         ->set('cidade', 'Bauru')
         ->set('estado', 'sp')
@@ -64,10 +71,12 @@ test('usuário consegue atualizar endereço, contato e dados pessoais', function
 
     expect($user->data_nascimento->toDateString())->toBe('1995-03-10')
         ->and($user->sexo->value)->toBe('feminino')
-        ->and($user->endereco)->toBe('Av. Nova, 200')
-        ->and($user->cep)->toBe('17012345')
-        ->and($user->cidade)->toBe('Bauru')
-        ->and($user->estado)->toBe('SP')
+        ->and($user->endereco->logradouro)->toBe('Av. Nova')
+        ->and($user->endereco->numero)->toBe('200')
+        ->and($user->endereco->bairro)->toBe('Centro')
+        ->and($user->endereco->cep)->toBe('17012345')
+        ->and($user->endereco->cidade)->toBe('Bauru')
+        ->and($user->endereco->estado)->toBe('SP')
         ->and($user->telefone)->toBe('14988887777');
 });
 

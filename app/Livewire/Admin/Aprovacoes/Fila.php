@@ -80,6 +80,7 @@ class Fila extends Component
     public function proprietarios()
     {
         return User::query()
+            ->with('endereco')
             ->where('role', UserRole::DonoQuadra)
             ->when($this->filtroStatus, fn (Builder $query) => $query->where('status_cadastro', $this->filtroStatus))
             ->when($this->busca, function (Builder $query) {
@@ -89,7 +90,7 @@ class Fila extends Component
                 $query->where(function (Builder $query) use ($termo, $documento) {
                     $query->where('name', 'like', $termo)
                         ->orWhere('nome_estabelecimento', 'like', $termo)
-                        ->orWhere('cidade', 'like', $termo)
+                        ->orWhereHas('endereco', fn ($q) => $q->where('cidade', 'like', $termo))
                         ->when($documento, fn ($q) => $q->orWhere('cpf', $documento)->orWhere('cnpj', $documento));
                 });
             })

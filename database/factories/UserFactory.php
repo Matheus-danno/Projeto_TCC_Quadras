@@ -5,6 +5,8 @@ namespace Database\Factories;
 use App\Enums\Sexo;
 use App\Enums\StatusCadastro;
 use App\Enums\UserRole;
+use App\Models\Endereco;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -39,13 +41,19 @@ class UserFactory extends Factory
             'cpf' => fake()->unique()->numerify('###########'),
             'data_nascimento' => fake()->dateTimeBetween('-60 years', '-18 years')->format('Y-m-d'),
             'sexo' => fake()->randomElement(Sexo::cases()),
-            'endereco' => fake()->streetAddress(),
-            'cep' => fake()->numerify('########'),
-            'cidade' => fake()->city(),
-            'estado' => fake()->randomElement(['SP', 'RJ', 'MG', 'PE', 'BA', 'PR', 'RS']),
             'telefone' => fake()->numerify('###########'),
             'status_cadastro' => StatusCadastro::Aprovado,
         ];
+    }
+
+    /**
+     * Configure the model factory.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            Endereco::factory()->for($user)->create();
+        });
     }
 
     /**

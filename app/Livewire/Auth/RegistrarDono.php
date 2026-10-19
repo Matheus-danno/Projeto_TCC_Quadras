@@ -39,7 +39,13 @@ class RegistrarDono extends Component
 
     public string $email = '';
 
-    public string $endereco = '';
+    public string $logradouro = '';
+
+    public string $numero = '';
+
+    public string $complemento = '';
+
+    public string $bairro = '';
 
     public string $cidade = '';
 
@@ -118,7 +124,10 @@ class RegistrarDono extends Component
             ],
             'name' => ['required', 'string', 'min:3', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'endereco' => ['required', 'string', 'min:5', 'max:255'],
+            'logradouro' => ['required', 'string', 'min:5', 'max:255'],
+            'numero' => ['nullable', 'string', 'max:20'],
+            'complemento' => ['nullable', 'string', 'max:255'],
+            'bairro' => ['required', 'string', 'max:255'],
             'cidade' => ['required', 'string', 'min:2', 'max:255'],
             'estado' => ['required', 'string', Rule::in(self::UFS)],
             'password' => $this->passwordRules(),
@@ -162,15 +171,21 @@ class RegistrarDono extends Component
                 'role' => UserRole::DonoQuadra,
                 'cnpj' => $tipoPessoa === TipoPessoa::Juridica ? preg_replace('/\D/', '', $validated['cnpj']) : null,
                 'cpf' => $tipoPessoa === TipoPessoa::Fisica ? preg_replace('/\D/', '', $validated['cpf']) : null,
-                'endereco' => $validated['endereco'],
-                'cidade' => $validated['cidade'],
-                'estado' => strtoupper($validated['estado']),
                 'telefone' => preg_replace('/\D/', '', $validated['telefone']),
                 'comissao_aceita_em' => now(),
                 'status_cadastro' => StatusCadastro::Pendente,
                 'chave_pix_recebimento' => $validated['chavePixRecebimento'],
                 'titular_recebimento_nome' => $validated['titularNome'],
                 'titular_recebimento_documento' => preg_replace('/\D/', '', $validated['titularDocumento']),
+            ]);
+
+            $user->endereco()->create([
+                'logradouro' => $validated['logradouro'],
+                'numero' => $validated['numero'],
+                'complemento' => $validated['complemento'],
+                'bairro' => $validated['bairro'],
+                'cidade' => $validated['cidade'],
+                'estado' => strtoupper($validated['estado']),
             ]);
 
             $caminho = $this->documentoIdentidade->store('documentos/users/'.$user->id, 'local');

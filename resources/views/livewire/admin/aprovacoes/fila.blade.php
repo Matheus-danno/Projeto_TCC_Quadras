@@ -60,7 +60,7 @@
                                 <flux:table.row wire:key="fila-proprietario-{{ $proprietario->id }}">
                                     <flux:table.cell class="ps-6! font-medium text-zinc-900">{{ $proprietario->nome_estabelecimento ?? $proprietario->name }}</flux:table.cell>
                                     <flux:table.cell class="text-zinc-500">{{ $proprietario->cnpj ?? $proprietario->cpf ?? '—' }}</flux:table.cell>
-                                    <flux:table.cell class="text-zinc-500">{{ $proprietario->cidade ?? '—' }}</flux:table.cell>
+                                    <flux:table.cell class="text-zinc-500">{{ $proprietario->endereco?->cidade ?? '—' }}</flux:table.cell>
                                     <flux:table.cell class="text-zinc-500">{{ $proprietario->created_at->format('d/m/Y') }}</flux:table.cell>
                                     <flux:table.cell class="text-zinc-500">{{ $proprietario->updated_at->diffForHumans() }}</flux:table.cell>
                                     <flux:table.cell>

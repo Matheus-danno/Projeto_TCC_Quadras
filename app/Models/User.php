@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -40,10 +41,6 @@ class User extends Authenticatable
         'cnpj',
         'data_nascimento',
         'sexo',
-        'endereco',
-        'cep',
-        'cidade',
-        'estado',
         'telefone',
         'nivel',
         'notif_confirmacao_reserva',
@@ -151,6 +148,14 @@ class User extends Authenticatable
         return $this->avatar_path
             ? Storage::disk('public')->url($this->avatar_path)
             : 'https://i.pravatar.cc/150?u='.urlencode($this->email);
+    }
+
+    /**
+     * Endereço cadastrado por este usuário (jogador ou dono de quadra).
+     */
+    public function endereco(): HasOne
+    {
+        return $this->hasOne(Endereco::class);
     }
 
     /**

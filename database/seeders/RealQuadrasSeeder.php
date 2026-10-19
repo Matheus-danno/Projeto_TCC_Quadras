@@ -500,10 +500,6 @@ class RealQuadrasSeeder extends Seeder
                 'name' => $dados['estabelecimento'],
                 'nome_estabelecimento' => $dados['estabelecimento'],
                 'telefone' => $dados['telefone'],
-                'endereco' => $dados['endereco'],
-                'cep' => $dados['cep'],
-                'cidade' => $dados['cidade'],
-                'estado' => 'SP',
                 'horario_funcionamento' => $dados['horario'],
                 'metodos_pagamento_aceitos' => [FormaPagamento::Cartao->value, FormaPagamento::Pix->value],
             ];
@@ -520,6 +516,16 @@ class RealQuadrasSeeder extends Seeder
                     'status_cadastro' => StatusCadastro::Aprovado,
                 ]);
             }
+
+            $dono->endereco()->updateOrCreate([], [
+                'logradouro' => $dados['endereco'],
+                'numero' => null,
+                'complemento' => null,
+                'bairro' => $dados['bairro'],
+                'cep' => $dados['cep'],
+                'cidade' => $dados['cidade'],
+                'estado' => 'SP',
+            ]);
 
             $quadra = Quadra::updateOrCreate(
                 ['dono_id' => $dono->id, 'nome' => $dados['nome']],

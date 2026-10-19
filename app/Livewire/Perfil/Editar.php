@@ -21,7 +21,13 @@ class Editar extends Component
 
     public string $sexo = '';
 
-    public string $endereco = '';
+    public string $logradouro = '';
+
+    public string $numero = '';
+
+    public string $complemento = '';
+
+    public string $bairro = '';
 
     public string $cep = '';
 
@@ -43,10 +49,13 @@ class Editar extends Component
         $this->email = $user->email;
         $this->dataNascimento = $user->data_nascimento?->format('Y-m-d') ?? '';
         $this->sexo = $user->sexo?->value ?? '';
-        $this->endereco = $user->endereco ?? '';
-        $this->cep = $this->formatarCep($user->cep ?? '');
-        $this->cidade = $user->cidade ?? '';
-        $this->estado = $user->estado ?? '';
+        $this->logradouro = $user->endereco?->logradouro ?? '';
+        $this->numero = $user->endereco?->numero ?? '';
+        $this->complemento = $user->endereco?->complemento ?? '';
+        $this->bairro = $user->endereco?->bairro ?? '';
+        $this->cep = $this->formatarCep($user->endereco?->cep ?? '');
+        $this->cidade = $user->endereco?->cidade ?? '';
+        $this->estado = $user->endereco?->estado ?? '';
         $this->telefone = $this->formatarTelefone($user->telefone ?? '');
     }
 
@@ -72,7 +81,10 @@ class Editar extends Component
         $validated = $this->validate(array_merge($this->profileRules($user->id), [
             'dataNascimento' => ['required', 'date', 'before:today'],
             'sexo' => ['required', 'in:masculino,feminino'],
-            'endereco' => ['required', 'string', 'max:255'],
+            'logradouro' => ['required', 'string', 'max:255'],
+            'numero' => ['nullable', 'string', 'max:20'],
+            'complemento' => ['nullable', 'string', 'max:255'],
+            'bairro' => ['required', 'string', 'max:255'],
             'cep' => ['required', 'string'],
             'cidade' => ['required', 'string', 'max:255'],
             'estado' => ['required', 'string', 'size:2'],
@@ -93,10 +105,6 @@ class Editar extends Component
             'email' => $validated['email'],
             'data_nascimento' => $validated['dataNascimento'],
             'sexo' => $validated['sexo'],
-            'endereco' => $validated['endereco'],
-            'cep' => $cepDigitos,
-            'cidade' => $validated['cidade'],
-            'estado' => strtoupper($validated['estado']),
             'telefone' => $telefoneDigitos,
         ]);
 
@@ -105,6 +113,16 @@ class Editar extends Component
         }
 
         $user->save();
+
+        $user->endereco()->updateOrCreate([], [
+            'logradouro' => $validated['logradouro'],
+            'numero' => $validated['numero'],
+            'complemento' => $validated['complemento'],
+            'bairro' => $validated['bairro'],
+            'cep' => $cepDigitos,
+            'cidade' => $validated['cidade'],
+            'estado' => strtoupper($validated['estado']),
+        ]);
 
         $this->cep = $this->formatarCep($cepDigitos);
         $this->telefone = $this->formatarTelefone($telefoneDigitos);

@@ -25,7 +25,7 @@
                             <p class="text-muted small mb-1">
                                 <i class="bi bi-geo-alt me-1"></i>
                                 Retire em: {{ $pedido->dono->nome_estabelecimento ?? $pedido->dono->name }},
-                                {{ $pedido->dono->endereco }}, {{ $pedido->dono->cidade }} - {{ $pedido->dono->estado }}
+                                {{ $pedido->dono->endereco?->linha() }}, {{ $pedido->dono->endereco?->cidade }} - {{ $pedido->dono->endereco?->estado }}
                             </p>
                             <p class="fw-bold mb-0" style="letter-spacing: 0.1em; color: #FF8C00;">
                                 Código de retirada: {{ $pedido->numero_retirada }}

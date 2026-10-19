@@ -39,7 +39,7 @@
                     </div>
                     <div>
                         <flux:text class="text-xs text-zinc-400">{{ __('Endereço') }}</flux:text>
-                        <flux:text class="font-medium text-zinc-900">{{ $usuario->endereco }}, {{ $usuario->cidade }}/{{ $usuario->estado }}</flux:text>
+                        <flux:text class="font-medium text-zinc-900">{{ $usuario->endereco?->linha() }}, {{ $usuario->endereco?->cidade }}/{{ $usuario->endereco?->estado }}</flux:text>
                     </div>
                 </div>
             </flux:card>
