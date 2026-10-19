@@ -113,9 +113,11 @@ class Configuracoes extends Component
         $this->aceitaCartao = in_array(FormaPagamento::Cartao->value, $metodos, true);
         $this->aceitaPix = in_array(FormaPagamento::Pix->value, $metodos, true);
 
-        $this->notifDiasUteis = $user->notif_dono_dias_uteis ?? true;
-        $this->notifCancelamento = $user->notif_dono_cancelamento ?? true;
-        $this->notifMensagensClientes = $user->notif_dono_mensagens_clientes ?? true;
+        $notificacoes = $user->notificacoes;
+
+        $this->notifDiasUteis = $notificacoes?->notif_dono_dias_uteis ?? true;
+        $this->notifCancelamento = $notificacoes?->notif_dono_cancelamento ?? true;
+        $this->notifMensagensClientes = $notificacoes?->notif_dono_mensagens_clientes ?? true;
 
         $this->pausaMotivo = $user->pausa_motivo ?? '';
         $this->pausaAte = $user->pausa_ate?->toDateString() ?? '';
@@ -313,7 +315,7 @@ class Configuracoes extends Component
 
     public function salvarNotificacoes(): void
     {
-        auth()->user()->update([
+        auth()->user()->notificacoes()->updateOrCreate([], [
             'notif_dono_dias_uteis' => $this->notifDiasUteis,
             'notif_dono_cancelamento' => $this->notifCancelamento,
             'notif_dono_mensagens_clientes' => $this->notifMensagensClientes,

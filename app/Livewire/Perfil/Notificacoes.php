@@ -80,12 +80,12 @@ class Notificacoes extends Component
     #[Computed]
     public function preferencias(): Collection
     {
-        $user = Auth::user();
+        $notificacoes = Auth::user()->notificacoes;
 
         return collect(self::PREFERENCIAS)->map(fn (string $rotulo, string $campo) => [
             'campo' => $campo,
             'rotulo' => $rotulo,
-            'ativo' => (bool) $user->{$campo},
+            'ativo' => $notificacoes?->{$campo} ?? true,
         ])->values();
     }
 
@@ -97,8 +97,9 @@ class Notificacoes extends Component
         abort_unless(array_key_exists($campo, self::PREFERENCIAS), 403);
 
         $user = Auth::user();
+        $atual = $user->notificacoes?->{$campo} ?? true;
 
-        $user->update([$campo => ! $user->{$campo}]);
+        $user->notificacoes()->updateOrCreate([], [$campo => ! $atual]);
 
         unset($this->preferencias);
     }

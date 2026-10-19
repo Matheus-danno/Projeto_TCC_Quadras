@@ -15,11 +15,7 @@ test('preferências de notificação vêm todas habilitadas por padrão', functi
         ->assertSee('Mensagens de grupo')
         ->assertSee('Ofertas e novidades');
 
-    expect($user->notif_confirmacao_reserva)->toBeTrue()
-        ->and($user->notif_lembrete_horario)->toBeTrue()
-        ->and($user->notif_novo_jogador_sala)->toBeTrue()
-        ->and($user->notif_mensagens_grupo)->toBeTrue()
-        ->and($user->notif_ofertas_novidades)->toBeTrue();
+    expect($user->notificacoes)->toBeNull();
 });
 
 test('usuário consegue desabilitar uma preferência de notificação', function () {
@@ -30,7 +26,7 @@ test('usuário consegue desabilitar uma preferência de notificação', function
         ->call('alternarPreferencia', 'notif_confirmacao_reserva')
         ->assertHasNoErrors();
 
-    expect($user->fresh()->notif_confirmacao_reserva)->toBeFalse();
+    expect($user->notificacoes()->first()->notif_confirmacao_reserva)->toBeFalse();
 });
 
 test('alternar preferência não afeta as outras', function () {
@@ -40,23 +36,24 @@ test('alternar preferência não afeta as outras', function () {
         ->test(Notificacoes::class)
         ->call('alternarPreferencia', 'notif_mensagens_grupo');
 
-    $user->refresh();
+    $notificacoes = $user->notificacoes()->first();
 
-    expect($user->notif_mensagens_grupo)->toBeFalse()
-        ->and($user->notif_confirmacao_reserva)->toBeTrue()
-        ->and($user->notif_lembrete_horario)->toBeTrue()
-        ->and($user->notif_novo_jogador_sala)->toBeTrue()
-        ->and($user->notif_ofertas_novidades)->toBeTrue();
+    expect($notificacoes->notif_mensagens_grupo)->toBeFalse()
+        ->and($notificacoes->notif_confirmacao_reserva)->toBeTrue()
+        ->and($notificacoes->notif_lembrete_horario)->toBeTrue()
+        ->and($notificacoes->notif_novo_jogador_sala)->toBeTrue()
+        ->and($notificacoes->notif_ofertas_novidades)->toBeTrue();
 });
 
 test('usuário consegue reabilitar uma preferência desabilitada', function () {
-    $user = User::factory()->create(['notif_ofertas_novidades' => false]);
+    $user = User::factory()->create();
+    $user->notificacoes()->create(['notif_ofertas_novidades' => false]);
 
     Livewire::actingAs($user)
         ->test(Notificacoes::class)
         ->call('alternarPreferencia', 'notif_ofertas_novidades');
 
-    expect($user->fresh()->notif_ofertas_novidades)->toBeTrue();
+    expect($user->notificacoes()->first()->notif_ofertas_novidades)->toBeTrue();
 });
 
 test('campo desconhecido é rejeitado ao alternar preferência', function () {
@@ -64,8 +61,8 @@ test('campo desconhecido é rejeitado ao alternar preferência', function () {
 
     Livewire::actingAs($user)
         ->test(Notificacoes::class)
-        ->call('alternarPreferencia', 'role')
+        ->call('alternarPreferencia', 'campo_invalido')
         ->assertForbidden();
 
-    expect($user->fresh()->role)->toBe($user->role);
+    expect($user->notificacoes)->toBeNull();
 });

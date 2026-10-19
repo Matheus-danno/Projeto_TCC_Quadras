@@ -43,16 +43,8 @@ class User extends Authenticatable
         'sexo',
         'telefone',
         'nivel',
-        'notif_confirmacao_reserva',
-        'notif_lembrete_horario',
-        'notif_novo_jogador_sala',
-        'notif_mensagens_grupo',
-        'notif_ofertas_novidades',
         'horario_funcionamento',
         'metodos_pagamento_aceitos',
-        'notif_dono_dias_uteis',
-        'notif_dono_cancelamento',
-        'notif_dono_mensagens_clientes',
         'pausa_ativa',
         'pausa_motivo',
         'pausa_ate',
@@ -96,16 +88,8 @@ class User extends Authenticatable
             'nivel' => NivelHabilidade::class,
             'data_nascimento' => 'date',
             'saldo_creditos' => 'decimal:2',
-            'notif_confirmacao_reserva' => 'boolean',
-            'notif_lembrete_horario' => 'boolean',
-            'notif_novo_jogador_sala' => 'boolean',
-            'notif_mensagens_grupo' => 'boolean',
-            'notif_ofertas_novidades' => 'boolean',
             'horario_funcionamento' => 'array',
             'metodos_pagamento_aceitos' => 'array',
-            'notif_dono_dias_uteis' => 'boolean',
-            'notif_dono_cancelamento' => 'boolean',
-            'notif_dono_mensagens_clientes' => 'boolean',
             'pausa_ativa' => 'boolean',
             'pausa_ate' => 'date',
             'pausa_indeterminada' => 'boolean',
@@ -156,6 +140,14 @@ class User extends Authenticatable
     public function endereco(): HasOne
     {
         return $this->hasOne(Endereco::class);
+    }
+
+    /**
+     * Preferências de notificação deste usuário.
+     */
+    public function notificacoes(): HasOne
+    {
+        return $this->hasOne(NoticacaoUsuario::class);
     }
 
     /**
