@@ -7,12 +7,12 @@ use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\User;
 
-function criarReservaDeUmaHora(Quadra $quadra, ReservaStatus $status, StatusPagamento $statusPagamento): Reserva
+function criarReservaDeUmaHora(Quadra $quadra, ReservaStatus $status, StatusPagamento $statusPagamento, int $diasAFrente = 1): Reserva
 {
     return Reserva::create([
         'quadra_id' => $quadra->id,
         'user_id' => User::factory()->create()->id,
-        'data' => now()->addDay()->toDateString(),
+        'data' => now()->addDays($diasAFrente)->toDateString(),
         'hora_inicio' => '08:00:00',
         'hora_fim' => '09:00:00',
         'status' => $status,
@@ -67,7 +67,7 @@ test('mudar o percentual de comissão não afeta reservas já computadas, só as
     $reservaAntiga = criarReservaDeUmaHora($quadra, ReservaStatus::Confirmada, StatusPagamento::Pago);
 
     ComissaoConfiguracao::definirPercentual(10.0, null);
-    $reservaNova = criarReservaDeUmaHora($quadra, ReservaStatus::Confirmada, StatusPagamento::Pago);
+    $reservaNova = criarReservaDeUmaHora($quadra, ReservaStatus::Confirmada, StatusPagamento::Pago, diasAFrente: 2);
 
     expect((float) $reservaAntiga->refresh()->comissao_percentual)->toBe(5.0)
         ->and($reservaAntiga->comissao_valor_centavos)->toBe(500)

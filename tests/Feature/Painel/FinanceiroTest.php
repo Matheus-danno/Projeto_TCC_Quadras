@@ -139,11 +139,12 @@ test('faturamento por quadra agrupa, soma e ordena do maior para o menor, com pe
     $quadraB = Quadra::factory()->create(['dono_id' => $dono->id, 'nome' => 'Quadra B', 'valor_hora' => 60]);
 
     // Quadra A: duas reservas de 1h confirmadas e pagas = 200.
-    Reserva::factory()->count(2)->create([
+    Reserva::factory()->count(2)->sequence(
+        ['hora_inicio' => '08:00:00', 'hora_fim' => '09:00:00'],
+        ['hora_inicio' => '09:00:00', 'hora_fim' => '10:00:00'],
+    )->create([
         'quadra_id' => $quadraA->id,
         'data' => now()->startOfMonth()->addDays(2)->toDateString(),
-        'hora_inicio' => '08:00:00',
-        'hora_fim' => '09:00:00',
         'status' => ReservaStatus::Confirmada,
         'status_pagamento' => StatusPagamento::Pago,
     ]);

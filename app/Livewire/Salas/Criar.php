@@ -8,6 +8,7 @@ use App\Enums\Esporte;
 use App\Enums\NivelHabilidade;
 use App\Enums\Privacidade;
 use App\Enums\ReservaStatus;
+use App\Exceptions\HorarioIndisponivelException;
 use App\Models\AtividadeSala;
 use App\Models\Quadra;
 use App\Models\Reserva;
@@ -296,15 +297,39 @@ class Criar extends Component
             ? trim((string) $validated['nomeSala'])
             : "{$esporte->label()} - {$nivel->label()}";
 
-        $sala = DB::transaction(function () use ($validated, $quadra, $horaInicio, $horaFim, $precoPessoa, $nomeSala) {
-            $reserva = Reserva::create([
-                'quadra_id' => $quadra->id,
-                'user_id' => auth()->id(),
-                'data' => $validated['data'],
-                'hora_inicio' => $horaInicio,
-                'hora_fim' => $horaFim,
-                'status' => ReservaStatus::Confirmada,
-            ]);
+        try {
+            $sala = $this->gravarSala($validated, $quadra, $horaInicio, $horaFim, $precoPessoa, $nomeSala);
+        } catch (HorarioIndisponivelException) {
+            $this->addError('quadraId', 'Essa quadra não está mais disponível nesse horário.');
+
+            return null;
+        }
+
+        return $this->redirect(route('salas.pagamento', $sala), navigate: false);
+    }
+
+    /**
+     * Grava reserva, sala e atividade numa única transação: se o horário for
+     * tomado por outra pessoa no meio do caminho, nada fica gravado.
+     *
+     * @param  array<string, mixed>  $validated
+     *
+     * @throws HorarioIndisponivelException
+     */
+    private function gravarSala(array $validated, Quadra $quadra, string $horaInicio, string $horaFim, ?float $precoPessoa, string $nomeSala): Sala
+    {
+        return DB::transaction(function () use ($validated, $quadra, $horaInicio, $horaFim, $precoPessoa, $nomeSala) {
+            $reserva = Reserva::agendarSemConflito(
+                $quadra,
+                [
+                    'user_id' => auth()->id(),
+                    'data' => $validated['data'],
+                    'hora_inicio' => $horaInicio,
+                    'hora_fim' => $horaFim,
+                    'status' => ReservaStatus::Confirmada,
+                ],
+                fn (Quadra $quadraTravada) => $quadraTravada->horarioDisponivel($validated['data'], $horaInicio, $horaFim),
+            );
 
             $sala = Sala::create([
                 'nome' => $nomeSala,
@@ -333,8 +358,6 @@ class Criar extends Component
 
             return $sala;
         });
-
-        return $this->redirect(route('salas.pagamento', $sala), navigate: false);
     }
 
     public function render()

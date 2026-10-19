@@ -42,7 +42,10 @@ test('proximasReservas ficam limitadas às 10 mais próximas da quadra', functio
     $dono = User::factory()->donoQuadra()->create();
     $quadra = Quadra::factory()->create(['dono_id' => $dono->id]);
 
-    Reserva::factory()->count(12)->create([
+    Reserva::factory()->count(12)->sequence(fn ($sequence) => [
+        'hora_inicio' => sprintf('%02d:00:00', 7 + $sequence->index),
+        'hora_fim' => sprintf('%02d:00:00', 8 + $sequence->index),
+    ])->create([
         'quadra_id' => $quadra->id,
         'data' => now()->addDay()->toDateString(),
         'status' => ReservaStatus::Confirmada,

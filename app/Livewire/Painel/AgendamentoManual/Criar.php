@@ -4,6 +4,7 @@ namespace App\Livewire\Painel\AgendamentoManual;
 
 use App\Enums\ReservaStatus;
 use App\Enums\UserRole;
+use App\Exceptions\HorarioIndisponivelException;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use App\Models\User;
@@ -249,27 +250,26 @@ class Criar extends Component
         $horaInicioSql = $validated['horaInicio'].':00';
         $horaFimSql = $validated['horaFim'].':00';
 
-        if ($this->buscarConflito((string) $quadra->id, $validated['data'], $horaInicioSql, $horaFimSql)) {
+        try {
+            Reserva::agendarSemConflito($quadra, [
+                'user_id' => $this->tipoCliente === 'existente' ? $validated['clienteId'] : null,
+                'cliente_nome' => $this->tipoCliente === 'sem_conta' ? $validated['clienteNome'] : null,
+                'cliente_telefone' => $this->tipoCliente === 'sem_conta' ? $validated['clienteTelefone'] : null,
+                'cliente_email' => $this->tipoCliente === 'sem_conta' ? ($validated['clienteEmail'] ?: null) : null,
+                'data' => $validated['data'],
+                'hora_inicio' => $horaInicioSql,
+                'hora_fim' => $horaFimSql,
+                'status' => ReservaStatus::Confirmada,
+                'status_pagamento' => $validated['statusPagamento'],
+                'metodo_pagamento' => $validated['statusPagamento'] === 'isento' ? null : $validated['formaPagamento'],
+                'valor' => $validated['valor'],
+                'observacoes' => $validated['observacoes'] ?: null,
+            ]);
+        } catch (HorarioIndisponivelException) {
             $this->addError('horaInicio', 'Já existe uma reserva para esta quadra nesse horário.');
 
             return;
         }
-
-        Reserva::create([
-            'quadra_id' => $quadra->id,
-            'user_id' => $this->tipoCliente === 'existente' ? $validated['clienteId'] : null,
-            'cliente_nome' => $this->tipoCliente === 'sem_conta' ? $validated['clienteNome'] : null,
-            'cliente_telefone' => $this->tipoCliente === 'sem_conta' ? $validated['clienteTelefone'] : null,
-            'cliente_email' => $this->tipoCliente === 'sem_conta' ? ($validated['clienteEmail'] ?: null) : null,
-            'data' => $validated['data'],
-            'hora_inicio' => $horaInicioSql,
-            'hora_fim' => $horaFimSql,
-            'status' => ReservaStatus::Confirmada,
-            'status_pagamento' => $validated['statusPagamento'],
-            'metodo_pagamento' => $validated['statusPagamento'] === 'isento' ? null : $validated['formaPagamento'],
-            'valor' => $validated['valor'],
-            'observacoes' => $validated['observacoes'] ?: null,
-        ]);
 
         $this->toast('Reserva agendada com sucesso.', variant: 'success');
 

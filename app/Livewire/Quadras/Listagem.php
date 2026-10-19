@@ -5,6 +5,7 @@ namespace App\Livewire\Quadras;
 use App\Enums\Esporte;
 use App\Enums\ReservaStatus;
 use App\Enums\StatusCadastro;
+use App\Exceptions\HorarioIndisponivelException;
 use App\Models\Quadra;
 use App\Models\Reserva;
 use Illuminate\Support\Collection;
@@ -228,20 +229,23 @@ class Listagem extends Component
         $horaInicio = $validated['horaInicio'].':00';
         $horaFim = date('H:i:s', strtotime($horaInicio.' +1 hour'));
 
-        if (! $quadra->horarioDisponivel($validated['data'], $horaInicio, $horaFim)) {
+        try {
+            $reserva = Reserva::agendarSemConflito(
+                $quadra,
+                [
+                    'user_id' => auth()->id(),
+                    'data' => $validated['data'],
+                    'hora_inicio' => $horaInicio,
+                    'hora_fim' => $horaFim,
+                    'status' => ReservaStatus::Pendente,
+                ],
+                fn (Quadra $quadraTravada) => $quadraTravada->horarioDisponivel($validated['data'], $horaInicio, $horaFim),
+            );
+        } catch (HorarioIndisponivelException) {
             $this->addError('horaInicio', 'Esse horário já está reservado para esta quadra.');
 
             return null;
         }
-
-        $reserva = Reserva::create([
-            'quadra_id' => $quadra->id,
-            'user_id' => auth()->id(),
-            'data' => $validated['data'],
-            'hora_inicio' => $horaInicio,
-            'hora_fim' => $horaFim,
-            'status' => ReservaStatus::Pendente,
-        ]);
 
         return $this->redirect(route('reservas.pagamento', $reserva), navigate: false);
     }

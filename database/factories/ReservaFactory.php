@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ReservaFactory extends Factory
 {
+    private static int $sequencia = 0;
+
     /**
      * Define the model's default state.
      *
@@ -19,12 +21,17 @@ class ReservaFactory extends Factory
      */
     public function definition(): array
     {
-        $horaInicio = fake()->numberBetween(7, 21);
+        // Dia (0-30) e hora (7h-21h) avançam juntos a cada reserva criada, em
+        // vez de sorteados: reservas feitas em sequência nunca repetem dia nem
+        // hora, mesmo quando o teste fixa um dos dois. Assim não se sobrepõem
+        // por acaso — o banco rejeita sobreposição (reservas_sem_sobreposicao).
+        $sequencia = self::$sequencia++;
+        $horaInicio = 7 + $sequencia % 15;
 
         return [
             'quadra_id' => Quadra::factory(),
             'user_id' => User::factory(),
-            'data' => fake()->dateTimeBetween('now', '+30 days')->format('Y-m-d'),
+            'data' => now()->addDays($sequencia % 31)->format('Y-m-d'),
             'hora_inicio' => sprintf('%02d:00:00', $horaInicio),
             'hora_fim' => sprintf('%02d:00:00', $horaInicio + 1),
             'status' => fake()->randomElement(ReservaStatus::cases())->value,

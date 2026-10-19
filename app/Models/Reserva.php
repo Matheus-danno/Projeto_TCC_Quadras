@@ -4,11 +4,15 @@ namespace App\Models;
 
 use App\Enums\ReservaStatus;
 use App\Enums\StatusPagamento;
+use App\Exceptions\HorarioIndisponivelException;
 use Carbon\Carbon;
+use Closure;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 class Reserva extends Model
 {
@@ -21,6 +25,11 @@ class Reserva extends Model
      * tem uma política de cancelamento própria definida.
      */
     private const PRAZO_CANCELAMENTO_HORAS_PADRAO = 5;
+
+    /**
+     * Código de erro do PostgreSQL para violação de exclusion constraint.
+     */
+    private const SQLSTATE_EXCLUSION_VIOLATION = '23P01';
 
     protected $fillable = [
         'quadra_id',
@@ -74,6 +83,64 @@ class Reserva extends Model
 
             $reserva->aplicarSnapshotComissao();
         });
+    }
+
+    /**
+     * Ponto único para gravar uma reserva sem sobrepor outra da mesma quadra.
+     *
+     * Trava a linha da quadra (lockForUpdate) dentro de uma transação, então
+     * duas requisições simultâneas para a mesma quadra são atendidas uma de
+     * cada vez: a segunda só verifica a disponibilidade depois que a primeira
+     * já gravou. A exclusion constraint reservas_sem_sobreposicao no banco é a
+     * última barreira — se ainda assim houver sobreposição, o erro do
+     * PostgreSQL (SQLSTATE 23P01) vira a mesma exceção de domínio.
+     *
+     * @param  array<string, mixed>  $atributos  campos da reserva (data, hora_inicio, hora_fim, status...)
+     * @param  (Closure(Quadra): bool)|null  $estaLivre  regra de disponibilidade de quem chama; por padrão, só checa conflito com outras reservas
+     *
+     * @throws HorarioIndisponivelException
+     */
+    public static function agendarSemConflito(Quadra $quadra, array $atributos, ?Closure $estaLivre = null): self
+    {
+        $estaLivre ??= fn (Quadra $quadraTravada) => ! static::conflitaCom(
+            $quadraTravada->id,
+            $atributos['data'],
+            $atributos['hora_inicio'],
+            $atributos['hora_fim'],
+        );
+
+        try {
+            return DB::transaction(function () use ($quadra, $atributos, $estaLivre) {
+                $quadraTravada = Quadra::whereKey($quadra->id)->lockForUpdate()->firstOrFail();
+
+                if (! $estaLivre($quadraTravada)) {
+                    throw new HorarioIndisponivelException;
+                }
+
+                return static::create(['quadra_id' => $quadraTravada->id] + $atributos);
+            });
+        } catch (QueryException $e) {
+            if ($e->getCode() === self::SQLSTATE_EXCLUSION_VIOLATION) {
+                throw new HorarioIndisponivelException($e);
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Indica se já existe reserva ativa (não cancelada) da quadra cuja faixa de
+     * horário se sobrepõe a [horaInicio, horaFim) nesta data.
+     */
+    public static function conflitaCom(int $quadraId, string $data, string $horaInicio, string $horaFim): bool
+    {
+        return static::query()
+            ->where('quadra_id', $quadraId)
+            ->whereDate('data', $data)
+            ->where('status', '!=', ReservaStatus::Cancelada->value)
+            ->where('hora_inicio', '<', $horaFim)
+            ->where('hora_fim', '>', $horaInicio)
+            ->exists();
     }
 
     public function quadra(): BelongsTo
