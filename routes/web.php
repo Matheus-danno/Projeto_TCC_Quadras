@@ -78,10 +78,8 @@ Route::get('/reservas/{reserva}/pagamento', function (\App\Models\Reserva $reser
     return view('reserva-pagamento', ['reserva' => $reserva]);
 })->middleware('auth')->name('reservas.pagamento');
 Route::get('/reservas/{reserva}/confirmacao', function (\App\Models\Reserva $reserva) {
-    abort_unless(auth()->id() === $reserva->user_id, 403);
-
     return view('reserva-confirmacao', ['reserva' => $reserva]);
-})->middleware('auth')->name('reservas.confirmacao');
+})->middleware('auth')->can('verConfirmacao', 'reserva')->name('reservas.confirmacao');
 Route::get('/loja', function () {
     return view('loja');
 })->name('loja');
@@ -92,19 +90,15 @@ Route::get('/carrinho', function () {
     return view('carrinho');
 })->middleware('auth')->name('carrinho.index');
 Route::get('/loja/pedido/{pedido}', function (Pedido $pedido) {
-    abort_unless($pedido->user_id === auth()->id(), 403);
-
     $pedidos = Pedido::where('lote_compra', $pedido->lote_compra)
         ->with('itens.produto', 'dono')
         ->get();
 
     return view('loja-pedido-confirmacao', ['pedidos' => $pedidos]);
-})->middleware('auth')->name('loja.pedido.confirmacao');
+})->middleware('auth')->can('verConfirmacao', 'pedido')->name('loja.pedido.confirmacao');
 Route::get('/loja/pedido/{pedido}/nota', function (Pedido $pedido) {
-    abort_unless(in_array(auth()->id(), [$pedido->user_id, $pedido->dono_id], true), 403);
-
     return view('loja-pedido-nota', ['pedido' => $pedido->load('itens.produto', 'dono', 'user')]);
-})->middleware('auth')->name('loja.pedido.nota');
+})->middleware('auth')->can('verNota', 'pedido')->name('loja.pedido.nota');
 Route::get('/criar-sala', function () {
     return view('criar_sala');
 })->name('criar_sala');

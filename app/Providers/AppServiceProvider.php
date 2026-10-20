@@ -38,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Reserva::class, ReservaPolicy::class);
         Gate::policy(Produto::class, ProdutoPolicy::class);
         Gate::policy(Pedido::class, PedidoPolicy::class);
+        Gate::policy(Sala::class, SalaPolicy::class);
     }
 
     /**

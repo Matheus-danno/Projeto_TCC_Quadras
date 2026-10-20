@@ -13,7 +13,7 @@ class PagarDiferenca extends Component
 
     public function mount(Sala $sala): void
     {
-        abort_unless(auth()->id() === $sala->criador_id, 403);
+        $this->authorize('gerenciar', $sala);
         abort_unless($sala->podeFecharComVagas(), 404);
 
         $this->sala = $sala;

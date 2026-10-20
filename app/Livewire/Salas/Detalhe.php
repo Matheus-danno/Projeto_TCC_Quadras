@@ -30,7 +30,7 @@ class Detalhe extends Component
 
     public function iniciarEdicaoNome(): void
     {
-        abort_unless(auth()->id() === $this->sala->criador_id, 403);
+        $this->authorize('gerenciar', $this->sala);
 
         $this->novoNome = $this->sala->nome;
         $this->editandoNome = true;
@@ -43,7 +43,7 @@ class Detalhe extends Component
 
     public function salvarNome(): void
     {
-        abort_unless(auth()->id() === $this->sala->criador_id, 403);
+        $this->authorize('gerenciar', $this->sala);
 
         $validated = $this->validate([
             'novoNome' => ['required', 'string', 'max:255'],
@@ -124,7 +124,7 @@ class Detalhe extends Component
 
     public function aprovarPedido(int $pedidoId): void
     {
-        abort_unless(auth()->id() === $this->sala->criador_id, 403);
+        $this->authorize('gerenciar', $this->sala);
 
         $pedido = $this->sala->pedidosParticipacao()->findOrFail($pedidoId);
 
@@ -139,7 +139,7 @@ class Detalhe extends Component
 
     public function recusarPedido(int $pedidoId): void
     {
-        abort_unless(auth()->id() === $this->sala->criador_id, 403);
+        $this->authorize('gerenciar', $this->sala);
 
         $pedido = $this->sala->pedidosParticipacao()->findOrFail($pedidoId);
 
