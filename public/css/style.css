@@ -1382,6 +1382,38 @@ footer{
     outline: 2px solid var(--cor-principal);
     outline-offset: 2px;
 }
+
+/* Campo de senha dos cadastros (componente x-campo-senha): botão de olho
+   dentro do campo arredondado, à direita. */
+.campo-senha {
+    position: relative;
+}
+.campo-senha .cadastro-input {
+    padding-right: 3rem;
+}
+.campo-senha-botao {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    padding: 0.25rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 6px;
+}
+.campo-senha-botao i {
+    color: #8a8a8a;
+}
+.campo-senha-botao:hover i,
+.campo-senha-botao[aria-pressed="true"] i {
+    color: var(--cor-principal);
+}
+.campo-senha-botao:focus-visible {
+    outline: 2px solid var(--cor-principal);
+    outline-offset: 2px;
+}
 .login-esqueci {
     display: block;
     color: #fff;

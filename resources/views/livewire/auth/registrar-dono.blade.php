@@ -128,12 +128,12 @@
         <div class="row g-3 cadastro-field">
             <div class="col-md-6">
                 <label class="cadastro-label">Senha</label>
-                <input type="password" class="cadastro-input" wire:model="password" placeholder="********">
+                <x-campo-senha model="password" />
                 @error('password') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-6">
                 <label class="cadastro-label">Confirmar Senha</label>
-                <input type="password" class="cadastro-input" wire:model="password_confirmation" placeholder="********">
+                <x-campo-senha model="password_confirmation" />
             </div>
         </div>
 

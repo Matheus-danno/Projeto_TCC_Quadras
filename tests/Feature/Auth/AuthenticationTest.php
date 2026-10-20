@@ -154,3 +154,10 @@ test('as telas de login têm o botão para mostrar e ocultar a senha', function 
         ->assertSee('id="login-senha"', false)
         ->assertSee('aria-label="Mostrar senha"', false);
 })->with(['login', 'login.dono', 'login.admin']);
+
+test('os cadastros têm o botão de mostrar e ocultar nos dois campos de senha', function (string $rota) {
+    $html = $this->get(route($rota))->assertOk()->getContent();
+
+    expect(substr_count($html, 'class="campo-senha"'))->toBe(2)
+        ->and(substr_count($html, 'class="campo-senha-botao"'))->toBe(2);
+})->with(['registro', 'cadastro.dono']);
