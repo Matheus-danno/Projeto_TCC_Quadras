@@ -20,7 +20,7 @@ jobs:
     environment: Testing
     strategy:
       matrix:
-        php-version: ['8.4', '8.5']
+        php-version: ['8.3', '8.4', '8.5']
 
     services:
       postgres:
@@ -72,5 +72,15 @@ jobs:
       - name: Build Assets
         run: npm run build
 
-      - name: Run Tests
-        run: ./vendor/bin/pest
+      - name: Run Tests with Coverage
+        run: |
+          set -o pipefail
+          ./vendor/bin/pest --coverage --coverage-clover=coverage.xml | tee coverage.txt
+
+      - name: Publish Coverage Summary
+        if: always()
+        run: |
+          echo '### Cobertura de testes (PHP ${{ matrix.php-version }})' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 120 coverage.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

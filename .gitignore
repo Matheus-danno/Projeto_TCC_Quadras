@@ -28,3 +28,7 @@ NUL
 *.bak
 *Zone.Identifier
 *:Zone.Identifier
+
+# Relatorios de cobertura de testes
+/coverage.xml
+/coverage.txt
