@@ -182,6 +182,8 @@
             @error('aceitaComissao') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
         </div>
 
+        <x-aceite-privacidade />
+
         <div class="d-flex gap-3">
             <a href="{{ route('login.dono') }}" class="btn btn-cadastro-cancelar w-50">Cancelar</a>
             <button type="submit" class="btn btn-cadastro-criar w-50" wire:loading.attr="disabled">Criar Conta</button>

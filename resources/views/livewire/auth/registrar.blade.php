@@ -156,6 +156,8 @@
             <input type="password" class="cadastro-input" wire:model="password_confirmation" placeholder="********">
         </div>
 
+        <x-aceite-privacidade />
+
         <div class="d-flex gap-3">
             <a href="{{ route('home') }}" class="btn btn-cadastro-cancelar w-50">Cancelar</a>
             <button type="submit" class="btn btn-cadastro-criar w-50" wire:loading.attr="disabled">Criar conta</button>

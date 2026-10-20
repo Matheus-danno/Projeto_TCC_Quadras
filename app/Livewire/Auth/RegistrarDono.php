@@ -57,6 +57,8 @@ class RegistrarDono extends Component
 
     public bool $aceitaComissao = false;
 
+    public bool $aceitaTermos = false;
+
     public ?TemporaryUploadedFile $documentoIdentidade = null;
 
     public string $chavePixRecebimento = '';
@@ -132,6 +134,7 @@ class RegistrarDono extends Component
             'estado' => ['required', 'string', Rule::in(self::UFS)],
             'password' => $this->passwordRules(),
             'aceitaComissao' => ['accepted'],
+            'aceitaTermos' => ['accepted'],
             'documentoIdentidade' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'chavePixRecebimento' => ['required', 'string', 'max:255'],
             'titularNome' => ['required', 'string', 'min:3', 'max:255'],
@@ -143,6 +146,7 @@ class RegistrarDono extends Component
     {
         return [
             'aceitaComissao.accepted' => 'Você precisa aceitar o termo de comissão para continuar.',
+            'aceitaTermos.accepted' => 'Você precisa aceitar a Política de Privacidade e os Termos de Uso para continuar.',
             'estado.in' => 'Selecione um estado (UF) válido.',
             'documentoIdentidade.required' => 'Envie uma foto ou PDF do seu documento de identidade.',
             'documentoIdentidade.mimes' => 'O documento precisa ser JPG, PNG ou PDF.',
@@ -173,6 +177,8 @@ class RegistrarDono extends Component
                 'cpf' => $tipoPessoa === TipoPessoa::Fisica ? preg_replace('/\D/', '', $validated['cpf']) : null,
                 'telefone' => preg_replace('/\D/', '', $validated['telefone']),
                 'comissao_aceita_em' => now(),
+                'consentimento_em' => now(),
+                'consentimento_versao' => config('privacidade.versao'),
                 'status_cadastro' => StatusCadastro::Pendente,
                 'chave_pix_recebimento' => $validated['chavePixRecebimento'],
                 'titular_recebimento_nome' => $validated['titularNome'],

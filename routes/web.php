@@ -3,6 +3,7 @@
 use App\Models\Pedido;
 use App\Models\Produto;
 use App\Models\Sala;
+use App\Services\Privacidade\ExportadorDeDadosPessoais;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -12,6 +13,10 @@ Route::get('/', function () {
 Route::get('/politica-de-privacidade', function () {
     return view('politica-privacidade');
 })->name('politica.privacidade');
+
+Route::get('/termos-de-uso', function () {
+    return view('termos-uso');
+})->name('termos.uso');
 
 Route::get('/dashboard', function () {
     return redirect()->route(auth()->user()->role->dashboardRoute());
@@ -47,6 +52,15 @@ Route::get('/perfil', function () {
 Route::get('/perfil/editar', function () {
     return view('perfil-editar');
 })->middleware('auth')->name('perfil.editar');
+Route::get('/perfil/meus-dados', function (ExportadorDeDadosPessoais $exportador) {
+    $dados = $exportador->exportar(auth()->user());
+
+    return response()->streamDownload(
+        fn () => print (json_encode($dados, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)),
+        'meus-dados-alugaquadra.json',
+        ['Content-Type' => 'application/json; charset=UTF-8'],
+    );
+})->middleware(['auth', 'throttle:6,1'])->name('perfil.meus-dados');
 Route::get('/encontre-um-time', function () {
     return view('encontre_time');
 })->name('encontre_time');

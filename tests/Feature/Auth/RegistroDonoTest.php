@@ -25,6 +25,7 @@ function dadosValidosDeCadastroDono(array $sobrescrever = []): array
         'password' => 'SenhaForte123',
         'password_confirmation' => 'SenhaForte123',
         'aceitaComissao' => true,
+        'aceitaTermos' => true,
         'documentoIdentidade' => UploadedFile::fake()->create('rg.pdf', 100),
         'chavePixRecebimento' => 'joao.silva@example.com',
         'titularNome' => 'João Silva',
@@ -162,4 +163,16 @@ test('rejeita e-mail já cadastrado', function () {
 
 test('tela de cadastro do dono pode ser renderizada', function () {
     $this->get(route('cadastro.dono'))->assertOk();
+});
+
+test('rejeita cadastro de dono sem aceitar a política de privacidade e os termos', function () {
+    $component = Livewire::test(RegistrarDono::class);
+
+    foreach (dadosValidosDeCadastroDono(['aceitaTermos' => false]) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('aceitaTermos');
+
+    expect(User::where('email', 'joao.silva@example.com')->exists())->toBeFalse();
 });

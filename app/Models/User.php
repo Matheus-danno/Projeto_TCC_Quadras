@@ -51,6 +51,8 @@ class User extends Authenticatable
         'prazo_cancelamento_horas',
         'chave_pix_recebimento',
         'comissao_aceita_em',
+        'consentimento_em',
+        'consentimento_versao',
         'bloqueado_em',
         'status_cadastro',
         'titular_recebimento_nome',
@@ -80,6 +82,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'comissao_aceita_em' => 'datetime',
+            'consentimento_em' => 'datetime',
             'bloqueado_em' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,

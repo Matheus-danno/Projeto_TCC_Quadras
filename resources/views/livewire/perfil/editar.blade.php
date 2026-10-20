@@ -152,6 +152,20 @@
                     </button>
                 </div>
             </form>
+
+            <hr class="my-4">
+
+            <div>
+                <h3 class="h6 fw-bold mb-1">Seus dados pessoais</h3>
+                <p class="text-muted small mb-3">
+                    Baixe uma cópia dos dados que o {{ config('app.name') }} guarda sobre você (cadastro, endereço,
+                    reservas, pedidos e salas), em formato JSON. Veja como tratamos esses dados na
+                    <a href="{{ route('politica.privacidade') }}" class="text-orange fw-bold">Política de Privacidade</a>.
+                </p>
+                <a href="{{ route('perfil.meus-dados') }}" class="btn btn-outline-secondary btn-sm fw-bold">
+                    <i class="bi bi-download me-1"></i> Baixar meus dados
+                </a>
+            </div>
         </div>
     </div>
 </div>

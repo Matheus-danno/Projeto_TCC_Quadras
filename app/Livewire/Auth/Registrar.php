@@ -56,6 +56,8 @@ class Registrar extends Component
 
     public string $password_confirmation = '';
 
+    public bool $aceitaTermos = false;
+
     /**
      * @return list<int>
      */
@@ -103,8 +105,10 @@ class Registrar extends Component
             'estado' => ['required', 'string', Rule::in(RegistrarDono::UFS)],
             'telefone' => ['required', 'string'],
             'password' => $this->passwordRules(),
+            'aceitaTermos' => ['accepted'],
         ], [
             'estado.in' => 'Selecione um estado (UF) válido.',
+            'aceitaTermos.accepted' => 'Você precisa aceitar a Política de Privacidade e os Termos de Uso para continuar.',
         ]);
 
         $cpfDigitos = preg_replace('/\D/', '', $validated['cpf']);
@@ -144,6 +148,8 @@ class Registrar extends Component
             'data_nascimento' => $dataNascimento,
             'sexo' => $validated['sexo'],
             'telefone' => preg_replace('/\D/', '', $validated['telefone']),
+            'consentimento_em' => now(),
+            'consentimento_versao' => config('privacidade.versao'),
         ]);
 
         $user->endereco()->create([

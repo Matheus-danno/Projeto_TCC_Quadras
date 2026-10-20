@@ -24,6 +24,7 @@ function dadosValidosDeCadastro(array $sobrescrever = []): array
         'telefone' => '(81) 98888-7777',
         'password' => 'SenhaForte123',
         'password_confirmation' => 'SenhaForte123',
+        'aceitaTermos' => true,
     ], $sobrescrever);
 }
 
@@ -145,4 +146,31 @@ test('aceita quem completa a idade mínima hoje', function () {
     $component->call('registrar')->assertHasNoErrors();
 
     expect(User::where('email', 'fernanda.lima@example.com')->exists())->toBeTrue();
+});
+
+test('rejeita cadastro sem aceitar a política de privacidade e os termos', function () {
+    $component = Livewire::test(Registrar::class);
+
+    foreach (dadosValidosDeCadastro(['aceitaTermos' => false]) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('aceitaTermos');
+
+    expect(User::where('email', 'fernanda.lima@example.com')->exists())->toBeFalse();
+});
+
+test('cadastro registra quando e qual versão dos termos foi aceita', function () {
+    $component = Livewire::test(Registrar::class);
+
+    foreach (dadosValidosDeCadastro() as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasNoErrors();
+
+    $user = User::where('email', 'fernanda.lima@example.com')->first();
+
+    expect($user->consentimento_em)->not->toBeNull()
+        ->and($user->consentimento_versao)->toBe(config('privacidade.versao'));
 });
