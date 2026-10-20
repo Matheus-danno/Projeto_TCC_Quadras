@@ -239,8 +239,18 @@ class Reserva extends Model
     }
 
     /**
+     * Antecedência mínima, em horas, para cancelar esta reserva depois de
+     * confirmada: a política do dono da quadra, ou o padrão da plataforma.
+     */
+    public function prazoCancelamentoHoras(): int
+    {
+        return $this->quadra?->dono?->prazo_cancelamento_horas ?? self::PRAZO_CANCELAMENTO_HORAS_PADRAO;
+    }
+
+    /**
      * Se esta reserva pode ser cancelada agora: precisa estar pendente ou
-     * confirmada, e se já estiver confirmada, faltar pelo menos 5h para o início.
+     * confirmada, e se já estiver confirmada, faltar pelo menos o prazo de
+     * cancelamento (prazoCancelamentoHoras) para o início.
      */
     public function podeCancelar(): bool
     {
@@ -254,9 +264,7 @@ class Reserva extends Model
             return false;
         }
 
-        $prazoHoras = $this->quadra?->dono?->prazo_cancelamento_horas ?? self::PRAZO_CANCELAMENTO_HORAS_PADRAO;
-
-        if ($this->status === ReservaStatus::Confirmada && $minutos < $prazoHoras * 60) {
+        if ($this->status === ReservaStatus::Confirmada && $minutos < $this->prazoCancelamentoHoras() * 60) {
             return false;
         }
 

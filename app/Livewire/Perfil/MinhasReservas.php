@@ -38,8 +38,9 @@ class MinhasReservas extends Component
      * Cancela uma reserva do usuário autenticado.
      *
      * Reservas pendentes cancelam livremente. Reservas confirmadas exigem um
-     * $tipo ('credito' ou 'extorno') e só podem ser canceladas até 5h antes do
-     * início; com 'credito', o valor da quadra é devolvido como saldo do usuário.
+     * $tipo ('credito' ou 'extorno') e só podem ser canceladas até o prazo do
+     * dono (Reserva::prazoCancelamentoHoras) antes do início; com 'credito', o
+     * valor da quadra é devolvido como saldo do usuário.
      */
     public function cancelar(int $reservaId, ?string $tipo = null): void
     {
@@ -55,7 +56,7 @@ class MinhasReservas extends Component
             }
 
             if (! $reserva->podeCancelar()) {
-                $this->erros[$reservaId] = 'Cancelamentos só podem ser feitos até 5h antes do início.';
+                $this->erros[$reservaId] = 'Cancelamentos só podem ser feitos até '.$reserva->prazoCancelamentoHoras().'h antes do início.';
 
                 return;
             }

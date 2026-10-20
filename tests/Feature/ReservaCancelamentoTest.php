@@ -170,3 +170,25 @@ test('pagar com credito é rejeitado quando o saldo é insuficiente', function (
     expect($reserva->fresh()->status)->toBe(ReservaStatus::Pendente);
     expect((float) $user->fresh()->saldo_creditos)->toBe(10.0);
 });
+
+test('o prazo de cancelamento segue a política do dono e aparece na mensagem', function () {
+    $user = User::factory()->create();
+    $dono = User::factory()->donoQuadra()->create(['prazo_cancelamento_horas' => 24]);
+    $quadra = Quadra::factory()->create(['dono_id' => $dono->id, 'valor_hora' => 80]);
+    $inicio = now()->addHours(10);
+    $reserva = Reserva::factory()->create([
+        'quadra_id' => $quadra->id,
+        'user_id' => $user->id,
+        'status' => ReservaStatus::Confirmada,
+        'data' => $inicio->toDateString(),
+        'hora_inicio' => $inicio->format('H:00:00'),
+        'hora_fim' => $inicio->addHour()->format('H:00:00'),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(MinhasReservas::class)
+        ->call('cancelar', $reserva->id, 'credito')
+        ->assertSee('Cancelamentos só podem ser feitos até 24h antes do início.');
+
+    expect($reserva->fresh()->status)->toBe(ReservaStatus::Confirmada);
+});
