@@ -1363,6 +1363,25 @@ footer{
     background: transparent;
     font-size: 0.95rem;
 }
+.login-ver-senha {
+    border: none;
+    background: transparent;
+    padding: 0.25rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 6px;
+}
+.login-ver-senha i {
+    color: #8a8a8a;
+}
+.login-ver-senha:hover i,
+.login-ver-senha[aria-pressed="true"] i {
+    color: var(--cor-principal);
+}
+.login-ver-senha:focus-visible {
+    outline: 2px solid var(--cor-principal);
+    outline-offset: 2px;
+}
 .login-esqueci {
     display: block;
     color: #fff;

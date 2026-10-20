@@ -147,3 +147,10 @@ test('users can logout', function () {
 
     $this->assertGuest();
 });
+
+test('as telas de login têm o botão para mostrar e ocultar a senha', function (string $rota) {
+    $this->get(route($rota))
+        ->assertOk()
+        ->assertSee('id="login-senha"', false)
+        ->assertSee('aria-label="Mostrar senha"', false);
+})->with(['login', 'login.dono', 'login.admin']);

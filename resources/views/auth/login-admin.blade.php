@@ -42,10 +42,7 @@
                         </div>
                         @error('email') <div class="login-erro">{{ $message }}</div> @enderror
 
-                        <div class="login-input-wrap mb-2">
-                            <i class="bi bi-lock-fill"></i>
-                            <input type="password" name="password" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
-                        </div>
+                        <x-login-senha />
                         @error('password') <div class="login-erro">{{ $message }}</div> @enderror
 
                         <a href="{{ route('password.request') }}" class="login-esqueci">Esqueceu sua senha?</a>
