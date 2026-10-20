@@ -26,12 +26,17 @@ Roteiro curto para seguir durante a defesa. Cobre: cadastro → busca → reserv
 |-----------------|---------------------|
 | Jogador         | jogador@demo.com    |
 | Dono de quadra  | dono@demo.com       |
+| Administrador   | admin@demo.com      |
+
+O `DemoSeeder` usa semente fixa: os dados saem iguais toda vez que é rodado.
 
 ## 1. Cadastro
 
 - Na home, clique em **Cadastrar-se** (canto superior direito).
-- Preencha nome, data de nascimento, CPF, sexo, endereço, CEP, cidade, estado, e-mail, telefone e senha (CPF, CEP e telefone se formatam sozinhos enquanto você digita).
+- Preencha nome, data de nascimento, CPF, sexo, endereço, CEP, cidade, estado, e-mail, telefone e senha (CPF, CEP e telefone se formatam sozinhos enquanto você digita). Use um CPF válido, como `123.456.789-09`: o sistema confere o dígito verificador.
+- Marque **Li e aceito a Política de Privacidade e os Termos de Uso** (os links abrem as páginas). Sem o aceite a conta não é criada.
 - Ao enviar, o sistema cria a conta, loga automaticamente e leva direto para **Todas as Quadras**.
+- *Ponto forte para mencionar (LGPD):* o sistema grava quando e qual versão dos termos foi aceita, e exige idade mínima de 16 anos.
 - *Alternativa mais rápida:* se preferir não preencher tudo ao vivo, entre direto com `jogador@demo.com` / `password` em **Entrar** e pule para o passo 2.
 
 ## 2. Busca de quadras
@@ -45,7 +50,7 @@ Roteiro curto para seguir durante a defesa. Cobre: cadastro → busca → reserv
 - Em uma quadra da lista, clique em **Agendar**.
 - Escolha uma data e um horário disponível e clique em **Confirmar Reserva**.
 - Mostre a mensagem de sucesso.
-- *Ponto forte para mencionar:* tente reservar o **mesmo horário de novo** na mesma quadra — o sistema bloqueia o conflito com uma mensagem de erro, sem duplicar a reserva.
+- *Ponto forte para mencionar:* tente reservar o **mesmo horário de novo** na mesma quadra — o sistema bloqueia o conflito com uma mensagem de erro, sem duplicar a reserva. A garantia vale mesmo se duas pessoas clicarem ao mesmo tempo: a quadra é travada durante a gravação e o PostgreSQL tem uma regra (*exclusion constraint*) que recusa reservas sobrepostas.
 
 ## 4. Sala / Time
 
@@ -70,9 +75,14 @@ Roteiro curto para seguir durante a defesa. Cobre: cadastro → busca → reserv
 - Mostre a aba **Minhas Reservas** com a reserva feita no passo 3 aparecendo em "Próximas".
 - Mostre a aba **Meus Pedidos** com o pedido feito no passo 5 (itens comprados e total).
 - Se quiser mostrar segurança da conta, a aba **Segurança** linka para troca de senha e ativação de 2FA (essas telas usam o layout padrão do Laravel/Flux, diferente do resto do site — é esperado).
+- Em **Editar Perfil**, clique em **Baixar meus dados**: o navegador baixa um JSON com o cadastro, as reservas e os pedidos do usuário (direito de acesso e portabilidade da LGPD).
 
 ## Se algo der errado ao vivo
 
+- **Sem internet:** o site funciona normalmente — Bootstrap, ícones e fontes vêm do build local (`npm run build`). Só o mapa de **Quadras próximas** e o mapa das salas dependem de internet; evite-os ou avise antes.
 - **Página em branco ou erro 500:** o servidor provavelmente não está rodando — confira o terminal onde rodou `php artisan serve`.
+- **Site sem estilo:** faltou o `npm run build` (ou a pasta `public/build` foi apagada).
 - **Login não funciona:** confirme que rodou o `db:seed --class=DemoSeeder` depois do `migrate:fresh` (ele recria as contas de demo).
-- **Quer resetar tudo de novo no meio da apresentação:** repita os comandos do passo "Antes de começar" (migrate:fresh + db:seed) — leva poucos segundos.
+- **Erro de conexão com o banco:** o PostgreSQL não está de pé. WSL nativo: `sudo service postgresql start`; Docker: `docker compose up -d`.
+- **Porta 8000 ocupada:** `php artisan serve --port=8001`. **Porta 5432 ocupada:** ver [docs/banco-de-dados.md](docs/banco-de-dados.md#se-a-porta-5432-estiver-ocupada).
+- **Banco bagunçado ou quer resetar tudo no meio da apresentação:** repita os comandos do passo "Antes de começar" (migrate:fresh + db:seed) — leva poucos segundos.

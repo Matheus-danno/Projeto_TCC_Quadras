@@ -15,6 +15,47 @@ mesmo que a ferramenta sugira. Use o estilo de mensagem dos commits que já exis
 
 ---
 
+## Situação em 19/10/2026
+
+Todas as sessões das duas trilhas foram executadas, exceto o Prompt 2 da Sessão
+1.1. Em 19/10/2026 (commits a partir de `23bb61a`):
+
+- **Sessão 3/4:** `Reserva::agendarSemConflito()` (trava + transação) e a
+  exclusion constraint `reservas_sem_sobreposicao`; trava da sala em
+  `Sala::entrarComo()`/`aprovarPedido()`. O checkout da loja já estava protegido.
+- **Sessão 2:** só faltava o fuso, agora `America/Sao_Paulo` (as quadras reais
+  são de Bauru, não de Recife).
+- **Sessão 6:** `SalaPolicy` e novas habilidades em `PedidoPolicy`/`ReservaPolicy`,
+  aplicadas com `->can()` nas rotas.
+- **Sessão 8:** Bootstrap, ícones e fonte pelo Vite, sem CDN.
+- **Sessão 9:** verificação de e-mail retirada (opção a); `ExampleTest` e
+  `welcome.blade.php` removidos; PHP 8.3 adicionado à matriz do CI.
+- **Sessão A:** CPF com dígito verificador, UF oficial e idade mínima de 16 anos
+  também no cadastro de jogador; restos do registro do Fortify removidos.
+- **Sessão B:** aceite versionado (`config/privacidade.php`), Termos de Uso,
+  "Baixar meus dados", `docs/lgpd.md`.
+- **Sessões 5, C, D, E:** `README.md` e `docs/` (arquitetura, modelo de dados,
+  casos de uso, requisitos com rastreabilidade, testes, como avaliar);
+  cobertura no CI; semente fixa no `DemoSeeder`.
+
+### Pendências
+
+- **Sessão 1.1, Prompt 2:** validação ponta a ponta pela aplicação no PostgreSQL
+  nativo.
+- **Número da cobertura:** o PHP local não tem `pcov`/`xdebug`
+  (`sudo apt install php8.3-pcov`). O CI mede; falta copiar o valor para
+  `docs/testes.md` e, se quiser, fixar `--min` no `composer test:coverage`.
+- **Prints de tela** para a monografia (Sessão D, item 5): não foram feitos.
+- **Minimização de dados (Sessão B, item 1)** e **anonimização na exclusão de
+  conta (item 4):** decididos como trabalho futuro e documentados em
+  `docs/lgpd.md` (mudam regra de negócio e o histórico financeiro do dono).
+- **`composer.lock` desatualizado** em relação ao `composer.json` desde antes
+  destas mudanças (`composer validate` acusa). Rodar `composer update --lock`
+  quando for conveniente.
+- **Branch `melhorias-tcc`:** não foi usada; o trabalho seguiu direto na `main`.
+
+---
+
 ## 1. Diagnóstico — estado atual (28/08/2026)
 
 ### O que já está bom
@@ -114,7 +155,7 @@ Depois de cada sessão: rodar os testes e o `pint`, testar no navegador, e
 
 ## Trilha 1 — Código
 
-## [ ] Sessão 0 — Salvaguarda do repositório
+## [x] Sessão 0 — Salvaguarda do repositório (CONCLUÍDA — todo o trabalho está versionado no GitHub)
 
 ```
 Contexto: projeto de TCC "AlugaQuadra" (Laravel 12 + Livewire 4 + Fortify + Pest),
@@ -191,7 +232,7 @@ cobre a conexão via DBeaver.
 
 ---
 
-## [ ] Sessão 1.1 — Validação local do PostgreSQL (sem Docker) + DBeaver
+## [ ] Sessão 1.1 — Validação local do PostgreSQL (sem Docker) + DBeaver (banco e DBeaver validados em 05/10/2026; falta o Prompt 2, validação ponta a ponta pela aplicação)
 
 Diagnóstico feito em **05/10/2026**, revisado para **não usar Docker** (decisão do
 autor, para economizar tempo de instalação/boot do Docker Desktop): o código da
@@ -339,7 +380,7 @@ Depois das duas sessões, marque esta Sessão 1.1 como concluída e siga para a 
 
 ---
 
-## [ ] Sessão 2 — Localização pt-BR
+## [x] Sessão 2 — Localização pt-BR (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra (Laravel 12, PostgreSQL). O app é todo em português do
@@ -367,7 +408,7 @@ Teste no navegador: tela de criar sala (data por extenso no resumo) e
 
 ---
 
-## [ ] Sessão 3 — Integridade de reservas (concorrência)
+## [x] Sessão 3 — Integridade de reservas (concorrência) (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra (PostgreSQL 16). Hoje
@@ -419,7 +460,7 @@ Faça:
 
 ---
 
-## [ ] Sessão 4 — Integridade de salas e loja
+## [x] Sessão 4 — Integridade de salas e loja (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra. Dois pontos com o mesmo padrão frágil da Sessão 3:
@@ -457,7 +498,7 @@ Faça:
 
 ---
 
-## [ ] Sessão 5 — README + decisões de arquitetura
+## [x] Sessão 5 — README + decisões de arquitetura (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra. O repositório não tem README. Existem
@@ -498,7 +539,7 @@ Não invente recursos — confirme cada afirmação lendo o código.
 
 ---
 
-## [ ] Sessão 6 — Autorização e políticas
+## [x] Sessão 6 — Autorização e políticas (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra. Só existem QuadraPolicy e ReservaPolicy. Não há policy
@@ -528,7 +569,7 @@ Faça:
 
 ---
 
-## [ ] Sessão 7 — Cancelamento de reserva pelo jogador
+## [x] Sessão 7 — Cancelamento de reserva pelo jogador (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra. O enum ReservaStatus tem Cancelada, mas só dono/admin
@@ -555,7 +596,7 @@ Faça:
 
 ---
 
-## [ ] Sessão 8 — Consolidação visual / apresentação offline
+## [x] Sessão 8 — Consolidação visual / apresentação offline (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra. O site público (layouts/bootstrap.blade.php) carrega
@@ -588,7 +629,7 @@ Teste: wi-fi desligado, php artisan serve, percorra cadastro -> quadras -> reser
 
 ---
 
-## [ ] Sessão 9 — Limpeza final e CI
+## [x] Sessão 9 — Limpeza final e CI (CONCLUÍDA em 19/10/2026)
 
 ```
 Última sessão da Trilha 1. Faxina e fechamento.
@@ -626,7 +667,7 @@ merge (ou PR) de melhorias-tcc para main.
 
 Produz artefatos acadêmicos e conformidade. Depende só da Sessão 0.
 
-## [ ] Sessão A — Consolidar cadastro + validações brasileiras
+## [x] Sessão A — Consolidar cadastro + validações brasileiras (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra (Laravel 12 + Livewire 4 + Fortify, PostgreSQL). Hoje há
@@ -666,7 +707,7 @@ Anote no futuro README qual fluxo de cadastro é o oficial.
 
 ---
 
-## [ ] Sessão B — Adequação à LGPD
+## [x] Sessão B — Adequação à LGPD (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra. O sistema coleta dados pessoais (CPF, data de nascimento,
@@ -708,7 +749,7 @@ Faça:
 
 ---
 
-## [ ] Sessão C — Documentação de engenharia (`docs/`)
+## [x] Sessão C — Documentação de engenharia (`docs/`) (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra. A monografia precisa de artefatos de engenharia de
@@ -750,7 +791,7 @@ tocado por engano.
 
 ---
 
-## [ ] Sessão D — Metodologia e evidência de testes
+## [x] Sessão D — Metodologia e evidência de testes (CONCLUÍDA em 19/10/2026)
 
 ```
 Continuando o AlugaQuadra. A suíte tem ~178 testes Pest passando (contra PostgreSQL),
@@ -780,7 +821,7 @@ Faça:
 
 ---
 
-## [ ] Sessão E — Ambiente reproduzível para avaliação
+## [x] Sessão E — Ambiente reproduzível para avaliação (CONCLUÍDA em 19/10/2026)
 
 ```
 Última sessão da Trilha de TCC. O projeto já tem docker-compose.yml para o banco.
