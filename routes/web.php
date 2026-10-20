@@ -15,7 +15,7 @@ Route::get('/politica-de-privacidade', function () {
 
 Route::get('/dashboard', function () {
     return redirect()->route(auth()->user()->role->dashboardRoute());
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware('auth')->name('dashboard');
 
 Route::get('/registro', function () {
     return view('auth.registro');

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\NivelHabilidade;
 use App\Enums\Sexo;
 use App\Enums\StatusCadastro;

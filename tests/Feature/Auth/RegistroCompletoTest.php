@@ -88,3 +88,61 @@ test('rejeita e-mail já cadastrado', function () {
 
     $component->call('registrar')->assertHasErrors('email');
 });
+
+test('rejeita cpf com 11 dígitos mas dígito verificador errado', function () {
+    $component = Livewire::test(Registrar::class);
+
+    foreach (dadosValidosDeCadastro(['cpf' => '123.456.789-00']) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('cpf');
+
+    expect(User::where('email', 'fernanda.lima@example.com')->exists())->toBeFalse();
+});
+
+test('rejeita estado que não é uma UF brasileira', function () {
+    $component = Livewire::test(Registrar::class);
+
+    foreach (dadosValidosDeCadastro(['estado' => 'XX']) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('estado');
+});
+
+test('rejeita quem ainda não tem a idade mínima', function () {
+    $quaseNaIdade = now()->subYears(Registrar::IDADE_MINIMA)->addDay();
+
+    $component = Livewire::test(Registrar::class);
+
+    foreach (dadosValidosDeCadastro([
+        'diaNascimento' => (string) $quaseNaIdade->day,
+        'mesNascimento' => (string) $quaseNaIdade->month,
+        'anoNascimento' => (string) $quaseNaIdade->year,
+    ]) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasErrors('diaNascimento');
+
+    expect(User::where('email', 'fernanda.lima@example.com')->exists())->toBeFalse();
+});
+
+test('aceita quem completa a idade mínima hoje', function () {
+    $aniversario = now()->subYears(Registrar::IDADE_MINIMA);
+
+    $component = Livewire::test(Registrar::class);
+
+    foreach (dadosValidosDeCadastro([
+        'diaNascimento' => (string) $aniversario->day,
+        'mesNascimento' => (string) $aniversario->month,
+        'anoNascimento' => (string) $aniversario->year,
+    ]) as $campo => $valor) {
+        $component->set($campo, $valor);
+    }
+
+    $component->call('registrar')->assertHasNoErrors();
+
+    expect(User::where('email', 'fernanda.lima@example.com')->exists())->toBeTrue();
+});

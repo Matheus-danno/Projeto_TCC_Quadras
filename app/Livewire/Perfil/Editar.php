@@ -4,8 +4,10 @@ namespace App\Livewire\Perfil;
 
 use App\Concerns\ProfileValidationRules;
 use App\Enums\Sexo;
+use App\Livewire\Auth\RegistrarDono;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -78,6 +80,8 @@ class Editar extends Component
     {
         $user = Auth::user();
 
+        $this->estado = strtoupper(trim($this->estado));
+
         $validated = $this->validate(array_merge($this->profileRules($user->id), [
             'dataNascimento' => ['required', 'date', 'before:today'],
             'sexo' => ['required', 'in:masculino,feminino'],
@@ -87,9 +91,11 @@ class Editar extends Component
             'bairro' => ['required', 'string', 'max:255'],
             'cep' => ['required', 'string'],
             'cidade' => ['required', 'string', 'max:255'],
-            'estado' => ['required', 'string', 'size:2'],
+            'estado' => ['required', 'string', Rule::in(RegistrarDono::UFS)],
             'telefone' => ['required', 'string'],
-        ]));
+        ]), [
+            'estado.in' => 'Informe uma sigla de estado (UF) válida.',
+        ]);
 
         $cepDigitos = preg_replace('/\D/', '', $validated['cep']);
         if (strlen($cepDigitos) !== 8) {

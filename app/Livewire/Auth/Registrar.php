@@ -5,13 +5,22 @@ namespace App\Livewire\Auth;
 use App\Concerns\PasswordValidationRules;
 use App\Enums\Sexo;
 use App\Models\User;
+use App\Rules\CpfValido;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Registrar extends Component
 {
     use PasswordValidationRules;
+
+    /**
+     * Idade mínima para criar conta de jogador. Abaixo dela, pela LGPD
+     * (art. 14), o tratamento de dados exigiria consentimento de um dos pais.
+     */
+    public const IDADE_MINIMA = 16;
 
     public string $name = '';
 
@@ -80,7 +89,7 @@ class Registrar extends Component
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'cpf' => ['required', 'string'],
+            'cpf' => ['required', 'string', new CpfValido],
             'diaNascimento' => ['required', 'integer', 'min:1', 'max:31'],
             'mesNascimento' => ['required', 'integer', 'min:1', 'max:12'],
             'anoNascimento' => ['required', 'integer', 'min:1900', 'max:'.now()->format('Y')],
@@ -91,17 +100,14 @@ class Registrar extends Component
             'bairro' => ['required', 'string', 'max:255'],
             'cep' => ['required', 'string'],
             'cidade' => ['required', 'string', 'max:255'],
-            'estado' => ['required', 'string', 'size:2'],
+            'estado' => ['required', 'string', Rule::in(RegistrarDono::UFS)],
             'telefone' => ['required', 'string'],
             'password' => $this->passwordRules(),
+        ], [
+            'estado.in' => 'Selecione um estado (UF) válido.',
         ]);
 
         $cpfDigitos = preg_replace('/\D/', '', $validated['cpf']);
-        if (strlen($cpfDigitos) !== 11) {
-            $this->addError('cpf', 'Informe um CPF válido com 11 dígitos.');
-
-            return;
-        }
 
         $cepDigitos = preg_replace('/\D/', '', $validated['cep']);
         if (strlen($cepDigitos) !== 8) {
@@ -117,6 +123,12 @@ class Registrar extends Component
         }
 
         $dataNascimento = sprintf('%04d-%02d-%02d', $validated['anoNascimento'], $validated['mesNascimento'], $validated['diaNascimento']);
+
+        if (Carbon::parse($dataNascimento)->age < self::IDADE_MINIMA) {
+            $this->addError('diaNascimento', 'É preciso ter pelo menos '.self::IDADE_MINIMA.' anos para criar uma conta.');
+
+            return;
+        }
 
         if (User::where('cpf', $cpfDigitos)->exists()) {
             $this->addError('cpf', 'Esse CPF já está cadastrado.');
