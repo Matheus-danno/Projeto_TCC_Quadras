@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Sala extends Model
 {
@@ -259,8 +260,37 @@ class Sala extends Model
      * - 'sucesso' (bool): se o usuário entrou de fato na sala agora
      * - 'pendente' (bool): se um pedido de aprovação foi criado, aguardando o administrador
      * - 'mensagem' (?string): mensagem de erro, quando nem sucesso nem pendente
+     *
+     * Roda numa transação com a linha da sala travada (lockForUpdate) e com os
+     * participantes recarregados do banco: se dois jogadores tentam pegar a
+     * última vaga ao mesmo tempo, o segundo só conta as vagas depois que o
+     * primeiro entrou, e recebe "sala cheia" em vez de estourar a capacidade.
      */
     public function entrarComo(User $user): array
+    {
+        return DB::transaction(function () use ($user) {
+            $this->recarregarTravada();
+
+            return $this->registrarEntrada($user);
+        });
+    }
+
+    /**
+     * Trava a linha desta sala até o fim da transação atual e recarrega os
+     * atributos e participantes direto do banco.
+     */
+    private function recarregarTravada(): void
+    {
+        $travada = static::query()->whereKey($this->id)->lockForUpdate()->firstOrFail();
+
+        $this->setRawAttributes($travada->getAttributes(), true);
+        $this->load('participantes');
+    }
+
+    /**
+     * @return array{sucesso: bool, pendente: bool, mensagem: ?string}
+     */
+    private function registrarEntrada(User $user): array
     {
         if ($this->status !== SalaStatus::Aberta) {
             return ['sucesso' => false, 'pendente' => false, 'mensagem' => 'Esta sala já está fechada.'];
@@ -328,17 +358,34 @@ class Sala extends Model
     /**
      * Aprova um pedido de participação pendente, adicionando o jogador à sala.
      */
-    public function aprovarPedido(PedidoParticipacao $pedido): void
+    /**
+     * Aprova o pedido e coloca o jogador na sala. Retorna false (e mantém o
+     * pedido pendente) se a sala já estiver cheia no momento da aprovação —
+     * a contagem é feita com a sala travada, como em entrarComo().
+     */
+    public function aprovarPedido(PedidoParticipacao $pedido): bool
     {
-        $pedido->update(['status' => PedidoParticipacaoStatus::Aprovado]);
+        return DB::transaction(function () use ($pedido) {
+            $this->recarregarTravada();
 
-        $this->participantes()->syncWithoutDetaching([$pedido->user_id]);
+            $jaParticipa = $this->participantes->contains('id', $pedido->user_id);
 
-        AtividadeSala::create([
-            'sala_id' => $this->id,
-            'user_id' => $pedido->user_id,
-            'descricao' => $pedido->user->name.' entrou na sala',
-        ]);
+            if (! $jaParticipa && $this->participantes->count() >= $this->max_participantes) {
+                return false;
+            }
+
+            $pedido->update(['status' => PedidoParticipacaoStatus::Aprovado]);
+
+            $this->participantes()->syncWithoutDetaching([$pedido->user_id]);
+
+            AtividadeSala::create([
+                'sala_id' => $this->id,
+                'user_id' => $pedido->user_id,
+                'descricao' => $pedido->user->name.' entrou na sala',
+            ]);
+
+            return true;
+        });
     }
 
     /**

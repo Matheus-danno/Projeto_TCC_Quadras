@@ -128,7 +128,11 @@ class Detalhe extends Component
 
         $pedido = $this->sala->pedidosParticipacao()->findOrFail($pedidoId);
 
-        $this->sala->aprovarPedido($pedido);
+        unset($this->erros['entrar']);
+
+        if (! $this->sala->aprovarPedido($pedido)) {
+            $this->erros['entrar'] = 'A sala já está cheia. Não foi possível aprovar esse pedido.';
+        }
 
         unset($this->pedidosPendentes, $this->participantes);
     }
