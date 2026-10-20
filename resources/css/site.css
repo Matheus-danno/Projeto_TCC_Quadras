@@ -1,0 +1,8 @@
+/*
+ * Estilos base do site público (layouts/bootstrap.blade.php e o cadastro de
+ * dono). Vêm do npm e são empacotados pelo Vite, em vez de CDN, para o site
+ * funcionar sem internet (ex.: apresentação do TCC). O CSS próprio do site
+ * continua em public/css/style.css, carregado depois deste.
+ */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.min.css';
