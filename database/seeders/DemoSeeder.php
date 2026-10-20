@@ -31,8 +31,17 @@ use Illuminate\Support\Str;
  */
 class DemoSeeder extends Seeder
 {
+    /**
+     * Semente fixa do Faker: os dados gerados pelas factories (jogadores
+     * extras, CNPJs...) saem iguais a cada execução, para a demonstração e
+     * os prints da monografia serem reproduzíveis.
+     */
+    private const SEMENTE_FAKER = 20261019;
+
     public function run(): void
     {
+        fake()->seed(self::SEMENTE_FAKER);
+
         DB::table('participacao_salas')->delete();
         DB::table('documentos')->delete();
         DB::table('cadastro_historicos')->delete();
