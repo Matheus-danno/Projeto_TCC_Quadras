@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\StatusCadastro;
-use App\Enums\TipoDocumento;
 use App\Livewire\Admin\Aprovacoes\AnalisarProprietario;
 use App\Livewire\Admin\Aprovacoes\AnalisarQuadra;
 use App\Livewire\Painel\Quadras\Formulario;
@@ -13,8 +12,8 @@ use App\Services\Aprovacao\CadastroAprovacaoService;
 use Livewire\Livewire;
 
 /**
- * Garante que a quadra tem o mínimo de fotos e o comprovante de imóvel já
- * cadastrados, pra editar/salvar pelo Formulario sem precisar simular
+ * Garante que a quadra tem o mínimo de fotos já
+ * cadastradas, pra editar/salvar pelo Formulario sem precisar simular
  * upload de arquivo nos testes (o ambiente de CI não tem a extensão GD).
  */
 function prepararQuadraParaEdicao(Quadra $quadra): void
@@ -27,13 +26,6 @@ function prepararQuadraParaEdicao(Quadra $quadra): void
             'capa' => $i === 0,
         ]);
     }
-
-    $quadra->documentos()->create([
-        'tipo' => TipoDocumento::ComprovanteImovel,
-        'caminho' => "documentos/quadras/{$quadra->id}/comprovante.pdf",
-        'nome_original' => 'comprovante.pdf',
-        'tamanho_bytes' => 1024,
-    ]);
 }
 
 test('quadra não aprovada não aparece na busca pública nem aceita reserva', function () {

@@ -555,10 +555,6 @@ class RealQuadrasSeeder extends Seeder
                 ]);
             }
 
-            // Sem isso, o formulário de edição do dono exige um comprovante
-            // antes de salvar qualquer coisa (até só uma foto nova) — a
-            // validação falha, nada é persistido e a foto "some" ao recarregar.
-            $this->anexarDocumentoSeNecessario($quadra, TipoDocumento::ComprovanteImovel, 'comprovante-imovel.txt');
             $this->anexarDocumentoSeNecessario($dono, TipoDocumento::DocumentoIdentidade, 'documento-identidade.txt');
         });
 

@@ -4,9 +4,7 @@ namespace App\Livewire\Painel\Quadras;
 
 use App\Enums\Esporte;
 use App\Enums\StatusCadastro;
-use App\Enums\TipoDocumento;
 use App\Enums\TipoPiso;
-use App\Models\Documento;
 use App\Models\Quadra;
 use App\Models\QuadraFoto;
 use App\Services\Aprovacao\CadastroAprovacaoService;
@@ -56,8 +54,6 @@ class Formulario extends Component
     /** @var array<int, TemporaryUploadedFile> */
     public array $novasFotos = [];
 
-    public ?TemporaryUploadedFile $comprovanteImovel = null;
-
     public ?string $bloqueioExclusao = null;
 
     public function mount(?Quadra $quadra = null): void
@@ -96,21 +92,6 @@ class Formulario extends Component
             'descricao' => ['required', 'string', 'max:1000'],
             'novasFotos' => ['array', 'max:8'],
             'novasFotos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'comprovanteImovel' => [
-                $this->quadra?->exists && $this->quadra->documentos()->where('tipo', TipoDocumento::ComprovanteImovel)->exists() ? 'nullable' : 'required',
-                'file',
-                'mimes:jpg,jpeg,png,pdf',
-                'max:10240',
-            ],
-        ];
-    }
-
-    protected function messages(): array
-    {
-        return [
-            'comprovanteImovel.required' => 'Envie um comprovante de que você pode explorar o local (escritura, contrato de locação ou similar).',
-            'comprovanteImovel.mimes' => 'O comprovante precisa ser JPG, PNG ou PDF.',
-            'comprovanteImovel.max' => 'O comprovante pode ter no máximo 10 MB.',
         ];
     }
 
@@ -122,11 +103,6 @@ class Formulario extends Component
     public function totalFotos(): int
     {
         return $this->fotosExistentes()->count() + count($this->novasFotos);
-    }
-
-    public function comprovanteAtual(): ?Documento
-    {
-        return $this->quadra?->documentos()->where('tipo', TipoDocumento::ComprovanteImovel)->latest()->first();
     }
 
     public function removerFotoExistente(int $fotoId): void
@@ -216,25 +192,7 @@ class Formulario extends Component
             ]);
         }
 
-        if ($this->comprovanteImovel) {
-            $this->quadra->documentos()->where('tipo', TipoDocumento::ComprovanteImovel)->get()
-                ->each(function (Documento $documento) {
-                    Storage::disk('local')->delete($documento->caminho);
-                    $documento->delete();
-                });
-
-            $caminho = $this->comprovanteImovel->store('documentos/quadras/'.$this->quadra->id, 'local');
-
-            $this->quadra->documentos()->create([
-                'tipo' => TipoDocumento::ComprovanteImovel,
-                'caminho' => $caminho,
-                'nome_original' => $this->comprovanteImovel->getClientOriginalName(),
-                'tamanho_bytes' => $this->comprovanteImovel->getSize(),
-            ]);
-        }
-
         $this->novasFotos = [];
-        $this->comprovanteImovel = null;
         $this->reordenarFotos($this->quadra);
 
         if ($ehNova) {

@@ -129,7 +129,7 @@ flowchart LR
 ### UC11 — Cadastrar quadra
 - **Ator:** Dono.
 - **Fluxo principal:** informa dados, endereço (geocodificado pelo Nominatim),
-  fotos e comprovante do imóvel; a quadra entra na fila de aprovação.
+  e fotos; a quadra entra na fila de aprovação.
 - **Alternativo:** editar campos sensíveis de uma quadra aprovada a devolve
   para análise.
 

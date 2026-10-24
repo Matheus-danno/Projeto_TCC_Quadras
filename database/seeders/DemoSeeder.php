@@ -316,7 +316,7 @@ class DemoSeeder extends Seeder
     /**
      * Cria proprietários e quadras em cada status do fluxo de aprovação
      * (pendente, em análise, ajustes solicitados, aprovado e rejeitado),
-     * com documento de identidade/comprovante e histórico de exemplo, para
+     * com documento de identidade e histórico de exemplo, para
      * testar a Fila de aprovações do admin e a tela de status do dono.
      */
     private function criarDadosAprovacaoDemo(User $donoAprovado): void
@@ -379,7 +379,6 @@ class DemoSeeder extends Seeder
             'nome' => 'Arena Roberto Mendes',
             'cidade' => 'Recife',
         ]);
-        $anexarDocumento($quadraDoPendente, TipoDocumento::ComprovanteImovel, 'contrato-locacao.pdf');
         $registrarEvento($quadraDoPendente, 'enviado', null, StatusCadastro::Pendente, null, null, 2);
 
         // Em análise: um admin já abriu e está olhando.
@@ -393,7 +392,6 @@ class DemoSeeder extends Seeder
             'nome' => 'Quadra Nova em Análise',
             'status_cadastro' => StatusCadastro::EmAnalise,
         ]);
-        $anexarDocumento($quadraEmAnalise, TipoDocumento::ComprovanteImovel, 'escritura-quadra-nova.pdf');
         $registrarEvento($quadraEmAnalise, 'enviado', null, StatusCadastro::Pendente, null, null, 1);
         $registrarEvento($quadraEmAnalise, 'em_analise', StatusCadastro::Pendente, StatusCadastro::EmAnalise, null, $admin, 0);
 
@@ -410,7 +408,6 @@ class DemoSeeder extends Seeder
             'nome' => 'Quadra com Ajustes Pendentes',
             'status_cadastro' => StatusCadastro::AjustesSolicitados,
         ]);
-        $anexarDocumento($quadraAjustes, TipoDocumento::ComprovanteImovel, 'contrato-quadra-ajustes.pdf');
         $registrarEvento($quadraAjustes, 'enviado', null, StatusCadastro::Pendente, null, null, 3);
         $registrarEvento($quadraAjustes, 'ajustes_solicitados', StatusCadastro::Pendente, StatusCadastro::AjustesSolicitados, 'As fotos enviadas não mostram bem a condição do piso. Envie fotos mais claras, com boa iluminação.', $admin, 2);
         $quadraAjustes->forceFill(['updated_at' => now()->subDays(2)])->save();
@@ -428,9 +425,8 @@ class DemoSeeder extends Seeder
             'nome' => 'Quadra Rejeitada',
             'status_cadastro' => StatusCadastro::Rejeitado,
         ]);
-        $anexarDocumento($quadraRejeitada, TipoDocumento::ComprovanteImovel, 'comprovante-vencido.pdf');
         $registrarEvento($quadraRejeitada, 'enviado', null, StatusCadastro::Pendente, null, null, 4);
-        $registrarEvento($quadraRejeitada, 'rejeitado', StatusCadastro::Pendente, StatusCadastro::Rejeitado, 'O comprovante de uso do imóvel está vencido. Envie um documento válido.', $admin, 2);
+        $registrarEvento($quadraRejeitada, 'rejeitado', StatusCadastro::Pendente, StatusCadastro::Rejeitado, 'As fotos não correspondem ao endereço informado. Envie fotos atuais da quadra.', $admin, 2);
         $quadraRejeitada->forceFill(['updated_at' => now()->subDays(2)])->save();
 
         // Aprovado pelo fluxo completo (além dos donos antigos, migrados direto

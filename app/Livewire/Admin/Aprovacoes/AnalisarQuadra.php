@@ -33,8 +33,7 @@ class AnalisarQuadra extends Component
      */
     public const CHECKLIST = [
         'fotos_condizentes' => 'Fotos condizem com a quadra descrita',
-        'endereco_confere' => 'Endereço confere com o comprovante',
-        'comprovante_valido' => 'Comprovante de uso do imóvel é válido',
+        'endereco_confere' => 'Endereço informado parece válido',
         'dados_consistentes' => 'Preço, horários e informações são consistentes',
     ];
 

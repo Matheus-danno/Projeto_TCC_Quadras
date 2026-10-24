@@ -133,26 +133,6 @@
             </div>
         </flux:card>
 
-        <flux:card class="rounded-2xl">
-            <flux:heading size="lg">{{ __('Comprovante do imóvel') }}</flux:heading>
-            <flux:text class="mb-4 text-zinc-400">
-                {{ __('Escritura, contrato de locação ou documento similar que comprove que você pode explorar este local. JPG, PNG ou PDF, até 10 MB.') }}
-            </flux:text>
-
-            @if ($this->comprovanteAtual())
-                <div class="mb-3 flex items-center justify-between gap-2 rounded-xl bg-zinc-50 px-4 py-2">
-                    <a href="{{ $this->comprovanteAtual()->url() }}" target="_blank" class="flex items-center gap-2 text-sm font-medium text-orange-600 hover:underline">
-                        <flux:icon.document class="size-4" />
-                        {{ $this->comprovanteAtual()->nome_original }}
-                    </a>
-                    <flux:text class="text-xs text-zinc-400">{{ __('Envie um novo arquivo abaixo para substituir.') }}</flux:text>
-                </div>
-            @endif
-
-            <flux:input type="file" wire:model="comprovanteImovel" accept=".jpg,.jpeg,.png,.pdf" class="rounded-xl" />
-            @error('comprovanteImovel') <flux:text class="mt-2 text-red-600">{{ $message }}</flux:text> @enderror
-        </flux:card>
-
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             @if ($quadra)
                 <flux:button
