@@ -194,13 +194,15 @@ class RegistrarDono extends Component
                 'estado' => strtoupper($validated['estado']),
             ]);
 
+            // O store() do Livewire move o arquivo temporario; o tamanho tem que ser lido antes.
+            $tamanho = $this->documentoIdentidade->getSize();
             $caminho = $this->documentoIdentidade->store('documentos/users/'.$user->id, 'local');
 
             $user->documentos()->create([
                 'tipo' => TipoDocumento::DocumentoIdentidade,
                 'caminho' => $caminho,
                 'nome_original' => $this->documentoIdentidade->getClientOriginalName(),
-                'tamanho_bytes' => $this->documentoIdentidade->getSize(),
+                'tamanho_bytes' => $tamanho,
             ]);
 
             return $user;

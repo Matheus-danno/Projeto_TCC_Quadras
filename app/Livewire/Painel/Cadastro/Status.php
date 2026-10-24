@@ -60,13 +60,15 @@ class Status extends Component
                     $documento->delete();
                 });
 
+            // O store() do Livewire move o arquivo temporario; o tamanho tem que ser lido antes.
+            $tamanho = $this->novoDocumentoIdentidade->getSize();
             $caminho = $this->novoDocumentoIdentidade->store('documentos/users/'.$usuario->id, 'local');
 
             $usuario->documentos()->create([
                 'tipo' => TipoDocumento::DocumentoIdentidade,
                 'caminho' => $caminho,
                 'nome_original' => $this->novoDocumentoIdentidade->getClientOriginalName(),
-                'tamanho_bytes' => $this->novoDocumentoIdentidade->getSize(),
+                'tamanho_bytes' => $tamanho,
             ]);
 
             $this->novoDocumentoIdentidade = null;
