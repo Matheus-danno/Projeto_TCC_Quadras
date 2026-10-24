@@ -82,6 +82,43 @@ test('dono consegue cadastrar uma nova quadra com foto de capa', function () {
     Storage::disk('public')->assertExists($quadra->fotos->first()->caminho);
 });
 
+test('cadastro com pendências não salva e lista no popup tudo o que falta', function () {
+    Storage::fake('public');
+
+    $dono = User::factory()->donoQuadra()->create();
+
+    $componente = Livewire::actingAs($dono)
+        ->test(Formulario::class)
+        ->set('nome', 'Arena Incompleta')
+        ->set('novasFotos', [UploadedFile::fake()->image('quadra.jpg')])
+        ->call('salvar')
+        ->assertHasErrors(['cep', 'tipoPiso', 'capacidade_maxima', 'descricao', 'novasFotos']);
+
+    $pendencias = $componente->get('pendencias');
+
+    expect(Quadra::count())->toBe(0)
+        ->and($pendencias)->toContain('Envie pelo menos 3 fotos da quadra (faltam 2).')
+        ->and(implode(' ', $pendencias))->toContain('CEP')->toContain('tipo de piso')->toContain('capacidade máxima')->toContain('descrição');
+});
+
+test('foto acima de 4 MB aparece nas pendências do popup', function () {
+    Storage::fake('public');
+
+    $dono = User::factory()->donoQuadra()->create();
+
+    $componente = Livewire::actingAs($dono)
+        ->test(Formulario::class)
+        ->set('novasFotos', [
+            UploadedFile::fake()->image('a.jpg'),
+            UploadedFile::fake()->image('b.jpg'),
+            UploadedFile::fake()->image('grande.jpg')->size(5000),
+        ])
+        ->call('salvar');
+
+    expect($componente->get('pendencias'))->toContain('Cada foto pode ter no máximo 4 MB.')
+        ->and(Quadra::count())->toBe(0);
+});
+
 test('quando o endereço não é geocodificável a quadra é salva mesmo assim, sem coordenadas', function () {
     Storage::fake('public');
     Storage::fake('local');

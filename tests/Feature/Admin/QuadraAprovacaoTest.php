@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\StatusCadastro;
+use App\Livewire\Admin\Aprovacoes\Fila;
 use App\Livewire\Admin\Quadras\Listagem;
 use App\Livewire\Quadras\Listagem as ListagemPublica;
 use App\Models\Quadra;
@@ -58,4 +59,14 @@ test('dono de quadra não pode suspender ou reativar quadras pela tela do admin'
     $dono = User::factory()->donoQuadra()->create();
 
     $this->actingAs($dono)->get(route('admin.quadras'))->assertForbidden();
+});
+
+test('fila de aprovações mostra as quadras pendentes antes das já aprovadas', function () {
+    $admin = User::factory()->admin()->create();
+    Quadra::factory()->count(12)->create(['status_cadastro' => StatusCadastro::Aprovado, 'updated_at' => now()->subDays(5)]);
+    $pendente = Quadra::factory()->create(['status_cadastro' => StatusCadastro::Pendente, 'nome' => 'Arena Recém Criada']);
+
+    $quadras = Livewire::actingAs($admin)->test(Fila::class, ['aba' => 'quadras'])->instance()->quadras;
+
+    expect($quadras->first()->id)->toBe($pendente->id);
 });

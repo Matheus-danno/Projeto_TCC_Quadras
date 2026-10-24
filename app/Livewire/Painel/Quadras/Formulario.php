@@ -11,6 +11,7 @@ use App\Services\Aprovacao\CadastroAprovacaoService;
 use App\Services\Geocoding\NominatimClient;
 use Flux\Concerns\InteractsWithComponents;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -55,6 +56,9 @@ class Formulario extends Component
     public array $novasFotos = [];
 
     public ?string $bloqueioExclusao = null;
+
+    /** @var list<string> */
+    public array $pendencias = [];
 
     public function mount(?Quadra $quadra = null): void
     {
@@ -123,19 +127,70 @@ class Formulario extends Component
         $this->novasFotos = array_values($this->novasFotos);
     }
 
-    public function salvar(CadastroAprovacaoService $aprovacaoService): void
+    protected function messages(): array
     {
-        $validated = $this->validate();
+        return [
+            'novasFotos.max' => __('Você pode ter no máximo 8 fotos por quadra.'),
+            'novasFotos.*.image' => __('As fotos precisam ser imagens JPG, PNG ou WEBP.'),
+            'novasFotos.*.mimes' => __('As fotos precisam ser imagens JPG, PNG ou WEBP.'),
+            'novasFotos.*.max' => __('Cada foto pode ter no máximo 4 MB.'),
+        ];
+    }
 
-        if (($this->fotosExistentes()->count() + count($this->novasFotos)) > 8) {
-            $this->addError('novasFotos', __('Você pode ter no máximo 8 fotos por quadra.'));
+    protected function validationAttributes(): array
+    {
+        return [
+            'nome' => __('nome da quadra'),
+            'esporte' => __('tipo de esporte'),
+            'tipoPiso' => __('tipo de piso'),
+            'valor_hora' => __('valor por hora'),
+            'capacidade_maxima' => __('capacidade máxima'),
+            'cep' => __('CEP'),
+            'descricao' => __('descrição'),
+        ];
+    }
 
-            return;
+    /**
+     * Valida tudo de uma vez (campos e quantidade de fotos) para o popup
+     * listar todas as pendências, e não só a primeira.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function validarComPendencias(): ?array
+    {
+        $this->pendencias = [];
+        $this->resetErrorBag();
+
+        try {
+            $validated = $this->validate();
+        } catch (ValidationException $e) {
+            $validated = null;
+            $this->setErrorBag($e->validator->errors());
         }
 
-        if ($this->totalFotos() < 3) {
-            $this->addError('novasFotos', __('Envie pelo menos 3 fotos da quadra.'));
+        $totalFotos = $this->totalFotos();
 
+        if ($totalFotos > 8) {
+            $this->addError('novasFotos', __('Você pode ter no máximo 8 fotos por quadra.'));
+        } elseif ($totalFotos < 3) {
+            $this->addError('novasFotos', __('Envie pelo menos 3 fotos da quadra (faltam :quantidade).', ['quantidade' => 3 - $totalFotos]));
+        }
+
+        if ($this->getErrorBag()->isNotEmpty()) {
+            $this->pendencias = array_values(array_unique($this->getErrorBag()->all()));
+            $this->modal('pendencias-quadra')->show();
+
+            return null;
+        }
+
+        return $validated;
+    }
+
+    public function salvar(CadastroAprovacaoService $aprovacaoService): void
+    {
+        $validated = $this->validarComPendencias();
+
+        if ($validated === null) {
             return;
         }
 

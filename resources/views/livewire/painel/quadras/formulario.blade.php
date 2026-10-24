@@ -25,7 +25,7 @@
         @endif
     @endif
 
-    <form wire:submit="salvar" class="flex flex-col gap-6">
+    <form wire:submit="salvar" class="flex flex-col gap-6" novalidate>
         <flux:card class="rounded-2xl">
             <flux:heading size="lg">{{ __('Fotos da Quadra') }}</flux:heading>
             <flux:text class="mb-4 text-zinc-400">
@@ -161,6 +161,25 @@
             </div>
         </div>
     </form>
+
+    <flux:modal name="pendencias-quadra" class="w-full md:w-[28rem]">
+        <div class="flex flex-col gap-4">
+            <flux:heading size="lg">{{ __('Falta pouco para salvar a quadra') }}</flux:heading>
+            <flux:text>{{ __('Corrija os itens abaixo e tente de novo:') }}</flux:text>
+
+            <ul class="flex list-disc flex-col gap-1 ps-5 text-sm text-red-600">
+                @foreach ($pendencias as $pendencia)
+                    <li>{{ $pendencia }}</li>
+                @endforeach
+            </ul>
+
+            <div class="flex justify-end">
+                <flux:modal.close>
+                    <flux:button variant="primary" color="orange" class="rounded-full">{{ __('Entendi') }}</flux:button>
+                </flux:modal.close>
+            </div>
+        </div>
+    </flux:modal>
 
     @if ($quadra)
         <flux:modal name="excluir-quadra" class="w-full md:w-96">

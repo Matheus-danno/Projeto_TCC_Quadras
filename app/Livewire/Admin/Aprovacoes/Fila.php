@@ -94,7 +94,7 @@ class Fila extends Component
                         ->when($documento, fn ($q) => $q->orWhere('cpf', $documento)->orWhere('cnpj', $documento));
                 });
             })
-            ->orderBy('updated_at')
+            ->tap(fn (Builder $query) => $this->ordenarPendentesPrimeiro($query))
             ->paginate(10);
     }
 
@@ -111,8 +111,20 @@ class Fila extends Component
                     ->orWhere('cidade', 'like', $termo)
                     ->orWhereHas('dono', fn ($q) => $q->where('name', 'like', $termo)));
             })
-            ->orderBy('updated_at')
+            ->tap(fn (Builder $query) => $this->ordenarPendentesPrimeiro($query))
             ->paginate(10);
+    }
+
+    /**
+     * Pendentes e em análise primeiro (o que espera o admin), depois ajustes
+     * solicitados e o resto; dentro de cada grupo, quem espera há mais tempo.
+     */
+    protected function ordenarPendentesPrimeiro(Builder $query): void
+    {
+        $query->orderByRaw(
+            'case status_cadastro when ? then 0 when ? then 0 when ? then 1 else 2 end',
+            [StatusCadastro::Pendente->value, StatusCadastro::EmAnalise->value, StatusCadastro::AjustesSolicitados->value],
+        )->orderBy('updated_at');
     }
 
     public function render()
