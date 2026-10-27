@@ -23,6 +23,10 @@ yarn-error.log
 /.zed
 /.claude
 
+/Bank/Database/*.sqlite
+/Banco de dados/
+
+
 # Artefatos de SO / editores
 NUL
 *.bak
