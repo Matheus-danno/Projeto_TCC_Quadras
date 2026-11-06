@@ -1,6 +1,6 @@
 # AlugaQuadra (TCC)
 
-Laravel 12 + Livewire 4 + Fortify + Pest, PostgreSQL via `docker-compose.yml`.
+Laravel 12 + Livewire 4 + Fortify + Pest, SQLite (sem Docker).
 O plano de trabalho fica em `PLANO.md`.
 
 ## Convenções
